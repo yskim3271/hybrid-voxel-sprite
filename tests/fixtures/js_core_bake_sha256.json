@@ -1,0 +1,59 @@
+{
+  "source": "origin repo src/core/voxel_builder.js computeNormalAndAO (fresh vm context per case)",
+  "cases": {
+    "sphere": {
+      "size": [
+        20,
+        20,
+        20
+      ],
+      "bytes": 32000,
+      "sha256": "44bd012bbb303747a673065067be8364f07f35e9c3a1480656a173ad24ec7a33"
+    },
+    "crevice": {
+      "size": [
+        16,
+        16,
+        16
+      ],
+      "bytes": 16384,
+      "sha256": "1615a2d8bb9b5c9a6add009d3a3f465cf48d4f92b72aa8b1bb82997f1992c95e"
+    },
+    "mushroom": {
+      "size": [
+        20,
+        20,
+        16
+      ],
+      "bytes": 25600,
+      "sha256": "0ae65ed95a0e85f2fe478db0c232009ad1efbaa8b7c34345b10b773e0dcd7330"
+    },
+    "ref_torso": {
+      "size": [
+        14,
+        10,
+        17
+      ],
+      "bytes": 9520,
+      "sha256": "38e19332ab89a1e2819182fea54011668f6fe45be302404c9d061d8b2802f1a7"
+    },
+    "ref_arm_blade": {
+      "size": [
+        7,
+        15,
+        14
+      ],
+      "bytes": 5880,
+      "sha256": "63a78076fee043db3b83717f27450cff8b395e49bda59a4c312fcc4cd7cb722c"
+    },
+    "ref_cape": {
+      "size": [
+        12,
+        4,
+        11
+      ],
+      "bytes": 2112,
+      "sha256": "525bc5bb3c587eaf6ed9b2ab7591757c737c4636155a0f89b41b1dd116d619b9"
+    }
+  }
+}

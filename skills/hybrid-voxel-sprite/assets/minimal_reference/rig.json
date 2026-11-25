@@ -1,0 +1,272 @@
+{
+  "schema": "svox.rig/v1",
+  "generator": "svox_cli.py 1.0.0",
+  "coordinates": {
+    "handedness": "right-handed",
+    "up": "+Z",
+    "front": "-Y",
+    "unit": "1 voxel",
+    "ground": "z = 0"
+  },
+  "targetHeight": 9.0,
+  "parts": [
+    {
+      "name": "torso",
+      "parent": null,
+      "pivot": [
+        7.0,
+        5.0,
+        0.0
+      ],
+      "restOffset": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        14,
+        10,
+        17
+      ],
+      "deformRole": "torso",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/torso.albedo.png",
+      "normalAoPath": "parts/torso.normal_ao.png"
+    },
+    {
+      "name": "arm_blade",
+      "parent": "torso",
+      "pivot": [
+        3.5,
+        12.0,
+        12.0
+      ],
+      "restOffset": [
+        7.5,
+        0.0,
+        12.5
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        7,
+        15,
+        14
+      ],
+      "deformRole": "rigid",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/arm_blade.albedo.png",
+      "normalAoPath": "parts/arm_blade.normal_ao.png"
+    },
+    {
+      "name": "cape",
+      "parent": "torso",
+      "pivot": [
+        6.0,
+        2.0,
+        0.0
+      ],
+      "restOffset": [
+        0.0,
+        5.0,
+        12.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        12,
+        4,
+        11
+      ],
+      "deformRole": "cloth",
+      "flippedCloth": true,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/cape.albedo.png",
+      "normalAoPath": "parts/cape.normal_ao.png"
+    }
+  ],
+  "clips": [
+    {
+      "name": "idle",
+      "duration": 2.0,
+      "loop": true,
+      "channels": [
+        {
+          "part": "torso",
+          "channel": "squashZ",
+          "fn": "sin",
+          "amp": 0.035,
+          "cycles": 2
+        },
+        {
+          "part": "torso",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": 0.06,
+          "cycles": 1
+        },
+        {
+          "part": "arm_blade",
+          "channel": "rotX",
+          "fn": "sin",
+          "bias": -0.12,
+          "amp": 0.1,
+          "cycles": 2,
+          "phase": 0.6
+        },
+        {
+          "part": "cape",
+          "channel": "shearY",
+          "fn": "sin",
+          "bias": -0.22,
+          "amp": 0.05,
+          "cycles": 2
+        },
+        {
+          "part": "cape",
+          "channel": "waveAmpX",
+          "fn": "sin",
+          "bias": 0.45,
+          "amp": 0.15,
+          "cycles": 1
+        },
+        {
+          "part": "cape",
+          "channel": "waveAmpY",
+          "fn": "sin",
+          "bias": 0.55,
+          "amp": 0.2,
+          "cycles": 2
+        },
+        {
+          "part": "cape",
+          "channel": "waveFreq",
+          "fn": "sin",
+          "bias": 5.0,
+          "amp": 0.0,
+          "cycles": 1
+        },
+        {
+          "part": "cape",
+          "channel": "wavePhase",
+          "fn": "ramp",
+          "amp": -6.283185307179586,
+          "cycles": 2
+        }
+      ]
+    },
+    {
+      "name": "swing",
+      "duration": 1.2,
+      "loop": true,
+      "channels": [
+        {
+          "part": "@root",
+          "channel": "posZ",
+          "fn": "sin",
+          "bias": 0.25,
+          "amp": 0.25,
+          "cycles": 1,
+          "phase": -1.5707963
+        },
+        {
+          "part": "torso",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": 0.35,
+          "cycles": 1
+        },
+        {
+          "part": "torso",
+          "channel": "squashZ",
+          "fn": "sin",
+          "amp": 0.06,
+          "cycles": 2,
+          "phase": 1.5707963
+        },
+        {
+          "part": "torso",
+          "channel": "twistZ",
+          "fn": "sin",
+          "amp": 0.12,
+          "cycles": 1
+        },
+        {
+          "part": "arm_blade",
+          "channel": "rotX",
+          "fn": "sin",
+          "bias": -0.45,
+          "amp": 0.45,
+          "cycles": 1,
+          "phase": 1.5707963
+        },
+        {
+          "part": "arm_blade",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": 0.25,
+          "cycles": 1
+        },
+        {
+          "part": "cape",
+          "channel": "shearY",
+          "fn": "sin",
+          "bias": -0.35,
+          "amp": 0.12,
+          "cycles": 1
+        },
+        {
+          "part": "cape",
+          "channel": "shearX",
+          "fn": "sin",
+          "amp": 0.18,
+          "cycles": 1,
+          "phase": 3.14159265
+        },
+        {
+          "part": "cape",
+          "channel": "waveAmpY",
+          "fn": "sin",
+          "bias": 0.8,
+          "amp": 0.3,
+          "cycles": 2
+        },
+        {
+          "part": "cape",
+          "channel": "waveFreq",
+          "fn": "sin",
+          "bias": 6.0,
+          "amp": 0.0,
+          "cycles": 1
+        },
+        {
+          "part": "cape",
+          "channel": "wavePhase",
+          "fn": "ramp",
+          "amp": -6.283185307179586,
+          "cycles": 3
+        }
+      ]
+    }
+  ],
+  "normalAo": {
+    "tool": "svox_cli.py bake-normal-ao",
+    "layout": "strip_x",
+    "encoding": "RGB = (n*0.5+0.5)*255 outward unit normal, A = AO visibility*255 (255 = open)",
+    "algorithm": "3x3x3 Sobel -grad(alpha); 26-dir front-hemisphere AO (offset.n > 0.75); 1-voxel shell dilation",
+    "stats": "bake_stats.json"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "schema": "svox.bake/v1",
+  "tool": "svox_cli.py bake-normal-ao",
+  "parts": {
+    "torso": {
+      "solidVoxels": 1040,
+      "surfaceVoxels": 520,
+      "unitFrac": 1.0,
+      "outwardFrac": 1.0,
+      "aoMin": 0.1216,
+      "aoMean": 0.8921,
+      "dilatedShellVoxels": 824
+    },
+    "arm_blade": {
+      "solidVoxels": 267,
+      "surfaceVoxels": 214,
+      "unitFrac": 1.0,
+      "outwardFrac": 1.0,
+      "aoMin": 0.2745,
+      "aoMean": 0.9019,
+      "dilatedShellVoxels": 428
+    },
+    "cape": {
+      "solidVoxels": 184,
+      "surfaceVoxels": 184,
+      "unitFrac": 1.0,
+      "outwardFrac": 1.0,
+      "aoMin": 0.1216,
+      "aoMean": 0.9236,
+      "dilatedShellVoxels": 320
+    }
+  }
+}

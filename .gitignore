@@ -1,0 +1,24 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# Test / QA output (tests write reports here; never into the skill folder)
+.qa_out/
+build/
+*.log
+
+# Large renders: only the PNG contact sheets in assets/showcase are tracked
+*.mp4
+*.webm
+*.mov
+*.mp3
+*.wav
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
