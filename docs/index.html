@@ -1,0 +1,307 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>hybrid-voxel-sprite — Real-time 3D voxel sprites that never crack</title>
+  <meta name="description" content="An open-source agent skill for real-time articulated 3D voxel sprites: T3 OBB raymarching, analytic inverse deform, SVOX CLI and adapters for WebGL2 / Three.js, Godot 4, Unity 6 URP and Blender 5.">
+  <meta name="theme-color" content="#080a0e">
+  <meta property="og:title" content="hybrid-voxel-sprite">
+  <meta property="og:description" content="2D sprite charm. Real-time 3D volumes. Zero cracks. Live WebGL2 demo with 4 articulated voxel vehicles.">
+  <meta property="og:image" content="https://yskim3271.github.io/hybrid-voxel-sprite/assets/banner.png">
+  <meta property="og:type" content="website">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="stylesheet" href="styles.css">
+  <script type="importmap">
+    { "imports": { "three": "./demo/vendor/three.module.js" } }
+  </script>
+  <link rel="modulepreload" href="demo/vendor/three.module.js">
+  <link rel="modulepreload" href="demo/vendor/three.core.js">
+</head>
+<body>
+  <div class="glow" aria-hidden="true"></div>
+
+  <!-- ================================================================== header -->
+  <header class="topbar">
+    <div class="topbar-in">
+      <a class="brand" href="#top" aria-label="hybrid-voxel-sprite home">
+        <img src="assets/logo.svg" width="30" height="30" alt="">
+        <span>hybrid-<b>voxel</b>-sprite</span>
+      </a>
+      <nav class="nav" aria-label="Sections">
+        <a href="#demo" data-i18n="nav.demo">Live Demo</a>
+        <a href="#features" data-i18n="nav.features">Features</a>
+        <a href="#engines" data-i18n="nav.engines">Engines</a>
+        <a href="#install" data-i18n="nav.install">Install</a>
+        <a href="#cli">CLI</a>
+        <a class="mono" href="https://github.com/yskim3271/hybrid-voxel-sprite/releases/tag/v1.1.0">v1.1 <span class="new">New</span></a>
+        <a href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/SKILL.md" data-i18n="nav.docs">Docs</a>
+      </nav>
+      <div class="top-actions">
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" data-lang="ko" aria-pressed="false">KO</button><span>/</span><button type="button" data-lang="en" aria-pressed="true">EN</button>
+        </div>
+        <a class="gh" href="https://github.com/yskim3271/hybrid-voxel-sprite" aria-label="GitHub repository">
+          <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <!-- ================================================================== hero -->
+    <section class="hero">
+      <a class="pill-badge" href="https://github.com/yskim3271/hybrid-voxel-sprite/releases/tag/v1.1.0">
+        <span class="dot" aria-hidden="true"></span><span data-i18n="hero.badge">Open source · MIT licensed · v1.1</span><span class="arr" aria-hidden="true">→</span>
+      </a>
+      <h1 class="display" data-i18n-html="hero.title">Real-time 3D voxel sprites<br><span class="accent">that never crack</span></h1>
+      <p class="lede" data-i18n-html="hero.lede">An agent skill that raymarches every articulated voxel part inside its own oriented box:
+        <code>T3 OBB Raymarching</code> + <code>Inverse Deform</code> + <code>SVOX CLI</code> + <code>4 Engine Adapters</code>.
+        Sprite-stacking charm, real 3D volumes, pixel-snapped and outlined at 1&nbsp;px — with zero slice cracks at any pitch.</p>
+
+      <!-- ============================================================ live demo -->
+      <div class="demo" id="demo">
+        <div class="demo-frame">
+          <div class="demo-bar top">
+            <div class="seg veh" role="group" aria-label="Vehicle">
+              <button type="button" data-veh="excavator"><span aria-hidden="true">🚜</span> <span data-i18n="veh.excavator">Excavator</span> <small>78k</small></button>
+              <button type="button" data-veh="mini"><span aria-hidden="true">🚗</span> <span data-i18n="veh.mini">Retro Mini</span> <small>23k</small></button>
+              <button type="button" data-veh="cybertruck"><span aria-hidden="true">🛻</span> <span data-i18n="veh.cybertruck">Cybertruck</span> <small>41k</small></button>
+              <button type="button" data-veh="f1"><span aria-hidden="true">🏎️</span> <span data-i18n="veh.f1">Formula 1</span> <small>22k</small></button>
+            </div>
+            <div class="seg modes" role="group" aria-label="Render mode">
+              <button type="button" data-mode="final">FINAL</button>
+              <button type="button" data-mode="stack" class="m-stack">SPRITE STACK</button>
+              <button type="button" data-mode="normals" class="m-normals">3D NORMALS</button>
+              <button type="button" data-mode="ao" class="m-ao">VOLUME AO</button>
+            </div>
+          </div>
+
+          <div class="demo-stage" id="demoStage">
+            <canvas id="demoCanvas" aria-label="Live WebGL2 T3 hybrid voxel renderer"></canvas>
+            <div class="telemetry mono" aria-live="off">
+              <span><i class="live-dot"></i><b id="tFps">—</b> FPS</span>
+              <span><b id="tParts">—</b> <em data-i18n="tel.parts">parts</em></span>
+              <span><b id="tVoxels">—</b> <em data-i18n="tel.voxels">voxels</em></span>
+              <span><em data-i18n="tel.pitch">pitch</em> <b id="tPitch">—</b></span>
+            </div>
+            <div class="mode-chip" id="demoModeChip" data-mode="final"></div>
+            <div class="drag-hint" data-i18n="demo.hint">Drag to orbit · Scroll to zoom</div>
+            <div class="loading" id="demoLoading"><span class="spinner" aria-hidden="true"></span><span data-i18n="demo.loading">Loading voxel volumes…</span></div>
+            <div class="fallback" id="demoFallback" hidden>
+              <img src="assets/modes_compare.png" loading="lazy" alt="FINAL, SPRITE STACK, 3D NORMALS and VOLUME AO views of the excavator">
+              <p data-i18n="demo.fallback">Your browser has WebGL2 disabled, so here is a still of the four live view modes.</p>
+            </div>
+          </div>
+
+          <div class="demo-bar bottom">
+            <div class="ctl">
+              <span class="lbl" data-i18n="demo.clip">Clip</span>
+              <div class="seg sm" role="group" aria-label="Clip">
+                <button type="button" data-clip="idle" data-i18n="clip.idle">Idle</button>
+                <button type="button" data-clip="move" data-i18n="clip.move">Move</button>
+                <button type="button" data-clip="special" data-i18n="clip.special">Special</button>
+              </div>
+              <span class="caption" id="clipCaption"></span>
+            </div>
+            <div class="ctl">
+              <span class="lbl" data-i18n="demo.camera">Camera</span>
+              <div class="seg sm" role="group" aria-label="Pitch preset">
+                <button type="button" data-pitch="iso">Iso 33°</button>
+                <button type="button" data-pitch="low" data-i18n="pitch.low">Low 14° · 0 cracks</button>
+                <button type="button" data-pitch="side" data-i18n="pitch.side">Side 8°</button>
+              </div>
+            </div>
+            <div class="ctl">
+              <span class="lbl" data-i18n="demo.pixel">Pixel</span>
+              <div class="seg sm" role="group" aria-label="Pixel scale">
+                <button type="button" data-px="1">×1</button><button type="button" data-px="2">×2</button><button type="button" data-px="3">×3</button>
+              </div>
+              <button type="button" class="toggle" id="outlineBtn" data-i18n="demo.outline">1px Outline</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="works">
+        <span class="works-lbl" data-i18n="works.label">Works with</span>
+        <span class="chip">Claude Code</span><span class="chip">Antigravity</span><span class="chip">Codex</span><span class="chip">Cursor</span>
+        <span class="chip eng">WebGL2 / Three.js</span><span class="chip eng">Godot 4</span><span class="chip eng">Unity 6 URP</span><span class="chip eng">Blender 5</span>
+      </div>
+    </section>
+
+    <!-- ================================================================== install -->
+    <section class="section" id="install">
+      <div class="sec-head">
+        <span class="eyebrow" data-i18n="install.eyebrow">Quick install</span>
+        <h2 data-i18n="install.title">One line, any coding agent</h2>
+        <p data-i18n="install.sub">The skill is a single folder with a <code>SKILL.md</code>. Install it however your agent prefers.</p>
+      </div>
+      <div class="install">
+        <div class="tabs" role="tablist" aria-label="Install method">
+          <button type="button" role="tab" data-tab="npx" aria-selected="true" data-i18n="install.tab1">Universal · npx skills</button>
+          <button type="button" role="tab" data-tab="plugin" aria-selected="false" data-i18n="install.tab2">Claude Code plugin</button>
+          <button type="button" role="tab" data-tab="manual" aria-selected="false" data-i18n="install.tab3">Manual / clone</button>
+        </div>
+        <div class="panel" data-panel="npx">
+          <div class="term"><pre><code><span class="p">$</span> npx skills add yskim3271/hybrid-voxel-sprite</code></pre>
+            <button type="button" class="copy" data-copy="npx skills add yskim3271/hybrid-voxel-sprite" data-i18n="copy">Copy</button></div>
+          <p class="note" data-i18n="install.note1">Works with Claude Code, Antigravity, Codex / Open Agents, Cursor and any agent that reads <code>SKILL.md</code>.</p>
+        </div>
+        <div class="panel" data-panel="plugin" hidden>
+          <div class="term"><pre><code><span class="p">&gt;</span> /plugin marketplace add yskim3271/hybrid-voxel-sprite
+<span class="p">&gt;</span> /plugin install hybrid-voxel-sprite</code></pre>
+            <button type="button" class="copy" data-copy="/plugin marketplace add yskim3271/hybrid-voxel-sprite&#10;/plugin install hybrid-voxel-sprite" data-i18n="copy">Copy</button></div>
+          <p class="note" data-i18n="install.note2">Run both commands inside Claude Code. The repo ships a <code>.claude-plugin/</code> marketplace manifest.</p>
+        </div>
+        <div class="panel" data-panel="manual" hidden>
+          <div class="term"><pre><code><span class="p">$</span> git clone https://github.com/yskim3271/hybrid-voxel-sprite
+<span class="p">$</span> cp -r hybrid-voxel-sprite/skills/hybrid-voxel-sprite ~/.claude/skills/</code></pre>
+            <button type="button" class="copy" data-copy="git clone https://github.com/yskim3271/hybrid-voxel-sprite&#10;cp -r hybrid-voxel-sprite/skills/hybrid-voxel-sprite ~/.claude/skills/" data-i18n="copy">Copy</button></div>
+          <p class="note" data-i18n-html="install.note3">Other agents: <code>~/.gemini/config/skills/</code> (Antigravity) · <code>~/.agents/skills/</code> (Codex / Open Agents).</p>
+        </div>
+        <div class="prompts">
+          <span class="lbl" data-i18n="install.ask">Then just ask</span>
+          <span class="prompt" data-i18n="prompt.1">“Build a Three.js voxel cat with spring ears and pass the 4 QA gates”</span>
+          <span class="prompt" data-i18n="prompt.2">“Show minimal_reference in Godot 4 with zero cracks at 14°”</span>
+          <span class="prompt" data-i18n="prompt.3">“Turn my MagicaVoxel .vox into a validated SVOX bundle”</span>
+          <span class="prompt" data-i18n="prompt.4">“Add a live SPRITE STACK debug view to my renderer”</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================================== features -->
+    <section class="section" id="features">
+      <div class="sec-head">
+        <span class="eyebrow" data-i18n="feat.eyebrow">Why T3 hybrid?</span>
+        <h2 data-i18n="feat.title">The look of sprite stacking, the math of real volumes</h2>
+      </div>
+      <div class="bento">
+        <article class="card big">
+          <span class="metric mono">G1 · 0 cracks @ 14°</span>
+          <h3 data-i18n="f1.t">Zero low-pitch cracks</h3>
+          <p data-i18n="f1.d">Classic 2D card stacks split open at low camera angles and turn 1-voxel blades into dotted lines. T3 raymarches the real 3D volume of every part with an exact DDA inside its oriented box, so there are no slices to crack.</p>
+        </article>
+        <article class="card">
+          <span class="metric mono">G2 · 0 px crawl</span>
+          <h3 data-i18n="f2.t">Pixel-perfect grid snap</h3>
+          <p data-i18n="f2.d">The camera and the root snap to a virtual FBO texel grid, so sub-texel motion never makes edge pixels shimmer.</p>
+        </article>
+        <article class="card">
+          <span class="metric mono">G3 · &lt; 1.8e-15</span>
+          <h3 data-i18n="f3.t">Analytic inverse deform + springs</h3>
+          <p data-i18n="f3.d">Squash, twist, shear and wave are undone per sample, with spring secondary motion. No UVs, retopology or skin weights.</p>
+        </article>
+        <article class="card wide">
+          <span class="metric mono">v1.1</span>
+          <h3 data-i18n="f4.t">Production upgrades</h3>
+          <p data-i18n-html="f4.d">6-slot emissive lights with a glow halo · D24 depth-bucket tie-break (<code>0 px</code> reorder diff) · PerspectiveCamera 3D-world MRT hybrid · live <code class="cy">SPRITE STACK</code> inspection mode.</p>
+        </article>
+      </div>
+    </section>
+
+    <!-- ================================================================== engines -->
+    <section class="section" id="engines">
+      <div class="sec-head">
+        <span class="eyebrow" data-i18n="eng.eyebrow">4 verified engines</span>
+        <h2 data-i18n="eng.title">One contract, four targets, the same QA gates</h2>
+      </div>
+      <div class="engines">
+        <a class="eng-card" href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/references/targets/webgl2_threejs.md">
+          <img src="assets/icon-webgl.svg" width="48" height="48" alt="">
+          <h3>WebGL2 / Three.js r187</h3>
+          <p data-i18n="eng.web">Two-pass MRT G-buffer + 1px outline, plus the v1.1 Perspective 3D-world hybrid.</p>
+          <span class="ok">✅ Verified · G1–G4 Pass</span>
+        </a>
+        <a class="eng-card" href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/references/targets/godot4.md">
+          <img src="assets/icon-godot.svg" width="48" height="48" alt="">
+          <h3>Godot 4.7.2</h3>
+          <p data-i18n="eng.godot">Forward+ and Mobile (Vulkan). Both renderers produce identical pixels.</p>
+          <span class="ok">✅ Verified · G1–G4 Pass</span>
+        </a>
+        <a class="eng-card" href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/references/targets/unity_urp.md">
+          <img src="assets/icon-unity.svg" width="48" height="48" alt="">
+          <h3>Unity 6 URP</h3>
+          <p data-i18n="eng.unity">RenderGraph <code>ScriptableRendererFeature</code> on D3D11 and D3D12, 0.63–0.75 ms.</p>
+          <span class="ok">✅ Verified · G1–G4 Pass</span>
+        </a>
+        <a class="eng-card" href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/references/targets/blender_exporter.md">
+          <img src="assets/icon-blender.svg" width="48" height="48" alt="">
+          <h3>Blender 5.3.0</h3>
+          <p data-i18n="eng.blender">SVOX asset-extraction bridge: model in Blender, export a bundle, <code>validate</code> with 0 errors.</p>
+          <span class="ok">✅ Verified · G1–G4 Pass</span>
+        </a>
+      </div>
+    </section>
+
+    <!-- ================================================================== showcase -->
+    <section class="section" id="showcase">
+      <div class="sec-head">
+        <span class="eyebrow" data-i18n="show.eyebrow">See it in action</span>
+        <h2 data-i18n="show.title">Live wipes between the final image and its insides</h2>
+        <p data-i18n="show.sub">Four articulated vehicles, 39 parts and 166,290 voxels, composited into a real-time Three.js 3D world. Each diagonal band reveals a different live view of the same frame.</p>
+      </div>
+      <figure class="media">
+        <img src="assets/showcase_loop.gif" width="720" height="354" loading="lazy" alt="Showcase loop: excavator, retro mini, cybertruck and Formula 1 with live SPRITE STACK, 3D NORMALS and VOLUME AO wipes">
+      </figure>
+      <figure class="media strip">
+        <img src="assets/modes_compare.png" width="1440" height="420" loading="lazy" alt="The same excavator pose in FINAL, SPRITE STACK, 3D NORMALS and VOLUME AO">
+        <figcaption data-i18n="show.cap">Same pose, four live modes: FINAL (cel + 1px outline) · SPRITE STACK (2D slice cards) · 3D NORMALS · VOLUME AO.</figcaption>
+      </figure>
+    </section>
+
+    <!-- ================================================================== cli + gates -->
+    <section class="section" id="cli">
+      <div class="sec-head">
+        <span class="eyebrow" data-i18n="cli.eyebrow">SVOX CLI &amp; QA gates</span>
+        <h2 data-i18n="cli.title">Standard-library Python. Four gates every adapter must pass.</h2>
+      </div>
+      <div class="cli-grid">
+        <div class="term big">
+          <div class="term-bar"><i></i><i></i><i></i><span class="mono">skills/hybrid-voxel-sprite</span></div>
+<pre><code><span class="c"># 3-part reference bundle, already baked</span>
+<span class="p">$</span> python scripts/svox_cli.py <b>init-demo</b> --out build/demo
+<span class="c"># MagicaVoxel .vox (one part per shape node)</span>
+<span class="p">$</span> python scripts/svox_cli.py <b>from-vox</b> --input hero.vox --out build/hero --bake
+<span class="c"># slice-strip PNG → bundle</span>
+<span class="p">$</span> python scripts/svox_cli.py <b>from-strip</b> --input cape.png --size-x 12 --size-y 4 --size-z 16 --part-name cape --out build/hero
+<span class="c"># 3x3x3 Sobel normals + hemisphere AO</span>
+<span class="p">$</span> python scripts/svox_cli.py <b>bake-normal-ao</b> --bundle build/hero
+<span class="c"># schema, thin parts, ground, loop seam, undeform(deform(p))</span>
+<span class="p">$</span> python scripts/svox_cli.py <b>validate</b> --bundle build/hero --output build/report.json
+<span class="c"># strip_x PNG | grid_2d PNG | raw_3d .bin</span>
+<span class="p">$</span> python scripts/svox_cli.py <b>pack-atlas</b> --bundle build/hero --format raw_3d --out build/raw3d</code></pre>
+        </div>
+        <div class="gates">
+          <div class="gate"><span class="g mono">G1</span><div><h4 data-i18n="g1.t">Low-pitch 14°, no cracks</h4><p class="mono">0 crack texels / 192 renders</p></div></div>
+          <div class="gate"><span class="g mono">G2</span><div><h4 data-i18n="g2.t">Sub-texel snap</h4><p class="mono">0 / 0 / 0 px (off: 9–21k px)</p></div></div>
+          <div class="gate"><span class="g mono">G3</span><div><h4>undeform(deform(p))</h4><p class="mono">max error 1.8e-15 (&lt; 1e-5)</p></div></div>
+          <div class="gate"><span class="g mono">G4</span><div><h4 data-i18n="g4.t">Ground · loop · occlusion</h4><p class="mono">z 0.000 · seam 2e-15 · 0 px</p></div></div>
+          <div class="perf">
+            <span class="mono big-num">0.8–0.9 ms</span>
+            <p data-i18n="perf.t">per frame at 640×360 ×3 on a GTX 1080 (3-part reference / 13-part knight).</p>
+            <p class="honest" data-i18n="perf.h">Honest positioning: built for isometric, top-down and side-view games with many pixel-scale sprites. Full-screen close-ups on low-end mobile are not its strength — cost scales with covered virtual pixels × march length.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-in">
+      <span>MIT License © 2026 Yunsik Kim (yskim3271)</span>
+      <nav>
+        <a href="https://github.com/yskim3271/hybrid-voxel-sprite">GitHub</a>
+        <a href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/SKILL.md" data-i18n="foot.docs">Skill Docs</a>
+        <a href="https://github.com/yskim3271/hybrid-voxel-sprite/releases" data-i18n="foot.rel">Releases</a>
+      </nav>
+    </div>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="site.js" defer></script>
+  <script type="module" src="demo/demo.js"></script>
+</body>
+</html>

@@ -10,7 +10,7 @@ venv/
 build/
 *.log
 
-# Large renders: only the PNG contact sheets in assets/showcase are tracked
+# Large renders: only the lightweight docs/assets (PNG / GIF / SVG) are tracked
 *.mp4
 *.webm
 *.mov

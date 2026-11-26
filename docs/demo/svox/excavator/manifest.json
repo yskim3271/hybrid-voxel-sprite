@@ -1,0 +1,529 @@
+{
+  "schema": "svox.atlas/v1",
+  "format": "raw_3d",
+  "source": "rig.json",
+  "parts": [
+    {
+      "name": "undercarriage",
+      "size": [
+        36,
+        54,
+        19
+      ],
+      "pivot": [
+        18.0,
+        27.0,
+        11.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "undercarriage.albedo.rgba8.bin",
+          "bytes": 147744,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "undercarriage.normal_ao.rgba8.bin",
+          "bytes": 147744,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "trackL",
+      "size": [
+        15,
+        76,
+        19
+      ],
+      "pivot": [
+        7.5,
+        38.0,
+        0.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "trackL.albedo.rgba8.bin",
+          "bytes": 86640,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "trackL.normal_ao.rgba8.bin",
+          "bytes": 86640,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "idlerL",
+      "size": [
+        13,
+        14,
+        14
+      ],
+      "pivot": [
+        6.5,
+        7.0,
+        7.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "idlerL.albedo.rgba8.bin",
+          "bytes": 10192,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "idlerL.normal_ao.rgba8.bin",
+          "bytes": 10192,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "sprocketL",
+      "size": [
+        13,
+        14,
+        14
+      ],
+      "pivot": [
+        6.5,
+        7.0,
+        7.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "sprocketL.albedo.rgba8.bin",
+          "bytes": 10192,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "sprocketL.normal_ao.rgba8.bin",
+          "bytes": 10192,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "trackR",
+      "size": [
+        15,
+        76,
+        19
+      ],
+      "pivot": [
+        7.5,
+        38.0,
+        0.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "trackR.albedo.rgba8.bin",
+          "bytes": 86640,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "trackR.normal_ao.rgba8.bin",
+          "bytes": 86640,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "idlerR",
+      "size": [
+        13,
+        14,
+        14
+      ],
+      "pivot": [
+        6.5,
+        7.0,
+        7.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "idlerR.albedo.rgba8.bin",
+          "bytes": 10192,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "idlerR.normal_ao.rgba8.bin",
+          "bytes": 10192,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "sprocketR",
+      "size": [
+        13,
+        14,
+        14
+      ],
+      "pivot": [
+        6.5,
+        7.0,
+        7.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "sprocketR.albedo.rgba8.bin",
+          "bytes": 10192,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "sprocketR.normal_ao.rgba8.bin",
+          "bytes": 10192,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "house",
+      "size": [
+        57,
+        72,
+        40
+      ],
+      "pivot": [
+        26.0,
+        24.0,
+        1.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "house.albedo.rgba8.bin",
+          "bytes": 656640,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "house.normal_ao.rgba8.bin",
+          "bytes": 656640,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "beacon",
+      "size": [
+        8,
+        8,
+        8
+      ],
+      "pivot": [
+        4.0,
+        4.0,
+        2.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "beacon.albedo.rgba8.bin",
+          "bytes": 2048,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "beacon.normal_ao.rgba8.bin",
+          "bytes": 2048,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "boom",
+      "size": [
+        14,
+        68,
+        64
+      ],
+      "pivot": [
+        7.0,
+        63.0,
+        5.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "boom.albedo.rgba8.bin",
+          "bytes": 243712,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "boom.normal_ao.rgba8.bin",
+          "bytes": 243712,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "stick",
+      "size": [
+        12,
+        18,
+        73
+      ],
+      "pivot": [
+        6.0,
+        12.0,
+        56.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "stick.albedo.rgba8.bin",
+          "bytes": 63072,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "stick.normal_ao.rgba8.bin",
+          "bytes": 63072,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "bucket",
+      "size": [
+        24,
+        40,
+        29
+      ],
+      "pivot": [
+        12.0,
+        10.0,
+        24.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "bucket.albedo.rgba8.bin",
+          "bytes": 111360,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "bucket.normal_ao.rgba8.bin",
+          "bytes": 111360,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "boomCyl",
+      "size": [
+        24,
+        8,
+        27
+      ],
+      "pivot": [
+        12.0,
+        4.0,
+        4.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "boomCyl.albedo.rgba8.bin",
+          "bytes": 20736,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "boomCyl.normal_ao.rgba8.bin",
+          "bytes": 20736,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "boomRod",
+      "size": [
+        24,
+        8,
+        27
+      ],
+      "pivot": [
+        12.0,
+        4.0,
+        4.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "boomRod.albedo.rgba8.bin",
+          "bytes": 20736,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "boomRod.normal_ao.rgba8.bin",
+          "bytes": 20736,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "stickCyl",
+      "size": [
+        8,
+        8,
+        38
+      ],
+      "pivot": [
+        4.0,
+        4.0,
+        4.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "stickCyl.albedo.rgba8.bin",
+          "bytes": 9728,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "stickCyl.normal_ao.rgba8.bin",
+          "bytes": 9728,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "stickRod",
+      "size": [
+        8,
+        8,
+        38
+      ],
+      "pivot": [
+        4.0,
+        4.0,
+        4.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "stickRod.albedo.rgba8.bin",
+          "bytes": 9728,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "stickRod.normal_ao.rgba8.bin",
+          "bytes": 9728,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "bucketCyl",
+      "size": [
+        8,
+        8,
+        36
+      ],
+      "pivot": [
+        4.0,
+        4.0,
+        4.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "bucketCyl.albedo.rgba8.bin",
+          "bytes": 9216,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "bucketCyl.normal_ao.rgba8.bin",
+          "bytes": 9216,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "bucketRod",
+      "size": [
+        8,
+        8,
+        36
+      ],
+      "pivot": [
+        4.0,
+        4.0,
+        4.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "bucketRod.albedo.rgba8.bin",
+          "bytes": 9216,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "bucketRod.normal_ao.rgba8.bin",
+          "bytes": 9216,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    }
+  ]
+}

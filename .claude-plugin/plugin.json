@@ -1,0 +1,10 @@
+{
+  "name": "hybrid-voxel-sprite",
+  "version": "1.1.0",
+  "description": "Agent skill for real-time articulated 3D voxel sprites: per-part T3 OBB raymarching, analytic inverse deform, a stdlib-only SVOX CLI and verified adapters for WebGL2 / Three.js, Godot 4, Unity 6 URP and Blender 5.",
+  "author": { "name": "Yunsik Kim", "url": "https://github.com/yskim3271" },
+  "homepage": "https://yskim3271.github.io/hybrid-voxel-sprite/",
+  "repository": "https://github.com/yskim3271/hybrid-voxel-sprite",
+  "license": "MIT",
+  "keywords": ["voxel", "sprite-stacking", "pixel-art", "raymarching", "webgl2", "threejs", "godot", "unity", "blender", "skill"]
+}

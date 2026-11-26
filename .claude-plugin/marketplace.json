@@ -1,0 +1,18 @@
+{
+  "name": "hybrid-voxel-sprite",
+  "owner": { "name": "yskim3271" },
+  "metadata": {
+    "description": "Real-time articulated 3D voxel sprites that never crack: T3 OBB raymarching, SVOX CLI and 4 verified engine adapters.",
+    "version": "1.1.0"
+  },
+  "plugins": [
+    {
+      "name": "hybrid-voxel-sprite",
+      "source": "./",
+      "description": "Agent skill: articulated voxel parts raymarched inside their own oriented boxes (T3), analytic inverse deform + springs, pixel-grid snap, 1px outline, SVOX asset CLI and adapters for WebGL2 / Three.js, Godot 4, Unity 6 URP and Blender 5, each verified against 4 QA gates.",
+      "version": "1.1.0",
+      "strict": false,
+      "skills": ["./skills/hybrid-voxel-sprite"]
+    }
+  ]
+}

@@ -1,0 +1,648 @@
+{
+  "schema": "svox.rig/v1",
+  "generator": "vehicles_threejs/builders/build_cybertruck.py (Style D + Apollo) + svox_cli.py 1.0.0",
+  "coordinates": {
+    "handedness": "right-handed",
+    "up": "+Z",
+    "front": "-Y",
+    "unit": "1 voxel",
+    "ground": "z = 0"
+  },
+  "targetHeight": 38.0,
+  "parts": [
+    {
+      "name": "body",
+      "parent": null,
+      "pivot": [
+        23.0,
+        53.0,
+        7.0
+      ],
+      "restOffset": [
+        0.0,
+        0.0,
+        12.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        46,
+        106,
+        35
+      ],
+      "deformRole": "rigid",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/body.albedo.png",
+      "normalAoPath": "parts/body.normal_ao.png"
+    },
+    {
+      "name": "wheelFL",
+      "parent": "body",
+      "pivot": [
+        4.5,
+        11.0,
+        10.0
+      ],
+      "restOffset": [
+        18.5,
+        -35.0,
+        -2.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        9,
+        22,
+        21
+      ],
+      "deformRole": "rigid",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/wheelFL.albedo.png",
+      "normalAoPath": "parts/wheelFL.normal_ao.png"
+    },
+    {
+      "name": "wheelFR",
+      "parent": "body",
+      "pivot": [
+        4.5,
+        11.0,
+        10.0
+      ],
+      "restOffset": [
+        -18.5,
+        -35.0,
+        -2.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        9,
+        22,
+        21
+      ],
+      "deformRole": "rigid",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/wheelFR.albedo.png",
+      "normalAoPath": "parts/wheelFR.normal_ao.png"
+    },
+    {
+      "name": "wheelRL",
+      "parent": "body",
+      "pivot": [
+        4.5,
+        11.0,
+        10.0
+      ],
+      "restOffset": [
+        18.5,
+        31.0,
+        -2.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        9,
+        22,
+        21
+      ],
+      "deformRole": "rigid",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/wheelRL.albedo.png",
+      "normalAoPath": "parts/wheelRL.normal_ao.png"
+    },
+    {
+      "name": "wheelRR",
+      "parent": "body",
+      "pivot": [
+        4.5,
+        11.0,
+        10.0
+      ],
+      "restOffset": [
+        -18.5,
+        31.0,
+        -2.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        9,
+        22,
+        21
+      ],
+      "deformRole": "rigid",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/wheelRR.albedo.png",
+      "normalAoPath": "parts/wheelRR.normal_ao.png"
+    },
+    {
+      "name": "tonneau",
+      "parent": "body",
+      "pivot": [
+        16.0,
+        1.0,
+        11.5475
+      ],
+      "restOffset": [
+        0.0,
+        7.0,
+        24.5475
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        32,
+        44,
+        12
+      ],
+      "deformRole": "rigid",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/tonneau.albedo.png",
+      "normalAoPath": "parts/tonneau.normal_ao.png"
+    },
+    {
+      "name": "tailgate",
+      "parent": "body",
+      "pivot": [
+        19.0,
+        4.0,
+        1.0
+      ],
+      "restOffset": [
+        0.0,
+        52.0,
+        -2.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        38,
+        5,
+        20
+      ],
+      "deformRole": "rigid",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/tailgate.albedo.png",
+      "normalAoPath": "parts/tailgate.normal_ao.png"
+    }
+  ],
+  "clips": [
+    {
+      "name": "idle",
+      "duration": 2.4,
+      "loop": true,
+      "channels": [
+        {
+          "part": "body",
+          "channel": "posZ",
+          "fn": "sin",
+          "amp": 0.15,
+          "bias": 0.15,
+          "cycles": 1,
+          "phase": -1.5707963267948966
+        },
+        {
+          "part": "wheelFL",
+          "channel": "posZ",
+          "fn": "sin",
+          "amp": -0.15,
+          "bias": -0.15,
+          "cycles": 1,
+          "phase": -1.5707963267948966
+        },
+        {
+          "part": "wheelFR",
+          "channel": "posZ",
+          "fn": "sin",
+          "amp": -0.15,
+          "bias": -0.15,
+          "cycles": 1,
+          "phase": -1.5707963267948966
+        },
+        {
+          "part": "wheelRL",
+          "channel": "posZ",
+          "fn": "sin",
+          "amp": -0.15,
+          "bias": -0.15,
+          "cycles": 1,
+          "phase": -1.5707963267948966
+        },
+        {
+          "part": "wheelRR",
+          "channel": "posZ",
+          "fn": "sin",
+          "amp": -0.15,
+          "bias": -0.15,
+          "cycles": 1,
+          "phase": -1.5707963267948966
+        }
+      ]
+    },
+    {
+      "name": "move",
+      "duration": 1.5,
+      "loop": true,
+      "channels": [
+        {
+          "part": "body",
+          "channel": "posZ",
+          "fn": "sin",
+          "amp": 0.3,
+          "cycles": 2
+        },
+        {
+          "part": "body",
+          "channel": "rotX",
+          "fn": "sin",
+          "amp": 0.01,
+          "cycles": 2,
+          "phase": 0.6
+        },
+        {
+          "part": "wheelFL",
+          "channel": "posZ",
+          "fn": "sin",
+          "amp": -0.3,
+          "cycles": 2
+        },
+        {
+          "part": "wheelFL",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 2
+        },
+        {
+          "part": "wheelFL",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": 0.2,
+          "cycles": 1
+        },
+        {
+          "part": "wheelFR",
+          "channel": "posZ",
+          "fn": "sin",
+          "amp": -0.3,
+          "cycles": 2
+        },
+        {
+          "part": "wheelFR",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 2
+        },
+        {
+          "part": "wheelFR",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": 0.2,
+          "cycles": 1
+        },
+        {
+          "part": "wheelRL",
+          "channel": "posZ",
+          "fn": "sin",
+          "amp": -0.3,
+          "cycles": 2
+        },
+        {
+          "part": "wheelRL",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 2
+        },
+        {
+          "part": "wheelRL",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": -0.07,
+          "cycles": 1
+        },
+        {
+          "part": "wheelRR",
+          "channel": "posZ",
+          "fn": "sin",
+          "amp": -0.3,
+          "cycles": 2
+        },
+        {
+          "part": "wheelRR",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 2
+        },
+        {
+          "part": "wheelRR",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": -0.07,
+          "cycles": 1
+        }
+      ]
+    },
+    {
+      "name": "special",
+      "duration": 2.6,
+      "loop": true,
+      "channels": [
+        {
+          "part": "body",
+          "channel": "posZ",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.16,
+            0.78,
+            1.0,
+            1.25,
+            1.46,
+            1.66,
+            1.87,
+            2.24,
+            2.52,
+            2.6
+          ],
+          "values": [
+            0.0,
+            0.0,
+            4.5,
+            4.7,
+            4.5,
+            4.5,
+            1.6,
+            -1.0,
+            -1.0,
+            0.0,
+            0.0
+          ]
+        },
+        {
+          "part": "wheelFL",
+          "channel": "posZ",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.16,
+            0.78,
+            1.0,
+            1.25,
+            1.46,
+            1.66,
+            1.87,
+            2.24,
+            2.52,
+            2.6
+          ],
+          "values": [
+            -0.0,
+            -0.0,
+            -4.5,
+            -4.7,
+            -4.5,
+            -4.5,
+            -1.6,
+            1.0,
+            1.0,
+            -0.0,
+            -0.0
+          ]
+        },
+        {
+          "part": "wheelFR",
+          "channel": "posZ",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.16,
+            0.78,
+            1.0,
+            1.25,
+            1.46,
+            1.66,
+            1.87,
+            2.24,
+            2.52,
+            2.6
+          ],
+          "values": [
+            -0.0,
+            -0.0,
+            -4.5,
+            -4.7,
+            -4.5,
+            -4.5,
+            -1.6,
+            1.0,
+            1.0,
+            -0.0,
+            -0.0
+          ]
+        },
+        {
+          "part": "wheelRL",
+          "channel": "posZ",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.16,
+            0.78,
+            1.0,
+            1.25,
+            1.46,
+            1.66,
+            1.87,
+            2.24,
+            2.52,
+            2.6
+          ],
+          "values": [
+            -0.0,
+            -0.0,
+            -4.5,
+            -4.7,
+            -4.5,
+            -4.5,
+            -1.6,
+            1.0,
+            1.0,
+            -0.0,
+            -0.0
+          ]
+        },
+        {
+          "part": "wheelRR",
+          "channel": "posZ",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.16,
+            0.78,
+            1.0,
+            1.25,
+            1.46,
+            1.66,
+            1.87,
+            2.24,
+            2.52,
+            2.6
+          ],
+          "values": [
+            -0.0,
+            -0.0,
+            -4.5,
+            -4.7,
+            -4.5,
+            -4.5,
+            -1.6,
+            1.0,
+            1.0,
+            -0.0,
+            -0.0
+          ]
+        },
+        {
+          "part": "tonneau",
+          "channel": "posY",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.16,
+            0.78,
+            1.0,
+            1.25,
+            1.46,
+            1.66,
+            1.87,
+            2.24,
+            2.52,
+            2.6
+          ],
+          "values": [
+            -0.0,
+            -0.0,
+            -27.0,
+            -30.0,
+            -30.0,
+            -30.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0
+          ]
+        },
+        {
+          "part": "tonneau",
+          "channel": "posZ",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.16,
+            0.78,
+            1.0,
+            1.25,
+            1.46,
+            1.66,
+            1.87,
+            2.24,
+            2.52,
+            2.6
+          ],
+          "values": [
+            -0.0,
+            -0.0,
+            -6.3,
+            -7.0,
+            -7.0,
+            -7.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0,
+            -0.0
+          ]
+        },
+        {
+          "part": "tailgate",
+          "channel": "rotX",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.16,
+            0.78,
+            1.0,
+            1.25,
+            1.46,
+            1.66,
+            1.87,
+            2.24,
+            2.52,
+            2.6
+          ],
+          "values": [
+            0.0,
+            0.0,
+            -1.3,
+            -1.45,
+            -1.45,
+            -1.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0,
+            0.0
+          ]
+        }
+      ]
+    }
+  ],
+  "id": "cybertruck",
+  "nameKo": "\uc0ac\uc774\ubc84\ud2b8\ub7ed",
+  "nameEn": "CYBERTRUCK",
+  "emissiveColors": [
+    "#f4f7fb",
+    "#e83b3b",
+    "#f5a15d"
+  ],
+  "emissiveStrength": 0.94,
+  "normalAo": {
+    "tool": "svox_cli.py bake-normal-ao",
+    "layout": "strip_x",
+    "encoding": "RGB = (n*0.5+0.5)*255 outward unit normal, A = AO visibility*255 (255 = open)",
+    "algorithm": "3x3x3 Sobel -grad(alpha); 26-dir front-hemisphere AO (offset.n > 0.75); 1-voxel shell dilation",
+    "stats": "bake_stats.json"
+  }
+}

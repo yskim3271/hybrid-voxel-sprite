@@ -1,0 +1,210 @@
+{
+  "schema": "svox.atlas/v1",
+  "format": "raw_3d",
+  "source": "rig.json",
+  "parts": [
+    {
+      "name": "body",
+      "size": [
+        48,
+        73,
+        37
+      ],
+      "pivot": [
+        24.0,
+        36.0,
+        5.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "body.albedo.rgba8.bin",
+          "bytes": 518592,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "body.normal_ao.rgba8.bin",
+          "bytes": 518592,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "wheelFL",
+      "size": [
+        8,
+        18,
+        17
+      ],
+      "pivot": [
+        4.0,
+        9.0,
+        8.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "wheelFL.albedo.rgba8.bin",
+          "bytes": 9792,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "wheelFL.normal_ao.rgba8.bin",
+          "bytes": 9792,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "wheelFR",
+      "size": [
+        8,
+        18,
+        17
+      ],
+      "pivot": [
+        4.0,
+        9.0,
+        8.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "wheelFR.albedo.rgba8.bin",
+          "bytes": 9792,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "wheelFR.normal_ao.rgba8.bin",
+          "bytes": 9792,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "wheelRL",
+      "size": [
+        8,
+        18,
+        17
+      ],
+      "pivot": [
+        4.0,
+        9.0,
+        8.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "wheelRL.albedo.rgba8.bin",
+          "bytes": 9792,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "wheelRL.normal_ao.rgba8.bin",
+          "bytes": 9792,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "wheelRR",
+      "size": [
+        8,
+        18,
+        17
+      ],
+      "pivot": [
+        4.0,
+        9.0,
+        8.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "wheelRR.albedo.rgba8.bin",
+          "bytes": 9792,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "wheelRR.normal_ao.rgba8.bin",
+          "bytes": 9792,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "rallyLamps",
+      "size": [
+        24,
+        6,
+        8
+      ],
+      "pivot": [
+        12.0,
+        4.0,
+        4.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "rallyLamps.albedo.rgba8.bin",
+          "bytes": 4608,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "rallyLamps.normal_ao.rgba8.bin",
+          "bytes": 4608,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    },
+    {
+      "name": "antenna",
+      "size": [
+        4,
+        4,
+        12
+      ],
+      "pivot": [
+        2.0,
+        2.0,
+        0.0
+      ],
+      "files": {
+        "albedo": {
+          "path": "antenna.albedo.rgba8.bin",
+          "bytes": 768,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        },
+        "normal_ao": {
+          "path": "antenna.normal_ao.rgba8.bin",
+          "bytes": 768,
+          "format": "RGBA8",
+          "order": "x fastest, then y, then z: idx = ((z*sizeY + y)*sizeX + x)*4",
+          "upload": "texImage3D(TEXTURE_3D, 0, RGBA8, sizeX, sizeY, sizeZ, 0, RGBA, UNSIGNED_BYTE, bytes)"
+        }
+      }
+    }
+  ]
+}

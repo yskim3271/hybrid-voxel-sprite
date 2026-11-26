@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48" role="img" aria-label="WebGL2 / Three.js">
+  <rect width="48" height="48" rx="11" fill="#0f172a"/>
+  <rect x=".5" y=".5" width="47" height="47" rx="10.5" fill="none" stroke="#38bdf8" stroke-opacity=".35"/>
+  <!-- wireframe tetra-mesh triangle (generic GL glyph) -->
+  <path d="M24 9 39 36H9Z" fill="none" stroke="#38bdf8" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M16.5 22.5h15M24 9v27M16.5 22.5 24 36l7.5-13.5" fill="none" stroke="#7dd3fc" stroke-width="1.4" stroke-linejoin="round" opacity=".8"/>
+  <circle cx="24" cy="9" r="2.2" fill="#e0f2fe"/><circle cx="39" cy="36" r="2.2" fill="#e0f2fe"/><circle cx="9" cy="36" r="2.2" fill="#e0f2fe"/>
+</svg>

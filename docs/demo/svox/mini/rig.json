@@ -1,0 +1,591 @@
+{
+  "schema": "svox.rig/v1",
+  "generator": "vehicles_threejs/builders/build_mini.py (clean-room, Style D + Apollo) + svox_cli.py 1.0.0",
+  "coordinates": {
+    "handedness": "right-handed",
+    "up": "+Z",
+    "front": "-Y",
+    "unit": "1 voxel",
+    "ground": "z = 0"
+  },
+  "targetHeight": 40.0,
+  "parts": [
+    {
+      "name": "body",
+      "parent": null,
+      "pivot": [
+        24.0,
+        36.0,
+        5.0
+      ],
+      "restOffset": [
+        0.0,
+        0.0,
+        8.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        48,
+        73,
+        37
+      ],
+      "deformRole": "torso",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/body.albedo.png",
+      "normalAoPath": "parts/body.normal_ao.png"
+    },
+    {
+      "name": "wheelFL",
+      "parent": "body",
+      "pivot": [
+        4.0,
+        9.0,
+        8.0
+      ],
+      "restOffset": [
+        18.0,
+        -23.0,
+        0.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        8,
+        18,
+        17
+      ],
+      "deformRole": "wheel",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/wheelFL.albedo.png",
+      "normalAoPath": "parts/wheelFL.normal_ao.png"
+    },
+    {
+      "name": "wheelFR",
+      "parent": "body",
+      "pivot": [
+        4.0,
+        9.0,
+        8.0
+      ],
+      "restOffset": [
+        -18.0,
+        -23.0,
+        0.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        8,
+        18,
+        17
+      ],
+      "deformRole": "wheel",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/wheelFR.albedo.png",
+      "normalAoPath": "parts/wheelFR.normal_ao.png"
+    },
+    {
+      "name": "wheelRL",
+      "parent": "body",
+      "pivot": [
+        4.0,
+        9.0,
+        8.0
+      ],
+      "restOffset": [
+        18.0,
+        23.0,
+        0.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        8,
+        18,
+        17
+      ],
+      "deformRole": "wheel",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/wheelRL.albedo.png",
+      "normalAoPath": "parts/wheelRL.normal_ao.png"
+    },
+    {
+      "name": "wheelRR",
+      "parent": "body",
+      "pivot": [
+        4.0,
+        9.0,
+        8.0
+      ],
+      "restOffset": [
+        -18.0,
+        23.0,
+        0.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        8,
+        18,
+        17
+      ],
+      "deformRole": "wheel",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/wheelRR.albedo.png",
+      "normalAoPath": "parts/wheelRR.normal_ao.png"
+    },
+    {
+      "name": "rallyLamps",
+      "parent": "body",
+      "pivot": [
+        12.0,
+        4.0,
+        4.0
+      ],
+      "restOffset": [
+        0.0,
+        -33.0,
+        6.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        24,
+        6,
+        8
+      ],
+      "deformRole": "rigid",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/rallyLamps.albedo.png",
+      "normalAoPath": "parts/rallyLamps.normal_ao.png"
+    },
+    {
+      "name": "antenna",
+      "parent": "body",
+      "pivot": [
+        2.0,
+        2.0,
+        0.0
+      ],
+      "restOffset": [
+        -14.0,
+        31.0,
+        12.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        4,
+        4,
+        12
+      ],
+      "deformRole": "cloth",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/antenna.albedo.png",
+      "normalAoPath": "parts/antenna.normal_ao.png"
+    }
+  ],
+  "clips": [
+    {
+      "name": "idle",
+      "duration": 2.2,
+      "loop": true,
+      "channels": [
+        {
+          "part": "@root",
+          "channel": "posZ",
+          "fn": "sin",
+          "bias": 0.2,
+          "amp": 0.15,
+          "cycles": 3,
+          "phase": 1.5707963267948966
+        },
+        {
+          "part": "body",
+          "channel": "squashZ",
+          "fn": "sin",
+          "amp": 0.012,
+          "cycles": 6
+        },
+        {
+          "part": "body",
+          "channel": "rotY",
+          "fn": "sin",
+          "amp": 0.006,
+          "cycles": 1
+        },
+        {
+          "part": "rallyLamps",
+          "channel": "rotX",
+          "fn": "sin",
+          "amp": 0.03,
+          "cycles": 6
+        },
+        {
+          "part": "antenna",
+          "channel": "waveAmpX",
+          "fn": "sin",
+          "bias": 0.5,
+          "amp": 0.2,
+          "cycles": 1
+        },
+        {
+          "part": "antenna",
+          "channel": "waveFreq",
+          "fn": "sin",
+          "bias": 3.0,
+          "amp": 0.0
+        },
+        {
+          "part": "antenna",
+          "channel": "wavePhase",
+          "fn": "ramp",
+          "amp": -6.283185307179586,
+          "cycles": 2
+        }
+      ]
+    },
+    {
+      "name": "move",
+      "duration": 1.4,
+      "loop": true,
+      "channels": [
+        {
+          "part": "@root",
+          "channel": "posZ",
+          "fn": "sin",
+          "bias": 0.35,
+          "amp": 0.25,
+          "cycles": 4
+        },
+        {
+          "part": "body",
+          "channel": "squashZ",
+          "fn": "sin",
+          "amp": 0.035,
+          "cycles": 4,
+          "phase": 0.8
+        },
+        {
+          "part": "rallyLamps",
+          "channel": "rotX",
+          "fn": "sin",
+          "amp": 0.05,
+          "cycles": 4
+        },
+        {
+          "part": "antenna",
+          "channel": "rotX",
+          "fn": "sin",
+          "bias": -0.12
+        },
+        {
+          "part": "antenna",
+          "channel": "waveAmpX",
+          "fn": "sin",
+          "bias": 0.9,
+          "amp": 0.3,
+          "cycles": 2
+        },
+        {
+          "part": "antenna",
+          "channel": "waveFreq",
+          "fn": "sin",
+          "bias": 3.5,
+          "amp": 0.0
+        },
+        {
+          "part": "antenna",
+          "channel": "wavePhase",
+          "fn": "ramp",
+          "amp": -6.283185307179586,
+          "cycles": 3
+        },
+        {
+          "part": "wheelFL",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 3
+        },
+        {
+          "part": "wheelFR",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 3
+        },
+        {
+          "part": "wheelRL",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 3
+        },
+        {
+          "part": "wheelRR",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 3
+        },
+        {
+          "part": "wheelFL",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": 0.2,
+          "cycles": 1
+        },
+        {
+          "part": "wheelFR",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": 0.2,
+          "cycles": 1
+        }
+      ]
+    },
+    {
+      "name": "special",
+      "duration": 2.2,
+      "loop": true,
+      "channels": [
+        {
+          "part": "@root",
+          "channel": "posZ",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.264,
+            0.528,
+            0.748,
+            1.012,
+            1.32,
+            1.628,
+            1.892,
+            2.2
+          ],
+          "values": [
+            0.0,
+            0.0,
+            3.0,
+            4.5,
+            0.4,
+            0.3,
+            0.3,
+            0.6,
+            0.0
+          ]
+        },
+        {
+          "part": "body",
+          "channel": "squashZ",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.264,
+            0.528,
+            0.748,
+            1.012,
+            1.32,
+            1.628,
+            1.892,
+            2.2
+          ],
+          "values": [
+            0,
+            -0.07,
+            0.07,
+            0.04,
+            -0.08,
+            -0.04,
+            -0.05,
+            0.03,
+            0
+          ]
+        },
+        {
+          "part": "rallyLamps",
+          "channel": "rotX",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.264,
+            0.528,
+            0.748,
+            1.012,
+            1.32,
+            1.628,
+            1.892,
+            2.2
+          ],
+          "values": [
+            0,
+            0,
+            -0.45,
+            -0.3,
+            0.25,
+            -0.1,
+            0.3,
+            -0.12,
+            0
+          ]
+        },
+        {
+          "part": "antenna",
+          "channel": "rotX",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.264,
+            0.528,
+            0.748,
+            1.012,
+            1.32,
+            1.628,
+            1.892,
+            2.2
+          ],
+          "values": [
+            0,
+            0.1,
+            -0.3,
+            -0.2,
+            0.3,
+            0.1,
+            0.35,
+            -0.1,
+            0
+          ]
+        },
+        {
+          "part": "wheelFL",
+          "channel": "rotZ",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.264,
+            0.528,
+            0.748,
+            1.012,
+            1.32,
+            1.628,
+            1.892,
+            2.2
+          ],
+          "values": [
+            0,
+            0,
+            0.25,
+            0.15,
+            -0.3,
+            -0.38,
+            -0.1,
+            0,
+            0
+          ]
+        },
+        {
+          "part": "wheelFR",
+          "channel": "rotZ",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.264,
+            0.528,
+            0.748,
+            1.012,
+            1.32,
+            1.628,
+            1.892,
+            2.2
+          ],
+          "values": [
+            0,
+            0,
+            0.25,
+            0.15,
+            -0.3,
+            -0.38,
+            -0.1,
+            0,
+            0
+          ]
+        },
+        {
+          "part": "wheelFL",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 2
+        },
+        {
+          "part": "wheelFR",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 2
+        },
+        {
+          "part": "wheelRL",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 2
+        },
+        {
+          "part": "wheelRR",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 2
+        }
+      ]
+    }
+  ],
+  "id": "mini",
+  "nameKo": "\ub808\ud2b8\ub85c \ubbf8\ub2c8",
+  "nameEn": "RETRO MINI",
+  "emissiveColors": [
+    "#f4f7fb",
+    "#e83b3b",
+    "#f5a15d"
+  ],
+  "emissiveStrength": 0.9,
+  "normalAo": {
+    "tool": "svox_cli.py bake-normal-ao",
+    "layout": "strip_x",
+    "encoding": "RGB = (n*0.5+0.5)*255 outward unit normal, A = AO visibility*255 (255 = open)",
+    "algorithm": "3x3x3 Sobel -grad(alpha); 26-dir front-hemisphere AO (offset.n > 0.75); 1-voxel shell dilation",
+    "stats": "bake_stats.json"
+  }
+}

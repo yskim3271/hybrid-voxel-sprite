@@ -1,0 +1,474 @@
+{
+  "schema": "svox.rig/v1",
+  "generator": "vehicles_threejs/builders/build_f1.py (clean-room, Style D hard-surface + Apollo) + svox_cli.py 1.0.0",
+  "coordinates": {
+    "handedness": "right-handed",
+    "up": "+Z",
+    "front": "-Y",
+    "unit": "1 voxel",
+    "ground": "z = 0"
+  },
+  "targetHeight": 26.0,
+  "parts": [
+    {
+      "name": "chassis",
+      "parent": null,
+      "pivot": [
+        26.0,
+        57.0,
+        6.0
+      ],
+      "restOffset": [
+        0.0,
+        0.0,
+        6.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        52,
+        114,
+        27
+      ],
+      "deformRole": "torso",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/chassis.albedo.png",
+      "normalAoPath": "parts/chassis.normal_ao.png"
+    },
+    {
+      "name": "wheelFL",
+      "parent": "chassis",
+      "pivot": [
+        5.5,
+        9.0,
+        9.0
+      ],
+      "restOffset": [
+        21.5,
+        -32.0,
+        2.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        11,
+        18,
+        18
+      ],
+      "deformRole": "wheel",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/wheelFL.albedo.png",
+      "normalAoPath": "parts/wheelFL.normal_ao.png"
+    },
+    {
+      "name": "wheelFR",
+      "parent": "chassis",
+      "pivot": [
+        5.5,
+        9.0,
+        9.0
+      ],
+      "restOffset": [
+        -21.5,
+        -32.0,
+        2.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        11,
+        18,
+        18
+      ],
+      "deformRole": "wheel",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/wheelFR.albedo.png",
+      "normalAoPath": "parts/wheelFR.normal_ao.png"
+    },
+    {
+      "name": "wheelRL",
+      "parent": "chassis",
+      "pivot": [
+        6.5,
+        9.0,
+        9.0
+      ],
+      "restOffset": [
+        20.5,
+        42.0,
+        2.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        13,
+        18,
+        18
+      ],
+      "deformRole": "wheel",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/wheelRL.albedo.png",
+      "normalAoPath": "parts/wheelRL.normal_ao.png"
+    },
+    {
+      "name": "wheelRR",
+      "parent": "chassis",
+      "pivot": [
+        6.5,
+        9.0,
+        9.0
+      ],
+      "restOffset": [
+        -20.5,
+        42.0,
+        2.0
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        13,
+        18,
+        18
+      ],
+      "deformRole": "wheel",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/wheelRR.albedo.png",
+      "normalAoPath": "parts/wheelRR.normal_ao.png"
+    },
+    {
+      "name": "helmet",
+      "parent": "chassis",
+      "pivot": [
+        5.0,
+        5.0,
+        0.8000000000000007
+      ],
+      "restOffset": [
+        0.0,
+        -6.0,
+        8.8
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        10,
+        10,
+        9
+      ],
+      "deformRole": "rigid",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/helmet.albedo.png",
+      "normalAoPath": "parts/helmet.normal_ao.png"
+    },
+    {
+      "name": "drs_flap",
+      "parent": "chassis",
+      "pivot": [
+        13.0,
+        7.600000000000001,
+        6.399999999999999
+      ],
+      "restOffset": [
+        0.0,
+        52.6,
+        17.4
+      ],
+      "restRotation": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "size": [
+        26,
+        10,
+        9
+      ],
+      "deformRole": "rigid",
+      "flippedCloth": false,
+      "albedoLayout": "strip_x",
+      "albedoPath": "parts/drs_flap.albedo.png",
+      "normalAoPath": "parts/drs_flap.normal_ao.png"
+    }
+  ],
+  "clips": [
+    {
+      "name": "idle",
+      "duration": 2.0,
+      "loop": true,
+      "channels": [
+        {
+          "part": "chassis",
+          "channel": "posZ",
+          "fn": "sin",
+          "bias": 0.12,
+          "amp": 0.12,
+          "cycles": 20
+        },
+        {
+          "part": "chassis",
+          "channel": "posX",
+          "fn": "sin",
+          "amp": 0.06,
+          "cycles": 14
+        },
+        {
+          "part": "wheelFL",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": 0.2,
+          "cycles": 1
+        },
+        {
+          "part": "wheelFR",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": 0.2,
+          "cycles": 1
+        },
+        {
+          "part": "helmet",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": 0.08,
+          "cycles": 1,
+          "phase": -0.4
+        }
+      ]
+    },
+    {
+      "name": "move",
+      "duration": 1.4,
+      "loop": true,
+      "channels": [
+        {
+          "part": "chassis",
+          "channel": "posZ",
+          "fn": "sin",
+          "bias": 0.25,
+          "amp": 0.25,
+          "cycles": 4
+        },
+        {
+          "part": "wheelFL",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 2
+        },
+        {
+          "part": "wheelFR",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 2
+        },
+        {
+          "part": "wheelRL",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 2
+        },
+        {
+          "part": "wheelRR",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 2
+        },
+        {
+          "part": "wheelFL",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": 0.24,
+          "cycles": 1
+        },
+        {
+          "part": "wheelFR",
+          "channel": "rotZ",
+          "fn": "sin",
+          "amp": 0.24,
+          "cycles": 1
+        },
+        {
+          "part": "helmet",
+          "channel": "rotY",
+          "fn": "sin",
+          "amp": 0.14,
+          "cycles": 1,
+          "phase": -0.3
+        }
+      ]
+    },
+    {
+      "name": "special",
+      "duration": 2.2,
+      "loop": true,
+      "channels": [
+        {
+          "part": "wheelFL",
+          "channel": "rotZ",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.35,
+            0.75,
+            1.2,
+            1.6,
+            1.95,
+            2.2
+          ],
+          "values": [
+            0,
+            0,
+            0.3,
+            0.05,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "part": "wheelFR",
+          "channel": "rotZ",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.35,
+            0.75,
+            1.2,
+            1.6,
+            1.95,
+            2.2
+          ],
+          "values": [
+            0,
+            0,
+            0.3,
+            0.05,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "part": "drs_flap",
+          "channel": "rotX",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.35,
+            0.75,
+            1.2,
+            1.6,
+            1.95,
+            2.2
+          ],
+          "values": [
+            0,
+            0,
+            0,
+            -0.62,
+            -0.62,
+            0,
+            0
+          ]
+        },
+        {
+          "part": "helmet",
+          "channel": "rotY",
+          "fn": "keys",
+          "times": [
+            0.0,
+            0.35,
+            0.75,
+            1.2,
+            1.6,
+            1.95,
+            2.2
+          ],
+          "values": [
+            0,
+            0,
+            0.18,
+            0.04,
+            0,
+            0,
+            0
+          ]
+        },
+        {
+          "part": "wheelFL",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 3
+        },
+        {
+          "part": "wheelFR",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 3
+        },
+        {
+          "part": "wheelRL",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 3
+        },
+        {
+          "part": "wheelRR",
+          "channel": "rotX",
+          "fn": "ramp",
+          "amp": 6.283185307179586,
+          "cycles": 3
+        }
+      ]
+    }
+  ],
+  "id": "f1",
+  "nameKo": "F1 \ud3ec\ubbac\ub7ec",
+  "nameEn": "FORMULA 1",
+  "emissiveColors": [
+    "#e83b3b",
+    "#f4f7fb"
+  ],
+  "emissiveStrength": 0.9,
+  "drs": {
+    "part": "drs_flap",
+    "openRotX": -0.62
+  },
+  "normalAo": {
+    "tool": "svox_cli.py bake-normal-ao",
+    "layout": "strip_x",
+    "encoding": "RGB = (n*0.5+0.5)*255 outward unit normal, A = AO visibility*255 (255 = open)",
+    "algorithm": "3x3x3 Sobel -grad(alpha); 26-dir front-hemisphere AO (offset.n > 0.75); 1-voxel shell dilation",
+    "stats": "bake_stats.json"
+  }
+}

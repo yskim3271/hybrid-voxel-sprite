@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 64 64" role="img" aria-label="hybrid-voxel-sprite">
+  <defs>
+    <linearGradient id="t" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fcd34d"/><stop offset="1" stop-color="#f59e0b"/></linearGradient>
+    <linearGradient id="l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fb923c"/><stop offset="1" stop-color="#ea580c"/></linearGradient>
+    <linearGradient id="r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#7c2d12"/><stop offset="1" stop-color="#431407"/></linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="#10141c"/>
+  <!-- isometric voxel cube: top + left solid, right face split into sprite-stack slices -->
+  <path d="M32 9 52 20.5 32 32 12 20.5Z" fill="url(#t)"/>
+  <path d="M12 20.5 32 32v23L12 43.5Z" fill="url(#l)"/>
+  <path d="M32 32 52 20.5v4.6L32 36.6Z" fill="url(#r)"/>
+  <path d="M32 39.6 52 28.1v4.6L32 44.2Z" fill="#38bdf8"/>
+  <path d="M32 47.2 52 35.7v4.6L32 51.8Z" fill="#0ea5e9" opacity=".85"/>
+  <path d="M32 9 52 20.5 32 32 12 20.5Z" fill="none" stroke="#fff" stroke-opacity=".45" stroke-width="1"/>
+  <path d="M22 14.75 42 26.25M42 14.75 22 26.25" stroke="#7c2d12" stroke-opacity=".35" stroke-width="1"/>
+</svg>
