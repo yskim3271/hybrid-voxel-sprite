@@ -8,10 +8,8 @@
   var KO = {
     'nav.demo': '라이브 데모', 'nav.back': '← 데모로 돌아가기', 'nav.engines': '엔진', 'nav.install': '설치', 'nav.docs': '문서',
     'hero.badge': '오픈 소스 · MIT 라이선스 · v1.1',
-    'hero.title': '틈새 없이 움직이는<br><span class="accent">실시간 3D 복셀 스프라이트</span>',
-    'hero.lede': '관절형 복셀 파츠 하나하나를 자기만의 회전 박스 안에서 레이마칭하는 에이전트 스킬입니다. ' +
-      '<code>T3 OBB Raymarching</code> + <code>Inverse Deform</code> + <code>SVOX CLI</code> + <code>4 Engine Adapters</code>. ' +
-      '스프라이트 스태킹의 감성에 실제 3D 볼륨을 더해, 픽셀 격자에 스냅하고 1&nbsp;px 외곽선을 두르며, 어떤 각도에서도 슬라이스 틈이 생기지 않습니다.',
+    'hero.title': '픽셀 아트 스타일의<br><span class="accent">3D 복셀 스프라이트</span>',
+    'hero.lede': '파츠별 3D 복셀 볼륨을 실시간으로 렌더링하는 에이전트 스킬입니다. 픽셀 아트 외곽선과 2D 스프라이트 스태킹의 느낌을 유지하면서, 카메라 각도에 관계없이 깔끔하게 움직입니다.',
     'hero.cta1': '시작하기', 'hero.cta2': 'GitHub에서 보기',
     'veh.excavator': '굴착기', 'veh.mini': '레트로 미니', 'veh.cybertruck': '사이버트럭', 'veh.f1': 'F1 포뮬러',
     'tel.parts': '파츠', 'tel.voxels': '복셀', 'tel.pitch': '피치',
@@ -23,9 +21,7 @@
     'pitch.low': '저각 14° · 틈 0', 'pitch.side': '측면 8°',
     'works.label': '함께 쓰는 도구',
     'install.eyebrow': '빠른 설치', 'install.title': '한 줄이면 어떤 코딩 에이전트든',
-    'install.sub': '스킬은 <code>SKILL.md</code>가 든 폴더 하나입니다. 쓰는 에이전트에 맞는 방법으로 설치하세요.',
     'install.tab1': '범용 · npx skills', 'install.tab2': 'Claude Code 플러그인', 'install.tab3': '수동 · clone',
-    'install.note1': 'Claude Code, Antigravity, Codex / Open Agents, Cursor 등 SKILL.md를 읽는 모든 에이전트에서 동작합니다.',
     'install.note2': 'Claude Code 안에서 두 명령을 차례로 실행하세요. 저장소에 .claude-plugin/ 마켓플레이스 매니페스트가 들어 있습니다.',
     'install.note3': '다른 에이전트: <code>~/.gemini/config/skills/</code> (Antigravity) · <code>~/.agents/skills/</code> (Codex / Open Agents)',
     'install.ask': '설치 후 이렇게 말해 보세요',

@@ -1,9 +1,9 @@
 <!doctype html>
-<html lang="en" data-title-ko="hybrid-voxel-sprite — 틈새 없이 움직이는 실시간 3D 복셀 스프라이트">
+<html lang="en" data-title-ko="hybrid-voxel-sprite — 픽셀 아트 스타일의 3D 복셀 스프라이트">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>hybrid-voxel-sprite — Real-time 3D voxel sprites that never crack</title>
+  <title>hybrid-voxel-sprite — Pixel-art style 3D voxel sprites</title>
   <meta name="description" content="An open-source agent skill for real-time articulated 3D voxel sprites: T3 OBB raymarching, analytic inverse deform, SVOX CLI and adapters for WebGL2 / Three.js, Godot 4, Unity 6 URP and Blender 5.">
   <meta name="theme-color" content="#080a0e">
   <meta property="og:title" content="hybrid-voxel-sprite">
@@ -54,10 +54,8 @@
       <a class="pill-badge" href="changelog.html" data-keep-lang>
         <span class="dot" aria-hidden="true"></span><span data-i18n="hero.badge">Open source · MIT licensed · v1.1</span><span class="arr" aria-hidden="true">→</span>
       </a>
-      <h1 class="display" data-i18n-html="hero.title">Real-time 3D voxel sprites<br><span class="accent">that never crack</span></h1>
-      <p class="lede" data-i18n-html="hero.lede">An agent skill that raymarches every articulated voxel part inside its own oriented box:
-        <code>T3 OBB Raymarching</code> + <code>Inverse Deform</code> + <code>SVOX CLI</code> + <code>4 Engine Adapters</code>.
-        Sprite-stacking charm, real 3D volumes, pixel-snapped and outlined at 1&nbsp;px — with zero slice cracks at any pitch.</p>
+      <h1 class="display" data-i18n-html="hero.title">Pixel-art style<br><span class="accent">3D voxel sprites</span></h1>
+      <p class="lede" data-i18n-html="hero.lede">An open-source agent skill for rendering articulated 3D voxel sprites in real time. Keeps the crisp pixel-art look and 1&nbsp;px outlines of sprite stacking at any camera angle.</p>
 
       <!-- ============================================================ live demo -->
       <div class="demo" id="demo">
@@ -164,7 +162,6 @@
       <div class="sec-head">
         <span class="eyebrow" data-i18n="install.eyebrow">Quick install</span>
         <h2 data-i18n="install.title">One line, any coding agent</h2>
-        <p data-i18n="install.sub">The skill is a single folder with a <code>SKILL.md</code>. Install it however your agent prefers.</p>
       </div>
       <div class="install">
         <div class="tabs" role="tablist" aria-label="Install method">
@@ -175,7 +172,6 @@
         <div class="panel" data-panel="npx">
           <div class="term"><pre><code><span class="p">$</span> npx skills add yskim3271/hybrid-voxel-sprite</code></pre>
             <button type="button" class="copy" data-copy="npx skills add yskim3271/hybrid-voxel-sprite" data-i18n="copy">Copy</button></div>
-          <p class="note" data-i18n="install.note1">Works with Claude Code, Antigravity, Codex / Open Agents, Cursor and any agent that reads <code>SKILL.md</code>.</p>
         </div>
         <div class="panel" data-panel="plugin" hidden>
           <div class="term"><pre><code><span class="p">&gt;</span> /plugin marketplace add yskim3271/hybrid-voxel-sprite
