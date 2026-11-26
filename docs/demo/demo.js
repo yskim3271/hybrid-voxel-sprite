@@ -21,7 +21,7 @@ const CLEAR_RGB = { final: [0.047, 0.059, 0.082], stack: [0.051, 0.086, 0.141], 
 const PITCH_PRESETS = { iso: 33.2 * DEG, low: 14 * DEG, side: 8 * DEG };
 // Renderer panel defaults (= T3Renderer DEFAULT_OPTIONS)
 const R_DEFAULTS = Object.freeze({
-  surface: 'crisp', bands: 4, px: 2,
+  surface: 'crisp', bands: 4, px: 1,
   outline: true, selfShadow: true, useAO: true, rim: true, groundShadow: true, emissive: true, usePixelSnap: true,
 });
 const PASSES = ['outline', 'selfShadow', 'useAO', 'rim', 'groundShadow', 'emissive', 'usePixelSnap'];
