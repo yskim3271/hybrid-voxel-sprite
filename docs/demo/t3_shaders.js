@@ -274,6 +274,7 @@ uniform vec3 uShadowTint;
 uniform vec3 uHiTint;
 uniform vec3 uRimColor;
 uniform float uRimStrength;
+uniform float uRimThresh;         // demo: cel-rim step threshold (0.45 = verified default; Cyber Rim / Sunset lower it)
 // toggles
 uniform float uLit;
 uniform float uBands;              // 0 = smooth shading, 2..8 = cel
@@ -556,7 +557,7 @@ void main() {
     vec3 litCol = albedo * mix(vec3(1.0), uHiTint, 0.45) * mix(vec3(1.0), uLightColor, 0.6) * 1.12;
     col = mix(shadowCol, litCol, qb) * mix(0.6, 1.0, floor(aoF * heightOcc * 4.0 + 0.5) / 4.0);
     if (qb > 0.99 && pow(max(dot(N, normalize(L + V)), 0.0), 40.0) > 0.7) col += litCol * 0.09;
-    if (uRim > 0.5) col += uRimColor * uRimStrength * 0.55 * step(0.45, pow(1.0 - clamp(dot(N, V), 0.0, 1.0), 2.5) *
+    if (uRim > 0.5) col += uRimColor * uRimStrength * 0.55 * step(uRimThresh, pow(1.0 - clamp(dot(N, V), 0.0, 1.0), 2.5) *
                       clamp(0.3 + 0.7 * dot(N, normalize(L + vec3(0.0, 0.0, 1.0))), 0.0, 1.0));
   } else {
     vec3 hemi = mix(uGround, uSky, N.z * 0.5 + 0.5);

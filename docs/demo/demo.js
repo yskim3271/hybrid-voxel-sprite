@@ -3,7 +3,9 @@
 // The real Three.js r187 T3 hybrid renderer (t3_renderer.js + t3_shaders.js), loading the 4 verified articulated SVOX
 // vehicles (39 parts, 166,290 voxels) and their motion plugins. Live view modes: FINAL · SPRITE STACK · 3D NORMALS ·
 // VOLUME AO. Drag = 360° yaw + pitch 8°–68°, wheel (after clicking the viewport) = zoom. No CDN: three.js is vendored.
-// QA hook: window.__HVS_DEMO__ = { ready, set(patch), status(), renderOnce() }.
+// ⚙ Renderer drawer: the real T3Renderer options (Crisp DDA / Smooth Iso, cel bands, lighting presets → uL, uLightColor,
+// uAmbient, uShadowTint, uHiTint, uRimColor, pixel scale and 7 shader-pass toggles), all applied live.
+// QA hook: window.__HVS_DEMO__ = { ready, set(patch), status(), renderOnce(), defaults, lights }.
 
 import { T3Renderer, DEFAULT_OPTIONS } from './t3_renderer.js';
 import { loadBundle } from './svox_loader.js';
@@ -17,14 +19,46 @@ const ACCENT = { excavator: '#de9e41', mini: '#e8c170', cybertruck: '#a4dddb', f
 const MODES = { final: 'final', stack: 'stack', normals: 'normals', ao: 'ao' };
 const CLEAR_RGB = { final: [0.047, 0.059, 0.082], stack: [0.051, 0.086, 0.141], normals: [0.071, 0.078, 0.149], ao: [0.80, 0.82, 0.85] };
 const PITCH_PRESETS = { iso: 33.2 * DEG, low: 14 * DEG, side: 8 * DEG };
+// Renderer drawer defaults (= T3Renderer DEFAULT_OPTIONS + the Apollo studio light)
+const R_DEFAULTS = Object.freeze({
+  surface: 'crisp', bands: 4, light: 'studio', px: 2,
+  outline: true, selfShadow: true, useAO: true, rim: true, groundShadow: true, emissive: true, usePixelSnap: true,
+});
+const PASSES = ['outline', 'selfShadow', 'useAO', 'rim', 'groundShadow', 'emissive', 'usePixelSnap'];
+const BANDS = [2, 3, 4, 0];
+// Lighting presets → buildLightState() fields → uL · uLightColor · uAmbient · uSky · uGround · uShadowTint · uHiTint · uRimColor
+// (rimThresh → uRimThresh: Sunset / Cyber Rim let the cel rim reach axis-aligned crisp facets, not only grazing normals)
+const LIGHTS = {
+  studio: { el: 0.85 },   // Apollo obsidian: balanced warm key + cool rim (buildLightState defaults)
+  daylight: {
+    el: 1.08, intensity: 1.1,
+    over: { color: [1.0, 0.97, 0.89], ambient: 0.44, sky: [0.66, 0.80, 1.0], ground: [0.36, 0.33, 0.28],
+      shadowTint: [0.40, 0.54, 0.90], highlightTint: [1.0, 0.97, 0.86], rimColor: [0.78, 0.90, 1.0], rimStrength: 0.32 },
+  },
+  sunset: {
+    el: 0.52, az: 0.15, intensity: 1.08,
+    over: { color: [1.0, 0.66, 0.36], ambient: 0.30, sky: [0.58, 0.46, 0.72], ground: [0.32, 0.20, 0.24],
+      shadowTint: [0.42, 0.32, 0.76], highlightTint: [1.0, 0.78, 0.50], rimColor: [1.0, 0.56, 0.36], rimStrength: 0.60, rimThresh: 0.22 },
+  },
+  cyber: {
+    el: 0.72, az: -0.4, intensity: 1.0,
+    over: { color: [0.50, 0.92, 1.0], ambient: 0.30, sky: [0.38, 0.58, 0.98], ground: [0.30, 0.14, 0.36],
+      shadowTint: [0.46, 0.26, 0.80], highlightTint: [0.72, 0.95, 1.0], rimColor: [1.0, 0.28, 0.86], rimStrength: 0.95, rimThresh: 0.1 },
+  },
+};
+function lightFor(preset, yaw) {
+  const P = LIGHTS[preset] || LIGHTS.studio;
+  return { ...buildLightState(yaw - 1.3 + (P.az || 0), P.el, P.intensity ?? 1), ...(P.over || {}) };
+}
 
 const $ = (id) => document.getElementById(id);
 const hex2rgb = (h) => { const n = parseInt(h.slice(1), 16); return [((n >> 16) & 255) / 255, ((n >> 8) & 255) / 255, (n & 255) / 255]; };
 const tr = (k, fb) => (window.HVS_I18N && window.HVS_I18N.t(k)) || fb || k;
 
 const state = {
-  vehicle: 'excavator', mode: 'final', clip: 'special', px: 2, outline: true,
+  vehicle: 'excavator', mode: 'final', clip: 'special',
   yaw: 0.55, pitch: PITCH_PRESETS.iso, zoom: 1, autoOrbit: true, paused: false,
+  r: { ...R_DEFAULTS }, drawer: false,
 };
 const rt = {
   t3: null, ready: false, visible: true, cache: new Map(), loading: new Map(), cur: null,
@@ -97,6 +131,18 @@ function fitZoom(v, pitch) {
 }
 
 // ------------------------------------------------------------------------------------------- render
+function renderOptions() {
+  const r = state.r;
+  return {
+    ...DEFAULT_OPTIONS, debugView: MODES[state.mode],
+    raymarchSmooth: r.surface === 'smooth', celBands: r.bands,
+    pixelScale: Math.max(1, Math.round(r.px * rt.dpr)),
+    outline: r.outline, selfShadow: r.selfShadow, useAO: r.useAO, rim: r.rim,
+    groundShadow: r.groundShadow, emissive: r.emissive, usePixelSnap: r.usePixelSnap,
+  };
+}
+const isDefault = () => Object.keys(R_DEFAULTS).every((k) => state.r[k] === R_DEFAULTS[k]);
+
 function render(dt) {
   const v = rt.cur;
   if (!v) return;
@@ -106,12 +152,10 @@ function render(dt) {
   const pose = dt == null || state.paused
     ? v.ev.evaluateDeterministic(state.clip, v.t, { useSpring: true, useDeform: true })
     : v.ev.evaluate(state.clip, v.t, dt, v.spring, { useSpring: true, useDeform: true });
-  const ps = Math.max(1, Math.round(state.px * rt.dpr));
   rt.t3.clearCanvas(CLEAR_RGB[state.mode]);
   rt.t3.render(v.subject, {
     yaw: state.yaw, pitch: state.pitch, zoom: rt.fit * state.zoom, target: v.target,
-    light: buildLightState(state.yaw - 1.3, 0.85), pose,
-    options: { ...DEFAULT_OPTIONS, pixelScale: ps, outline: state.outline, debugView: MODES[state.mode] },
+    light: lightFor(state.r.light, state.yaw), pose, options: renderOptions(),
   }, { x: 0, y: 0, w: rt.canvasW, h: rt.canvasH });
   rt.frames++;
 }
@@ -144,10 +188,23 @@ function syncUI() {
   on('[data-veh]', 'data-veh', state.vehicle);
   on('[data-mode]', 'data-mode', state.mode);
   on('[data-clip]', 'data-clip', state.clip);
-  on('[data-px]', 'data-px', state.px);
+  on('[data-px]', 'data-px', state.r.px);
+  document.querySelectorAll('[data-ropt]').forEach((b) => {
+    const a = String(state.r[b.dataset.ropt]) === b.dataset.val;
+    b.classList.toggle('on', a); b.setAttribute('aria-pressed', a ? 'true' : 'false');
+  });
+  document.querySelectorAll('[data-rpass]').forEach((b) => {
+    const a = !!state.r[b.dataset.rpass]; b.classList.toggle('on', a); b.setAttribute('aria-pressed', a ? 'true' : 'false');
+  });
+  $('pxGroup').classList.toggle('off', !state.r.usePixelSnap);   // Pixel Snap off → the renderer forces ps = 1
+  const dflt = isDefault();
+  $('rendererBtn').classList.toggle('modified', !dflt);
+  $('rendererBtn').setAttribute('aria-expanded', state.drawer ? 'true' : 'false');
+  $('rendererDrawer').classList.toggle('open', state.drawer);
+  $('rendererDrawer').setAttribute('aria-hidden', state.drawer ? 'false' : 'true');
+  $('rendererReset').disabled = dflt;
   const preset = Object.entries(PITCH_PRESETS).find(([, p]) => Math.abs(p - state.pitch) < 0.5 * DEG);
   on('[data-pitch]', 'data-pitch', preset ? preset[0] : '');
-  const ob = $('outlineBtn'); ob.classList.toggle('on', state.outline); ob.setAttribute('aria-pressed', state.outline ? 'true' : 'false');
   $('demoModeChip').innerHTML = `<b>${tr(`mode.${state.mode}`)}</b><span>${tr(`mode.${state.mode}.sub`)}</span>`;
   $('demoModeChip').dataset.mode = state.mode;
   $('clipCaption').textContent = tr(`clip.${state.vehicle}.${state.clip}`);
@@ -172,8 +229,20 @@ function apply(p = {}) {
     state.clip = p.clip;
     if (rt.cur) { rt.cur.t = 0; rt.cur.spring = rt.cur.ev.createSpringState(); }
   }
-  if (p.px != null) state.px = clamp(Math.round(+p.px), 1, 3);
-  if (p.outline != null) state.outline = !!p.outline;
+  if (p.reset) state.r = { ...R_DEFAULTS };
+  const r = state.r;
+  const px = p.px ?? p.pixelScale;
+  if (px != null) r.px = clamp(Math.round(+px), 1, 3);
+  if (p.surface === 'crisp' || p.surface === 'smooth') r.surface = p.surface;
+  if (p.raymarchSmooth != null) r.surface = p.raymarchSmooth ? 'smooth' : 'crisp';
+  const bands = p.bands ?? p.celBands;
+  if (bands != null && BANDS.includes(+bands)) r.bands = +bands;
+  const light = p.light ?? p.lighting;
+  if (light && LIGHTS[light]) r.light = light;
+  if (p.ao != null) r.useAO = !!p.ao;
+  if (p.snap != null) r.usePixelSnap = !!p.snap;
+  for (const k of PASSES) if (p[k] != null) r[k] = !!p[k];
+  if (p.drawer != null) state.drawer = !!p.drawer;
   if (p.yaw != null) state.yaw = +p.yaw;
   if (p.pitch != null) state.pitch = clamp(+p.pitch, PITCH_MIN, PITCH_MAX);
   if (p.zoom != null) state.zoom = clamp(+p.zoom, 0.6, 2.6);
@@ -189,7 +258,17 @@ function wire() {
   document.querySelectorAll('[data-clip]').forEach((b) => b.addEventListener('click', () => apply({ clip: b.dataset.clip })));
   document.querySelectorAll('[data-px]').forEach((b) => b.addEventListener('click', () => apply({ px: +b.dataset.px })));
   document.querySelectorAll('[data-pitch]').forEach((b) => b.addEventListener('click', () => apply({ pitch: PITCH_PRESETS[b.dataset.pitch] })));
-  $('outlineBtn').addEventListener('click', () => apply({ outline: !state.outline }));
+  // ⚙ Renderer drawer
+  $('rendererBtn').addEventListener('click', () => apply({ drawer: !state.drawer }));
+  document.querySelectorAll('[data-ropt]').forEach((b) => b.addEventListener('click', () => {
+    const k = b.dataset.ropt, v = b.dataset.val;
+    apply({ [k]: k === 'bands' ? +v : v });
+  }));
+  document.querySelectorAll('[data-rpass]').forEach((b) => b.addEventListener('click', () => {
+    const k = b.dataset.rpass; apply({ [k]: !state.r[k] });
+  }));
+  $('rendererReset').addEventListener('click', () => apply({ reset: true }));
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && state.drawer) apply({ drawer: false }); });
 
   const stage = $('demoStage');
   stage.addEventListener('pointerdown', (e) => {
@@ -236,6 +315,7 @@ async function boot() {
   const q = new URLSearchParams(location.search);
   if (q.get('vehicle') && VEHICLES.includes(q.get('vehicle'))) state.vehicle = q.get('vehicle');
   if (q.get('mode') && MODES[q.get('mode')]) state.mode = q.get('mode');
+  if (q.get('light') && LIGHTS[q.get('light')]) state.r.light = q.get('light');
   wire(); syncUI();
   if (!hasWebGL2()) { fail(new Error('WebGL2 unavailable')); readyResolve(false); return; }
   try {
@@ -256,10 +336,22 @@ async function boot() {
 window.__HVS_DEMO__ = {
   ready,
   async set(p = {}) { if (p.vehicle) await selectVehicle(p.vehicle); apply(p); return this.status(); },
+  defaults: R_DEFAULTS,
+  lights: Object.keys(LIGHTS),
   renderOnce() { render(null); return true; },
   status() {
+    const sp = rt.cur && rt.cur.subject.parts[0];
+    const u = sp && sp.u;
+    const vec = (x) => [x.x, x.y, x.z].map((n) => +n.toFixed(4));
     return {
-      ready: rt.ready, vehicle: state.vehicle, mode: state.mode, clip: state.clip, px: state.px, outline: state.outline,
+      ready: rt.ready, vehicle: state.vehicle, mode: state.mode, clip: state.clip, px: state.r.px, outline: state.r.outline,
+      renderer: { ...state.r }, drawerOpen: state.drawer, modified: !isDefault(),
+      uniforms: u ? {
+        uSmooth: u.uSmooth.value, uBands: u.uBands.value, uUseAO: u.uUseAO.value, uSelfShadow: u.uSelfShadow.value, uRim: u.uRim.value,
+        uEmissiveStrength: u.uEmissiveStrength.value, uAmbient: +u.uAmbient.value.toFixed(4), uL: vec(u.uL.value),
+        uLightColor: vec(u.uLightColor.value), uShadowTint: vec(u.uShadowTint.value), uHiTint: vec(u.uHiTint.value), uRimColor: vec(u.uRimColor.value),
+        groundShadowVisible: sp.smesh.visible, uOutline: rt.t3.postUniforms.uOutline.value, uPS: rt.t3.postUniforms.uPS.value,
+      } : null,
       yaw: state.yaw, pitchDeg: state.pitch / DEG, fps: rt.fps, frames: rt.frames, loaded: [...rt.cache.keys()],
       parts: rt.cur ? rt.cur.parts : 0, voxels: rt.cur ? rt.cur.voxels : 0, three: rt.t3 ? rt.t3.revision : null,
       glError: rt.t3 ? rt.t3.glError() : null, errors: rt.errors.slice(), canvas: [rt.canvasW, rt.canvasH],

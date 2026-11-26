@@ -1,11 +1,12 @@
-// site.js — instant KO / EN toggle (no reload), install tabs, copy buttons + toast.
-// English lives in index.html; the English originals are captured from the DOM at start-up, so KO is the only
+// site.js — instant KO / EN toggle (no reload), install tabs, copy buttons + toast. Shared by index.html and changelog.html.
+// English lives in the HTML; the English originals are captured from the DOM at start-up, so KO is the only
 // dictionary that has to be maintained here. `?lang=ko|en` wins, then a saved choice, then the browser locale.
+// Links marked data-keep-lang (index <-> changelog) always carry the current ?lang so the choice survives navigation.
 (function () {
   'use strict';
 
   var KO = {
-    'nav.demo': '라이브 데모', 'nav.features': '특징', 'nav.engines': '엔진', 'nav.install': '설치', 'nav.docs': '문서',
+    'nav.demo': '라이브 데모', 'nav.back': '← 데모로 돌아가기', 'nav.features': '특징', 'nav.engines': '엔진', 'nav.install': '설치', 'nav.docs': '문서',
     'hero.badge': '오픈 소스 · MIT 라이선스 · v1.1',
     'hero.title': '틈새 없이 움직이는<br><span class="accent">실시간 3D 복셀 스프라이트</span>',
     'hero.lede': '관절형 복셀 파츠 하나하나를 자기만의 회전 박스 안에서 레이마칭하는 에이전트 스킬입니다. ' +
@@ -34,12 +35,15 @@
     'prompt.4': '“내 렌더러에 라이브 SPRITE STACK 디버그 뷰를 추가해줘”',
     'copy': '복사',
     'feat.eyebrow': '왜 T3 하이브리드인가', 'feat.title': '스프라이트 스태킹의 룩, 실제 볼륨의 수학',
-    'f1.t': '저각도에서도 틈 제로',
-    'f1.d': '2D 카드를 쌓는 방식은 카메라가 낮아지면 층 사이가 벌어지고 1복셀 칼날이 점선이 됩니다. T3는 각 파츠의 실제 3D 볼륨을 회전 박스 안에서 정확한 DDA로 레이마칭하므로 벌어질 슬라이스 자체가 없습니다.',
-    'f2.t': '픽셀 단위 격자 스냅', 'f2.d': '카메라와 루트를 가상 FBO 텍셀 격자에 스냅해, 반 텍셀 미만으로 움직여도 가장자리 픽셀이 반짝이지 않습니다.',
-    'f3.t': '분석적 역변형 + 스프링', 'f3.d': 'squash·twist·shear·wave를 샘플마다 정확히 되돌리고 스프링 2차 모션을 더합니다. UV·리토폴로지·스킨 웨이트가 필요 없습니다.',
-    'f4.t': 'v1.1 프로덕션 업그레이드',
-    'f4.d': '글로우 헤일로가 있는 6-슬롯 이미시브 · D24 깊이 버킷 타이브레이크(파츠 순서를 뒤집어도 <code>0 px</code>) · PerspectiveCamera 3D 월드 MRT 하이브리드 · 라이브 <code class="cy">SPRITE STACK</code> 검사 모드',
+    'feat.sub': '복셀 스프라이트를 그리는 세 가지 방법. 낮은 카메라에서도 버티는 건 하나뿐입니다.',
+    'c1.tag': '14° 이하에서 틈 발생', 'c1.t': '기존 2D 카드 스택',
+    'c1.d': '낮은 각도에서 슬라이스 사이가 벌어지고, 1복셀 칼날은 점선으로 끊깁니다.',
+    'c2.tag': '회전하면 뭉개짐', 'c2.t': '재복셀화 · 베이크 메시',
+    'c2.d': '회전할 때마다 다시 샘플링해 가장자리가 계단지고, 얇은 디테일이 사라집니다.',
+    'c3.tag': '틈 0 · 모든 각도', 'c3.t': 'T3 하이브리드 레이마치',
+    'c3.d': '파츠마다 자기 박스 안에서 실제 볼륨을 레이마칭하고, 변형은 해석적으로 되돌린 뒤 1&nbsp;px 외곽선을 두릅니다.',
+    'svg.blade': '점선이 된 칼날', 'svg.lost': '사라진 모서리', 'svg.ink': '1px 잉크 외곽선',
+    'm1': '14° 저각에서 생기는 슬라이스 틈', 'm2': '격자 스냅 시 서브텍셀 픽셀 떨림', 'm3': 'GTX 1080, 640×360 ×3 기준 프레임당',
     'eng.eyebrow': '검증된 4개 엔진', 'eng.title': '하나의 계약, 네 개의 타깃, 같은 QA 게이트',
     'eng.web': '2-패스 MRT G-버퍼와 1px 외곽선, v1.1 Perspective 3D 월드 하이브리드 포함.',
     'eng.godot': 'Forward+와 Mobile(Vulkan) 두 렌더러가 픽셀 단위로 같은 결과를 냅니다.',
@@ -48,11 +52,38 @@
     'show.eyebrow': '실제로 보기', 'show.title': '최종 화면과 그 속을 실시간 와이프로',
     'show.sub': '관절형 차량 4대(39 파츠, 166,290 복셀)를 실시간 Three.js 3D 월드에 합성했습니다. 사선 띠마다 같은 프레임의 다른 라이브 뷰가 드러납니다.',
     'show.cap': '같은 포즈, 네 가지 라이브 모드: FINAL(셀 셰이딩 + 1px 외곽선) · SPRITE STACK(2D 슬라이스 카드) · 3D NORMALS · VOLUME AO',
-    'cli.eyebrow': 'SVOX CLI · QA 게이트', 'cli.title': 'Python 표준 라이브러리만. 모든 어댑터가 통과해야 하는 4대 게이트.',
-    'g1.t': '저각 14°, 틈 없음', 'g2.t': '서브텍셀 스냅', 'g4.t': '지면 · 루프 · 가림',
-    'perf.t': 'GTX 1080, 640×360 ×3 기준 프레임 시간 (3파츠 레퍼런스 / 13파츠 기사).',
-    'perf.h': '솔직한 포지셔닝: 픽셀 스케일 스프라이트가 많은 아이소메트릭·탑다운·사이드뷰 게임에 맞습니다. 저사양 모바일의 전체 화면 클로즈업에는 맞지 않습니다. 비용은 덮인 가상 픽셀 × 마치 길이에 비례합니다.',
-    'foot.docs': '스킬 문서', 'foot.rel': '릴리스',
+    'foot.docs': '스킬 문서', 'foot.rel': '릴리스', 'foot.log': '변경 이력',
+    // live demo · renderer options drawer
+    'r.btn': '렌더러', 'r.surface': '복셀 표면', 'r.crisp': '또렷한 DDA', 'r.smooth': '매끈한 Iso',
+    'r.bands': '셀 단계', 'r.bandsSmooth': '부드럽게', 'r.light': '조명 프리셋',
+    'r.studio': '스튜디오', 'r.daylight': '한낮', 'r.sunset': '노을', 'r.cyber': '사이버 림',
+    'r.px': '픽셀 배율', 'r.passes': '셰이더 패스', 'r.selfShadow': '자기 그림자', 'r.ao': '볼륨 AO', 'r.rim': '림 라이트',
+    'r.ground': '지면 그림자', 'r.emissive': '발광', 'r.snap': '픽셀 스냅', 'r.reset': '초기화',
+    // changelog.html
+    'log.eyebrow': '버전 히스토리', 'log.title': '변경 이력',
+    'log.sub': 'hybrid-voxel-sprite 에이전트 스킬의 모든 릴리스. 최신 버전이 맨 위에 있습니다.',
+    'log.back': '라이브 데모로 돌아가기',
+    'log.latest': '최신', 'log.initial': '첫 릴리스',
+    'v11.t': '라이브 SPRITE STACK, Perspective 3D 월드, 인터랙티브 데모',
+    'v11.d': '같은 T3 계약 위에 디버그 뷰, 시네마 합성, 하드서피스 리깅, 배포 경로를 더한 프로덕션 업데이트입니다.',
+    'g.render': '렌더링', 'g.workflow': '워크플로', 'g.dist': '배포', 'g.core': '코어', 'g.cli': 'SVOX CLI', 'g.engines': '엔진 · QA',
+    'v11.1': '라이브 <code>SPRITE STACK</code> 모드(<code>mode == 2</code>): 가로 2D 카드 DDA 마치로 같은 볼륨을 슬라이스 카드로 검사',
+    'v11.2': 'PerspectiveCamera 3D 월드 MRT 하이브리드 + 액터 마스크 기반 시네마 포스트 FX',
+    'v11.3': '6-슬롯 이미시브 팔레트 + 포스트 글로우 헤일로',
+    'v11.4': 'D24 깊이 버킷 타이브레이크: 파츠 순서를 뒤집어도 <code>0 px</code> 차이',
+    'v11.5': '3-뷰 턴어라운드 시각 비교(visual-diff) 워크플로',
+    'v11.6': '멀티 클립 프레이밍: 모든 클립의 합집합 박스로 화면 밖 이탈 방지',
+    'v11.7': '하드서피스 유압 실린더 · 휠 리깅',
+    'v11.8': 'GitHub Pages 인터랙티브 WebGL2 데모',
+    'v11.9': '<code>.claude-plugin</code> 마켓플레이스 지원',
+    'v10.t': '코어 T3 렌더러, SVOX CLI, 4개 엔진 어댑터',
+    'v10.d': '관절형 복셀 스프라이트를 위한 첫 공개 버전입니다.',
+    'v10.1': '파츠별 OBB 안에서 하는 T3 레이마칭',
+    'v10.2': '해석적 역변형(squash · twist · shear · wave) + 스프링 2차 모션',
+    'v10.3': 'Python 표준 라이브러리 CLI: <code>init-demo</code> · <code>from-vox</code> · <code>from-strip</code> · <code>bake-normal-ao</code> · <code>validate</code> · <code>pack-atlas</code>',
+    'v10.4': '검증된 4개 엔진 어댑터: WebGL2 / Three.js · Godot 4.7.2 · Unity 6 URP · Blender 5.3',
+    'v10.5': '필수 QA 게이트 4종: G1 저각 틈 · G2 서브텍셀 스냅 · G3 역변형 오차 · G4 지면 · 루프 · 가림',
+    'log.notes': 'GitHub 릴리스 노트', 'log.skill': 'SKILL.md 보기', 'log.compare': '변경 내역 비교',
   };
 
   // Strings created by the live demo (demo.js reads them through HVS_I18N.t)
@@ -83,6 +114,17 @@
 
   var EN = {};
   var lang = 'en';
+  var enTitle = document.title;
+
+  function keepLangLinks() {
+    document.querySelectorAll('a[data-keep-lang]').forEach(function (a) {
+      var base = a.getAttribute('data-base-href');
+      if (base == null) { base = a.getAttribute('href'); a.setAttribute('data-base-href', base); }
+      var hash = '', i = base.indexOf('#');
+      if (i >= 0) { hash = base.slice(i); base = base.slice(0, i); }
+      a.setAttribute('href', (base || './') + '?lang=' + lang + hash);
+    });
+  }
 
   function nodes() { return document.querySelectorAll('[data-i18n],[data-i18n-html]'); }
   function capture() {
@@ -111,9 +153,9 @@
       var on = b.getAttribute('data-lang') === lang;
       b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
     });
-    document.title = lang === 'ko'
-      ? 'hybrid-voxel-sprite — 틈새 없이 움직이는 실시간 3D 복셀 스프라이트'
-      : 'hybrid-voxel-sprite — Real-time 3D voxel sprites that never crack';
+    var koTitle = document.documentElement.getAttribute('data-title-ko');
+    document.title = lang === 'ko' && koTitle ? koTitle : enTitle;
+    keepLangLinks();
     if (persist) { try { localStorage.setItem('hvs-lang', lang); } catch (e) { /* storage blocked */ } }
     try {
       var u = new URL(location.href);
@@ -133,6 +175,7 @@
   var toastTimer = 0;
   function toast(msg) {
     var el = document.getElementById('toast');
+    if (!el) return;
     el.textContent = msg; el.classList.add('show');
     clearTimeout(toastTimer); toastTimer = setTimeout(function () { el.classList.remove('show'); }, 1600);
   }

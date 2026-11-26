@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en" data-title-ko="변경 이력 — hybrid-voxel-sprite">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Changelog — hybrid-voxel-sprite</title>
+  <meta name="description" content="Version history of the hybrid-voxel-sprite agent skill: v1.1.0 live SPRITE STACK, Perspective 3D world and interactive demo; v1.0.0 core T3 renderer, SVOX CLI and 4 engine adapters.">
+  <meta name="theme-color" content="#080a0e">
+  <meta property="og:title" content="hybrid-voxel-sprite — Changelog">
+  <meta property="og:description" content="Every release of the hybrid-voxel-sprite agent skill, newest first.">
+  <meta property="og:image" content="https://yskim3271.github.io/hybrid-voxel-sprite/assets/banner.png">
+  <meta property="og:type" content="website">
+  <link rel="icon" type="image/svg+xml" href="assets/logo.svg">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body class="page-changelog">
+  <div class="glow" aria-hidden="true"></div>
+
+  <!-- ================================================================== header -->
+  <header class="topbar">
+    <div class="topbar-in">
+      <a class="brand" href="./" data-keep-lang aria-label="hybrid-voxel-sprite home">
+        <img src="assets/logo.svg" width="30" height="30" alt="">
+        <span>hybrid-<b>voxel</b>-sprite</span>
+      </a>
+      <nav class="nav" aria-label="Sections">
+        <a class="back" href="./#demo" data-keep-lang data-i18n="nav.back">← Back to Demo</a>
+        <a href="./#features" data-keep-lang data-i18n="nav.features">Features</a>
+        <a href="./#engines" data-keep-lang data-i18n="nav.engines">Engines</a>
+        <a href="./#install" data-keep-lang data-i18n="nav.install">Install</a>
+        <a class="mono ver active" href="changelog.html" data-keep-lang aria-current="page">v1.1 <span class="new">New</span></a>
+        <a href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/SKILL.md" data-i18n="nav.docs">Docs</a>
+      </nav>
+      <div class="top-actions">
+        <div class="lang" role="group" aria-label="Language">
+          <button type="button" data-lang="ko" aria-pressed="false">KO</button><span>/</span><button type="button" data-lang="en" aria-pressed="true">EN</button>
+        </div>
+        <a class="gh" href="https://github.com/yskim3271/hybrid-voxel-sprite" aria-label="GitHub repository">
+          <svg width="18" height="18" viewBox="0 0 16 16" aria-hidden="true"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+          <span>GitHub</span>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <main id="top">
+    <section class="page-head">
+      <span class="eyebrow" data-i18n="log.eyebrow">Version history</span>
+      <h1 data-i18n="log.title">Changelog</h1>
+      <p data-i18n="log.sub">Every release of the hybrid-voxel-sprite agent skill, newest first.</p>
+      <a class="back-link" href="./#demo" data-keep-lang><span aria-hidden="true">←</span><span data-i18n="log.back">Back to the live demo</span></a>
+    </section>
+
+    <div class="timeline">
+      <!-- ============================================================ v1.1.0 -->
+      <article class="rel latest" id="v1.1.0">
+        <div class="rel-meta">
+          <span class="rel-ver">v1.1.0</span>
+          <span class="rel-date">2026-11-26</span>
+          <span class="rel-badge" data-i18n="log.latest">Latest</span>
+        </div>
+        <div class="rel-body">
+          <h2 data-i18n="v11.t">Live SPRITE STACK, Perspective 3D world &amp; interactive demo</h2>
+          <p data-i18n="v11.d">A production update on the same T3 contract: a new debug view, cinema compositing, hard-surface rigging and new ways to install.</p>
+          <div class="rel-group">
+            <h3 data-i18n="g.render">Rendering</h3>
+            <ul>
+              <li data-i18n-html="v11.1">Live <code>SPRITE STACK</code> mode (<code>mode == 2</code>): a horizontal 2D card DDA march that inspects the same volume as slice cards</li>
+              <li data-i18n="v11.2">PerspectiveCamera 3D-world MRT hybrid with actor-masked cinema post-FX</li>
+              <li data-i18n="v11.3">6-slot emissive palette with a post glow halo</li>
+              <li data-i18n-html="v11.4">D24 depth-bucket tie-break: <code>0 px</code> diff when the part order is reversed</li>
+            </ul>
+          </div>
+          <div class="rel-group">
+            <h3 data-i18n="g.workflow">Workflow</h3>
+            <ul>
+              <li data-i18n="v11.5">3-view turnaround visual-diff workflow</li>
+              <li data-i18n="v11.6">Multi-clip framing: the union box of every clip keeps the subject in frame</li>
+              <li data-i18n="v11.7">Hard-surface hydraulic cylinder and wheel rigging</li>
+            </ul>
+          </div>
+          <div class="rel-group">
+            <h3 data-i18n="g.dist">Distribution</h3>
+            <ul>
+              <li data-i18n="v11.8">Interactive WebGL2 demo on GitHub Pages</li>
+              <li data-i18n-html="v11.9"><code>.claude-plugin</code> marketplace support</li>
+            </ul>
+          </div>
+          <div class="rel-links">
+            <a href="https://github.com/yskim3271/hybrid-voxel-sprite/releases/tag/v1.1.0" data-i18n="log.notes">GitHub release notes</a>
+            <a href="./#demo" data-keep-lang data-i18n="nav.demo">Live Demo</a>
+          </div>
+        </div>
+      </article>
+
+      <!-- ============================================================ v1.0.0 -->
+      <article class="rel" id="v1.0.0">
+        <div class="rel-meta">
+          <span class="rel-ver">v1.0.0</span>
+          <span class="rel-date">2026-11-25</span>
+          <span class="rel-badge init" data-i18n="log.initial">Initial release</span>
+        </div>
+        <div class="rel-body">
+          <h2 data-i18n="v10.t">Core T3 renderer, SVOX CLI &amp; 4 engine adapters</h2>
+          <p data-i18n="v10.d">The first public version of the skill for articulated voxel sprites.</p>
+          <div class="rel-group">
+            <h3 data-i18n="g.core">Core</h3>
+            <ul>
+              <li data-i18n="v10.1">T3 raymarching inside each part's oriented box (OBB)</li>
+              <li data-i18n="v10.2">Analytic inverse deform (squash · twist · shear · wave) with spring secondary motion</li>
+            </ul>
+          </div>
+          <div class="rel-group">
+            <h3 data-i18n="g.cli">SVOX CLI</h3>
+            <ul>
+              <li data-i18n-html="v10.3">Python standard-library CLI: <code>init-demo</code> · <code>from-vox</code> · <code>from-strip</code> · <code>bake-normal-ao</code> · <code>validate</code> · <code>pack-atlas</code></li>
+            </ul>
+          </div>
+          <div class="rel-group">
+            <h3 data-i18n="g.engines">Engines &amp; QA</h3>
+            <ul>
+              <li data-i18n="v10.4">4 verified engine adapters: WebGL2 / Three.js · Godot 4.7.2 · Unity 6 URP · Blender 5.3</li>
+              <li data-i18n="v10.5">4 mandatory QA gates: G1 low-pitch cracks · G2 sub-texel snap · G3 undeform error · G4 ground · loop · occlusion</li>
+            </ul>
+          </div>
+          <div class="rel-links">
+            <a href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/SKILL.md" data-i18n="log.skill">Read SKILL.md</a>
+          </div>
+        </div>
+      </article>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-in">
+      <span>MIT License © 2026 Yunsik Kim (yskim3271)</span>
+      <nav>
+        <a href="https://github.com/yskim3271/hybrid-voxel-sprite">GitHub</a>
+        <a href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/SKILL.md" data-i18n="foot.docs">Skill Docs</a>
+        <a href="changelog.html" data-keep-lang data-i18n="foot.log">Changelog</a>
+        <a href="https://github.com/yskim3271/hybrid-voxel-sprite/releases" data-i18n="foot.rel">Releases</a>
+      </nav>
+    </div>
+  </footer>
+
+  <script src="site.js" defer></script>
+</body>
+</html>

@@ -1,5 +1,6 @@
 // t3_renderer.js — pure Three.js (r187) T3 hybrid articulated voxel renderer (GitHub Pages live demo copy).
 // Demo additions: debugView 'stack' (SPRITE STACK via the ported marchStack) and per-mode studio backdrops (uMode).
+// Renderer-drawer additions: options.emissive (false → emissive strength 0) and light.rimThresh → uRimThresh (cel rim step).
 // Adapted from sasin_threejs Style D v2: identical pipeline, D24 depth-bucket tie-break and obsidian pedestal;
 // emissive palette widened to 6 slots (rig.emissiveColors ≤ 6, default strength 0.90).
 //
@@ -30,6 +31,7 @@ export const DEFAULT_OPTIONS = Object.freeze({
   usePixelSnap: true,     // off → ps = 1 and no camera/root snap (02 §1)
   pixelScale: 2,          // ×2: 64–110 vx hard-surface vehicles keep their panel lines even in the 2×2 grid
   outline: true,
+  emissive: true,         // demo: false → uEmissiveStrength / uPartEmissive = 0 (accent texels shade like any albedo)
   floor: true,            // obsidian pedestal + contact shadow (turnaround renders switch it off)
   debugView: 'final',     // final | normals | depth | ao | slices
   useZBuffer: true,
@@ -173,7 +175,7 @@ export class Subject {
         uSmooth: { value: 1 }, uAffine: { value: 1 },
         uL: { value: new THREE.Vector3(0, 0, 1) }, uLightColor: { value: new THREE.Vector3(1, 0.95, 0.86) }, uAmbient: { value: 0.34 },
         uSky: { value: new THREE.Vector3() }, uGround: { value: new THREE.Vector3() }, uShadowTint: { value: new THREE.Vector3() },
-        uHiTint: { value: new THREE.Vector3() }, uRimColor: { value: new THREE.Vector3() }, uRimStrength: { value: 0.45 },
+        uHiTint: { value: new THREE.Vector3() }, uRimColor: { value: new THREE.Vector3() }, uRimStrength: { value: 0.45 }, uRimThresh: { value: 0.45 },
         uHeightOccSpan: { value: 7 }, uPartEmissive: { value: Number.isFinite(pe) ? clamp(pe, 0, 1) : 0 },
         uEmissiveCount: { value: this.emissive.count }, uEmissiveCols: { value: this.emissive.cols }, uEmissiveStrength: { value: this.emissive.strength },
         uDepthSlot: { value: i }, uDepthSlots: { value: depthSlots }, uVehH: { value: 24 }, uLit: { value: 1 }, uBands: { value: 4 }, uUseAO: { value: 1 }, uSelfShadow: { value: 1 }, uRim: { value: 1 }, uDebug: { value: 0 },
@@ -194,7 +196,7 @@ export class Subject {
       const smesh = new THREE.Mesh(unitQuad, shadowMat);
       smesh.frustumCulled = false; smesh.renderOrder = 100 + i;
       this.scene.add(smesh); this.scene.add(mesh);
-      return { def: p, index: i, u, su, mesh, smesh, partMat, shadowMat, tex: tex[i] };
+      return { def: p, index: i, u, su, mesh, smesh, partMat, shadowMat, tex: tex[i], partEmissive: u.uPartEmissive.value };
     });
     this.partByName = new Map(this.parts.map((q) => [q.def.name, q]));
     // floor + contact-shadow scale from the rest footprint
@@ -364,10 +366,12 @@ export class T3Renderer {
       u.uVol.value = o.raymarchSmooth ? sp.tex.lin : sp.tex.near;
       u.uL.value.set(L[0], L[1], L[2]); u.uLightColor.value.set(lc[0], lc[1], lc[2]); u.uAmbient.value = light.ambient;
       u.uSky.value.set(...light.sky); u.uGround.value.set(...light.ground); u.uShadowTint.value.set(...light.shadowTint);
-      u.uHiTint.value.set(...light.highlightTint); u.uRimColor.value.set(...light.rimColor); u.uRimStrength.value = light.rimStrength;
+      u.uHiTint.value.set(...light.highlightTint); u.uRimColor.value.set(...light.rimColor); u.uRimStrength.value = light.rimStrength; u.uRimThresh.value = light.rimThresh ?? 0.45;
       u.uLit.value = o.lit ? 1 : 0; u.uBands.value = o.celBands; u.uUseAO.value = o.useAO ? 1 : 0;
       u.uSelfShadow.value = o.selfShadow ? 1 : 0; u.uRim.value = o.rim ? 1 : 0; u.uDebug.value = debug;
       u.uHeightOccSpan.value = subject.footprint.heightOccSpan;
+      const emOn = o.emissive !== false;
+      u.uEmissiveStrength.value = emOn ? subject.emissive.strength : 0; u.uPartEmissive.value = emOn ? sp.partEmissive : 0;
       sp.partMat.depthTest = !!o.useZBuffer; sp.partMat.depthWrite = !!o.useZBuffer;
       sp.mesh.matrix.copy(Mp); sp.mesh.matrixWorldNeedsUpdate = true;
       sp.mesh.renderOrder = 1000 + (o.reverseOrder ? n - 1 - sp.index : sp.index);
