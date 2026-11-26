@@ -31,7 +31,6 @@
       </a>
       <nav class="nav" aria-label="Sections">
         <a href="#demo" data-i18n="nav.demo">Live Demo</a>
-        <a href="#features" data-i18n="nav.features">Features</a>
         <a href="#engines" data-i18n="nav.engines">Engines</a>
         <a href="#install" data-i18n="nav.install">Install</a>
         <a class="mono ver" href="changelog.html" data-keep-lang>v1.1 <span class="new">New</span></a>
@@ -113,55 +112,41 @@
                 <button type="button" data-pitch="side" data-i18n="pitch.side">Side 8°</button>
               </div>
             </div>
-            <button type="button" class="r-btn" id="rendererBtn" aria-expanded="false" aria-controls="rendererDrawer">
-              <svg class="gear" width="15" height="15" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.4" fill="none" stroke="currentColor" stroke-width="3" stroke-dasharray="3.3 3.3"/><path fill="currentColor" fill-rule="evenodd" d="M12 5.4a6.6 6.6 0 1 1 0 13.2a6.6 6.6 0 0 1 0-13.2Zm0 3.8a2.8 2.8 0 1 0 0 5.6a2.8 2.8 0 0 0 0-5.6Z"/></svg>
-              <span data-i18n="r.btn">Renderer</span>
-              <i class="r-dot" id="rendererDot" aria-hidden="true"></i>
-              <svg class="chev" width="12" height="12" viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 4.5 6 8l3.5-3.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
-            </button>
           </div>
 
-          <div class="r-drawer" id="rendererDrawer" aria-hidden="true">
-            <div class="r-drawer-in">
-              <div class="r-grid">
-                <div class="r-group">
-                  <span class="lbl" data-i18n="r.surface">Voxel surface</span>
-                  <div class="seg sm" role="group" aria-label="Voxel surface">
-                    <button type="button" data-ropt="surface" data-val="crisp" data-i18n="r.crisp">Crisp DDA</button><button type="button" data-ropt="surface" data-val="smooth" data-i18n="r.smooth">Smooth Iso</button>
-                  </div>
-                </div>
-                <div class="r-group">
-                  <span class="lbl" data-i18n="r.bands">Cel bands</span>
-                  <div class="seg sm" role="group" aria-label="Cel bands">
-                    <button type="button" data-ropt="bands" data-val="2">2</button><button type="button" data-ropt="bands" data-val="3">3</button><button type="button" data-ropt="bands" data-val="4">4</button><button type="button" data-ropt="bands" data-val="0" data-i18n="r.bandsSmooth">Smooth</button>
-                  </div>
-                </div>
-                <div class="r-group wide">
-                  <span class="lbl" data-i18n="r.light">Lighting</span>
-                  <div class="seg sm" role="group" aria-label="Lighting preset">
-                    <button type="button" data-ropt="light" data-val="studio"><i class="sw" style="--a:#fff1d6;--b:#b3d4ff"></i><span data-i18n="r.studio">Studio</span></button><button type="button" data-ropt="light" data-val="daylight"><i class="sw" style="--a:#fff6df;--b:#6f9cf0"></i><span data-i18n="r.daylight">Daylight</span></button><button type="button" data-ropt="light" data-val="sunset"><i class="sw" style="--a:#ffb46b;--b:#7d5bd6"></i><span data-i18n="r.sunset">Sunset</span></button><button type="button" data-ropt="light" data-val="cyber"><i class="sw" style="--a:#8cebff;--b:#ff4fd8"></i><span data-i18n="r.cyber">Cyber Rim</span></button>
-                  </div>
-                </div>
-                <div class="r-group" id="pxGroup">
-                  <span class="lbl" data-i18n="r.px">Pixel scale</span>
-                  <div class="seg sm" role="group" aria-label="Pixel scale">
-                    <button type="button" data-px="1">×1</button><button type="button" data-px="2">×2</button><button type="button" data-px="3">×3</button>
-                  </div>
+          <div class="r-panel" id="rendererPanel">
+            <div class="r-grid">
+              <div class="r-group">
+                <span class="lbl" data-i18n="r.surface">Voxel surface</span>
+                <div class="seg sm" role="group" aria-label="Voxel surface">
+                  <button type="button" data-ropt="surface" data-val="crisp" data-i18n="r.crisp">Crisp DDA</button><button type="button" data-ropt="surface" data-val="smooth" data-i18n="r.smooth">Smooth Iso</button>
                 </div>
               </div>
-              <div class="r-passes">
-                <span class="lbl" data-i18n="r.passes">Shader passes</span>
-                <div class="r-pills" role="group" aria-label="Shader passes">
-                  <button type="button" class="pill-t" data-rpass="outline" data-i18n="demo.outline">1px Outline</button>
-                  <button type="button" class="pill-t" data-rpass="selfShadow" data-i18n="r.selfShadow">Self-Shadow</button>
-                  <button type="button" class="pill-t" data-rpass="useAO" data-i18n="r.ao">Volume AO</button>
-                  <button type="button" class="pill-t" data-rpass="rim" data-i18n="r.rim">Rim Light</button>
-                  <button type="button" class="pill-t" data-rpass="groundShadow" data-i18n="r.ground">Ground Shadow</button>
-                  <button type="button" class="pill-t" data-rpass="emissive" data-i18n="r.emissive">Emissive</button>
-                  <button type="button" class="pill-t" data-rpass="usePixelSnap" data-i18n="r.snap">Pixel Snap</button>
+              <div class="r-group">
+                <span class="lbl" data-i18n="r.bands">Cel bands</span>
+                <div class="seg sm" role="group" aria-label="Cel bands">
+                  <button type="button" data-ropt="bands" data-val="2">2</button><button type="button" data-ropt="bands" data-val="3">3</button><button type="button" data-ropt="bands" data-val="4">4</button><button type="button" data-ropt="bands" data-val="0" data-i18n="r.bandsSmooth">Smooth</button>
                 </div>
-                <button type="button" class="r-reset" id="rendererReset"><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 8a5.2 5.2 0 1 0 1.6-3.8M2.6 1.8v2.8h2.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="r.reset">Reset</span></button>
               </div>
+              <div class="r-group" id="pxGroup">
+                <span class="lbl" data-i18n="r.px">Pixel scale</span>
+                <div class="seg sm" role="group" aria-label="Pixel scale">
+                  <button type="button" data-px="1">×1</button><button type="button" data-px="2">×2</button><button type="button" data-px="3">×3</button>
+                </div>
+              </div>
+            </div>
+            <div class="r-passes">
+              <span class="lbl" data-i18n="r.passes">Shader passes</span>
+              <div class="r-pills" role="group" aria-label="Shader passes">
+                <button type="button" class="pill-t" data-rpass="outline" data-i18n="demo.outline">1px Outline</button>
+                <button type="button" class="pill-t" data-rpass="selfShadow" data-i18n="r.selfShadow">Self-Shadow</button>
+                <button type="button" class="pill-t" data-rpass="useAO" data-i18n="r.ao">Volume AO</button>
+                <button type="button" class="pill-t" data-rpass="rim" data-i18n="r.rim">Rim Light</button>
+                <button type="button" class="pill-t" data-rpass="groundShadow" data-i18n="r.ground">Ground Shadow</button>
+                <button type="button" class="pill-t" data-rpass="emissive" data-i18n="r.emissive">Emissive</button>
+                <button type="button" class="pill-t" data-rpass="usePixelSnap" data-i18n="r.snap">Pixel Snap</button>
+              </div>
+              <button type="button" class="r-reset" id="rendererReset"><svg width="13" height="13" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.8 8a5.2 5.2 0 1 0 1.6-3.8M2.6 1.8v2.8h2.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span data-i18n="r.reset">Reset</span></button>
             </div>
           </div>
         </div>
@@ -206,132 +191,52 @@
         </div>
         <div class="prompts">
           <span class="lbl" data-i18n="install.ask">Then just ask</span>
-          <span class="prompt" data-i18n="prompt.1">“Build a Three.js voxel cat with spring ears and pass the 4 QA gates”</span>
-          <span class="prompt" data-i18n="prompt.2">“Show minimal_reference in Godot 4 with zero cracks at 14°”</span>
-          <span class="prompt" data-i18n="prompt.3">“Turn my MagicaVoxel .vox into a validated SVOX bundle”</span>
-          <span class="prompt" data-i18n="prompt.4">“Add a live SPRITE STACK debug view to my renderer”</span>
+          <span class="prompt" data-i18n="prompt.1">“Make a voxel cat and dog”</span>
+          <span class="prompt" data-i18n="prompt.2">“Build an isometric RPG knight with walk and sword-swing animations”</span>
+          <span class="prompt" data-i18n="prompt.3">“Create a voxel F1 car and retro Mini for a top-down racing game”</span>
+          <span class="prompt" data-i18n="prompt.4">“Make a small 3D voxel café scene with rotating signs and a delivery scooter”</span>
         </div>
       </div>
-    </section>
-
-    <!-- ================================================================== features -->
-    <section class="section" id="features">
-      <div class="sec-head">
-        <span class="eyebrow" data-i18n="feat.eyebrow">Why T3 hybrid?</span>
-        <h2 data-i18n="feat.title">The look of sprite stacking, the math of real volumes</h2>
-        <p data-i18n="feat.sub">Three ways to draw a voxel sprite. Only one survives a low camera.</p>
-      </div>
-
-      <div class="compare">
-        <article class="cmp">
-          <figure class="cmp-fig" aria-hidden="true">
-            <svg viewBox="0 0 240 140" role="img">
-              <path class="ground" d="M12 112 H228"/>
-              <path class="card-s" d="M58 30 H170 L182 35 H70 Z"/><path class="card-s" d="M58 42 H170 L182 47 H70 Z"/><path class="card-s" d="M58 54 H170 L182 59 H70 Z"/><path class="card-s" d="M58 66 H170 L182 71 H70 Z"/><path class="card-s" d="M58 78 H170 L182 83 H70 Z"/><path class="card-s" d="M58 90 H170 L182 95 H70 Z"/>
-              <path class="crack" d="M120 38 h14"/><path class="crack" d="M92 50 h14"/><path class="crack" d="M140 62 h14"/><path class="crack" d="M104 74 h14"/><path class="crack" d="M128 86 h14"/>
-              <path class="blade-dots" d="M204 30 V96"/>
-              <path class="sight" d="M30 104 L58 97"/>
-              <path class="ref" d="M30 104 H58"/>
-              <path class="arc" d="M48 104 A18 18 0 0 0 47.5 99.6"/>
-              <text class="lbl" x="61" y="107">14°</text>
-              <g class="cam" transform="translate(14 98)"><rect x="0" y="0" width="12" height="9" rx="2"/><path d="M12 2.5 L17 0.5 V8.5 L12 6.5 Z"/></g>
-              <text class="lbl bad" x="226" y="22" text-anchor="end" data-i18n="svg.blade">dotted blade</text>
-            </svg>
-          </figure>
-          <div class="cmp-body">
-            <span class="tag bad" data-i18n="c1.tag">Cracks at ≤14°</span>
-            <h3 data-i18n="c1.t">Classic 2D card stack</h3>
-            <p data-i18n="c1.d">Flat slices split open at low pitch, and 1-voxel blades break into dots.</p>
-          </div>
-        </article>
-
-        <article class="cmp">
-          <figure class="cmp-fig" aria-hidden="true">
-            <svg viewBox="0 0 240 140" role="img">
-              <path class="ground" d="M12 128 H228"/>
-              <polygon class="ideal" points="56,87.7 163.8,39.7 180,76.3 72.2,124.3"/>
-              <path class="ideal" d="M159 40 L150 8"/>
-              <g class="stairs"><rect x="152" y="40" width="8" height="8"/><rect x="160" y="40" width="8" height="8"/><rect x="136" y="48" width="8" height="8"/><rect x="144" y="48" width="8" height="8"/><rect x="152" y="48" width="8" height="8"/><rect x="160" y="48" width="8" height="8"/><rect x="120" y="56" width="8" height="8"/><rect x="128" y="56" width="8" height="8"/><rect x="136" y="56" width="8" height="8"/><rect x="144" y="56" width="8" height="8"/><rect x="152" y="56" width="8" height="8"/><rect x="160" y="56" width="8" height="8"/><rect x="168" y="56" width="8" height="8"/><rect x="104" y="64" width="8" height="8"/><rect x="112" y="64" width="8" height="8"/><rect x="120" y="64" width="8" height="8"/><rect x="128" y="64" width="8" height="8"/><rect x="136" y="64" width="8" height="8"/><rect x="144" y="64" width="8" height="8"/><rect x="152" y="64" width="8" height="8"/><rect x="160" y="64" width="8" height="8"/><rect x="168" y="64" width="8" height="8"/><rect x="80" y="72" width="8" height="8"/><rect x="88" y="72" width="8" height="8"/><rect x="96" y="72" width="8" height="8"/><rect x="104" y="72" width="8" height="8"/><rect x="112" y="72" width="8" height="8"/><rect x="120" y="72" width="8" height="8"/><rect x="128" y="72" width="8" height="8"/><rect x="136" y="72" width="8" height="8"/><rect x="144" y="72" width="8" height="8"/><rect x="152" y="72" width="8" height="8"/><rect x="160" y="72" width="8" height="8"/><rect x="168" y="72" width="8" height="8"/><rect x="64" y="80" width="8" height="8"/><rect x="72" y="80" width="8" height="8"/><rect x="80" y="80" width="8" height="8"/><rect x="88" y="80" width="8" height="8"/><rect x="96" y="80" width="8" height="8"/><rect x="104" y="80" width="8" height="8"/><rect x="112" y="80" width="8" height="8"/><rect x="120" y="80" width="8" height="8"/><rect x="128" y="80" width="8" height="8"/><rect x="136" y="80" width="8" height="8"/><rect x="144" y="80" width="8" height="8"/><rect x="152" y="80" width="8" height="8"/><rect x="56" y="88" width="8" height="8"/><rect x="64" y="88" width="8" height="8"/><rect x="72" y="88" width="8" height="8"/><rect x="80" y="88" width="8" height="8"/><rect x="88" y="88" width="8" height="8"/><rect x="96" y="88" width="8" height="8"/><rect x="104" y="88" width="8" height="8"/><rect x="112" y="88" width="8" height="8"/><rect x="120" y="88" width="8" height="8"/><rect x="128" y="88" width="8" height="8"/><rect x="136" y="88" width="8" height="8"/><rect x="64" y="96" width="8" height="8"/><rect x="72" y="96" width="8" height="8"/><rect x="80" y="96" width="8" height="8"/><rect x="88" y="96" width="8" height="8"/><rect x="96" y="96" width="8" height="8"/><rect x="104" y="96" width="8" height="8"/><rect x="112" y="96" width="8" height="8"/><rect x="120" y="96" width="8" height="8"/><rect x="64" y="104" width="8" height="8"/><rect x="72" y="104" width="8" height="8"/><rect x="80" y="104" width="8" height="8"/><rect x="88" y="104" width="8" height="8"/><rect x="96" y="104" width="8" height="8"/><rect x="104" y="104" width="8" height="8"/><rect x="72" y="112" width="8" height="8"/><rect x="80" y="112" width="8" height="8"/><rect x="152" y="24" width="8" height="8"/><rect x="144" y="8" width="8" height="8"/></g>
-              <path class="rot" d="M44 52 A34 34 0 0 1 84 26"/><path class="rot-h" d="M84 26 l-7 -3 M84 26 l-4 6"/>
-              <text class="lbl" x="24" y="66">24°</text>
-              <text class="lbl dim" x="168" y="14" data-i18n="svg.lost">lost edge</text>
-            </svg>
-          </figure>
-          <div class="cmp-body">
-            <span class="tag mute" data-i18n="c2.tag">Blurs on rotation</span>
-            <h3 data-i18n="c2.t">Re-voxelized / baked mesh</h3>
-            <p data-i18n="c2.d">Re-sampling on every rotation stair-steps edges and drops thin detail.</p>
-          </div>
-        </article>
-
-        <article class="cmp t3">
-          <figure class="cmp-fig" aria-hidden="true">
-            <svg viewBox="0 0 240 140" role="img">
-              <path class="obb-h" d="M128.7,61.6L196.3,100.6M128.7,61.6L83.7,87.6M128.7,61.6L128.7,17.4"/>
-              <g class="solid">
-                <polygon class="f-top" points="131.0,53.8 171.5,77.2 144.5,92.8 104.0,69.4"/>
-                <polygon class="f-r" points="171.5,96.7 144.5,112.3 144.5,92.8 171.5,77.2"/>
-                <polygon class="f-l" points="104.0,88.9 144.5,112.3 144.5,92.8 104.0,69.4"/>
-                <polygon class="f-top" points="133.2,42.1 151.3,52.5 124.2,68.1 106.2,57.7"/>
-                <polygon class="f-r" points="151.3,65.5 124.2,81.1 124.2,68.1 151.3,52.5"/>
-                <polygon class="f-l" points="106.2,70.7 124.2,81.1 124.2,68.1 106.2,57.7"/>
-              </g>
-              <path class="ink" d="M104.0,88.9 L144.5,112.3 L171.5,96.7 L171.5,77.2 L151.3,65.5 L151.3,52.5 L133.2,42.1 L106.2,57.7 L106.2,68.1 L104.0,69.4 Z"/>
-              <path class="obb" d="M196.3,100.6L151.3,126.6M196.3,100.6L196.3,56.4M83.7,87.6L151.3,126.6M83.7,87.6L83.7,43.4M151.3,126.6L151.3,82.4M128.7,17.4L196.3,56.4M128.7,17.4L83.7,43.4M196.3,56.4L151.3,82.4M83.7,43.4L151.3,82.4"/>
-              <path class="ray" d="M30 104.2 L126.5 92.2"/>
-              <circle class="step" cx="96" cy="96.2" r="1.8"/><circle class="step" cx="106" cy="94.9" r="1.8"/><circle class="step" cx="116" cy="93.6" r="1.8"/>
-              <circle class="hit-r" cx="126.5" cy="92.2" r="5"/><circle class="hit" cx="126.5" cy="92.2" r="2.2"/>
-              <g class="cam on" transform="translate(14 99)"><rect x="0" y="0" width="12" height="9" rx="2"/><path d="M12 2.5 L17 0.5 V8.5 L12 6.5 Z"/></g>
-              <text class="lbl amb" x="202" y="60">OBB</text>
-              <text class="lbl" x="44" y="118">DDA</text>
-              <text class="lbl" x="226" y="134" text-anchor="end" data-i18n="svg.ink">1px ink outline</text>
-            </svg>
-          </figure>
-          <div class="cmp-body">
-            <span class="tag good" data-i18n="c3.tag">0 cracks · Any pitch</span>
-            <h3 data-i18n="c3.t">T3 hybrid raymarch</h3>
-            <p data-i18n="c3.d">Each part's real volume is raymarched in its own box, deforms undone analytically, outlined at 1&nbsp;px.</p>
-          </div>
-        </article>
-      </div>
-
-      <dl class="metrics">
-        <div class="mt"><dt>0</dt><dd><span data-i18n="m1">Slice cracks at 14° low pitch</span> <b class="mono">G1</b></dd></div>
-        <div class="mt"><dt>0 px</dt><dd><span data-i18n="m2">Sub-texel pixel crawl with grid snap</span> <b class="mono">G2</b></dd></div>
-        <div class="mt"><dt>&lt; 1 ms</dt><dd data-i18n="m3">Per frame @ 640×360 ×3 on GTX 1080</dd></div>
-      </dl>
     </section>
 
     <!-- ================================================================== engines -->
     <section class="section" id="engines">
       <div class="sec-head">
-        <span class="eyebrow" data-i18n="eng.eyebrow">4 verified engines</span>
-        <h2 data-i18n="eng.title">One contract, four targets, the same QA gates</h2>
+        <span class="eyebrow" data-i18n="eng.eyebrow">Adapters</span>
+        <h2 data-i18n="eng.title">Works in four engines</h2>
       </div>
       <div class="engines">
         <a class="eng-card" href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/references/targets/webgl2_threejs.md">
-          <img src="assets/icon-webgl.svg" width="48" height="48" alt="">
-          <h3>WebGL2 / Three.js r187</h3>
-          <p data-i18n="eng.web">Two-pass MRT G-buffer + 1px outline, plus the v1.1 Perspective 3D-world hybrid.</p>
-          <span class="ok">✅ Verified · G1–G4 Pass</span>
+          <img src="assets/icon-webgl.svg" width="32" height="32" alt="">
+          <div class="eng-info">
+            <h3>WebGL2 / Three.js</h3>
+            <span class="eng-ver mono">r187</span>
+          </div>
+          <span class="eng-arr" aria-hidden="true">→</span>
         </a>
         <a class="eng-card" href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/references/targets/godot4.md">
-          <img src="assets/icon-godot.svg" width="48" height="48" alt="">
-          <h3>Godot 4.7.2</h3>
-          <p data-i18n="eng.godot">Forward+ and Mobile (Vulkan). Both renderers produce identical pixels.</p>
-          <span class="ok">✅ Verified · G1–G4 Pass</span>
+          <img src="assets/icon-godot.svg" width="32" height="32" alt="">
+          <div class="eng-info">
+            <h3>Godot 4</h3>
+            <span class="eng-ver mono">4.7.2</span>
+          </div>
+          <span class="eng-arr" aria-hidden="true">→</span>
         </a>
         <a class="eng-card" href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/references/targets/unity_urp.md">
-          <img src="assets/icon-unity.svg" width="48" height="48" alt="">
-          <h3>Unity 6 URP</h3>
-          <p data-i18n="eng.unity">RenderGraph <code>ScriptableRendererFeature</code> on D3D11 and D3D12, 0.63–0.75 ms.</p>
-          <span class="ok">✅ Verified · G1–G4 Pass</span>
+          <img src="assets/icon-unity.svg" width="32" height="32" alt="">
+          <div class="eng-info">
+            <h3>Unity 6 URP</h3>
+            <span class="eng-ver mono">RenderGraph</span>
+          </div>
+          <span class="eng-arr" aria-hidden="true">→</span>
         </a>
         <a class="eng-card" href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/references/targets/blender_exporter.md">
-          <img src="assets/icon-blender.svg" width="48" height="48" alt="">
-          <h3>Blender 5.3.0</h3>
-          <p data-i18n="eng.blender">SVOX asset-extraction bridge: model in Blender, export a bundle, <code>validate</code> with 0 errors.</p>
-          <span class="ok">✅ Verified · G1–G4 Pass</span>
+          <img src="assets/icon-blender.svg" width="32" height="32" alt="">
+          <div class="eng-info">
+            <h3>Blender</h3>
+            <span class="eng-ver mono">5.3.0</span>
+          </div>
+          <span class="eng-arr" aria-hidden="true">→</span>
         </a>
       </div>
     </section>
@@ -339,16 +244,14 @@
     <!-- ================================================================== showcase -->
     <section class="section" id="showcase">
       <div class="sec-head">
-        <span class="eyebrow" data-i18n="show.eyebrow">See it in action</span>
-        <h2 data-i18n="show.title">Live wipes between the final image and its insides</h2>
-        <p data-i18n="show.sub">Four articulated vehicles, 39 parts and 166,290 voxels, composited into a real-time Three.js 3D world. Each diagonal band reveals a different live view of the same frame.</p>
+        <span class="eyebrow" data-i18n="show.eyebrow">Showcase</span>
+        <h2 data-i18n="show.title">Rendered in real time</h2>
       </div>
       <figure class="media">
         <img src="assets/showcase_loop.gif" width="720" height="354" loading="lazy" alt="Showcase loop: excavator, retro mini, cybertruck and Formula 1 with live SPRITE STACK, 3D NORMALS and VOLUME AO wipes">
       </figure>
       <figure class="media strip">
         <img src="assets/modes_compare.png" width="1440" height="420" loading="lazy" alt="The same excavator pose in FINAL, SPRITE STACK, 3D NORMALS and VOLUME AO">
-        <figcaption data-i18n="show.cap">Same pose, four live modes: FINAL (cel + 1px outline) · SPRITE STACK (2D slice cards) · 3D NORMALS · VOLUME AO.</figcaption>
       </figure>
     </section>
 
