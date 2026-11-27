@@ -65,125 +65,62 @@
           <span class="rel-badge ck" data-i18n="log.checkpoint">Checkpoint</span>
         </div>
         <div class="rel-body">
-          <h2 data-i18n="v23.t">Ultra-HD capital ships: quad16 instanced quads, a 12 MiB hero budget &amp; three faction flagships</h2>
-          <p data-i18n-html="v23.d">The Megastructure / Capital Ship track gets a new <code>svox.mega/v2.3</code> format and is proven end-to-end on three ~1000&nbsp;u hero capitals, from 2D concept art to a real-time WebGL2 engine. This is a checkpoint release: the numbers below are measured, and the open items are listed at the end.</p>
+          <h2 data-i18n="v23.t">Megastructure quad16 format, generic abstractions &amp; Track A/B skill restructure</h2>
+          <p data-i18n-html="v23.d">A major upgrade to the large-structure track (<code>svox.mega/v2.3</code>): ~5× smaller curved meshes via 16-byte instanced quads, reusable material and color-gate abstractions, and a cleaner two-track skill guide.</p>
 
           <div class="rel-group">
-            <h3 data-i18n="g.gallery">Concept reference → real-time WebGL2</h3>
+            <h3 data-i18n="g.render">Rendering &amp; format</h3>
+            <ul>
+              <li data-i18n-html="v23.1"><code>quad16</code> macro format (<code>16 B/quad</code>): one instanced draw per part with no index buffer and no 65,535-vertex cap — 5.06×–5.75× smaller than v2.2 on curved and organic hulls</li>
+              <li data-i18n-html="v23.2"><code>MEGA_V23_BUDGET</code> raised to <code>12 MiB</code> · 16 draws · 1.2M triangles · Δ ≤ 2.5 ms, enabling 16-level Dual-Scale AO without sacrificing silhouette density</li>
+              <li data-i18n-html="v23.3">Extensible 4-bit <code>matTag</code> presets (<code>hard_surface</code>, <code>ornate_stone</code>, <code>organic_bio</code>) plus 70/30 visual-rest plating and 1 px ink creases</li>
+            </ul>
+          </div>
+
+          <div class="rel-group">
+            <h3 data-i18n="g.workflow">Workflow &amp; tools</h3>
+            <ul>
+              <li data-i18n-html="v23.4">Rewrote <code>SKILL.md</code> and pipeline doc <code>04</code> into two clear tracks (<b>Track A</b> articulated sprites · <b>Track B</b> megastructures) with zero project-specific coupling</li>
+              <li data-i18n-html="v23.5">Added <code>generic_megastructure</code> archetype (<code>assetId</code>), configurable HSV accent bands (<code>--bands</code> with wrap-around hue) in Multi-Cue G5, and Hull-Only G5 (<code>computeHullSilhouetteIoU</code>) for tentacled shapes</li>
+              <li data-i18n-html="v23.6">Expanded zero-dependency Node kit self-test to <code>78/78</code> checks (<code>test_mega_kit.mjs</code>) alongside Python CLI &amp; doc link verification</li>
+            </ul>
+          </div>
+
+          <div class="rel-group">
+            <h3 data-i18n="g.gallery">Examples · Concept reference → real-time WebGL2</h3>
             <div class="shots">
               <figure class="shot">
                 <a href="assets/v23/vanguard_t2_showcase_2x2.jpg" target="_blank" rel="noopener">
-                  <img src="assets/v23/vanguard_t2_showcase_2x2.jpg" width="1600" height="900" loading="lazy" alt="Vanguard T2 Dreadnought: concept art next to three real-time WebGL2 renders (front 3/4, aft 3/4, hangar bay close-up)">
+                  <img src="assets/v23/vanguard_t2_showcase_2x2.jpg" width="1600" height="900" loading="lazy" alt="Hard-surface carrier example: concept art next to three real-time WebGL2 renders">
                 </a>
-                <figcaption><b>Vanguard T2 Dreadnought</b><span class="mono">410,002 tris · 8.93 MiB · 10 draws · Δ 0.79 ms</span></figcaption>
+                <figcaption><b data-i18n="v23.c1">Hard-surface carrier</b><span class="mono">410k tris · 8.93 MiB · 10 draws · 16-lvl AO</span></figcaption>
               </figure>
               <figure class="shot">
                 <a href="assets/v23/vanguard_t2_breakdown_2x2.jpg" target="_blank" rel="noopener">
-                  <img src="assets/v23/vanguard_t2_breakdown_2x2.jpg" width="1600" height="900" loading="lazy" alt="Vanguard T2 geometry and lookdev breakdown: clay with 1px ink crease, macro / meso split, bridge and railguns, 2x3 engine pods">
+                  <img src="assets/v23/vanguard_t2_breakdown_2x2.jpg" width="1600" height="900" loading="lazy" alt="Geometry and lookdev breakdown: clay with 1px ink crease, macro / meso split, bridge and engines">
                 </a>
-                <figcaption><b data-i18n="v23.c2">Vanguard T2 · geometry &amp; lookdev breakdown</b><span class="mono">quad16 macro (1 draw) + packed20 meso (9 draws · 34 inst.)</span></figcaption>
+                <figcaption><b data-i18n="v23.c2">Geometry &amp; lookdev breakdown</b><span class="mono">quad16 macro (1 draw) + packed20 meso (9 draws)</span></figcaption>
               </figure>
               <figure class="shot">
                 <a href="assets/v23/aether_p2_showcase_2x2.jpg" target="_blank" rel="noopener">
-                  <img src="assets/v23/aether_p2_showcase_2x2.jpg" width="1600" height="900" loading="lazy" alt="Aether P2 Halo Core Mothership: concept art next to real-time WebGL2 renders of the hero 3/4 view, the circular warp-portal bore and the ventral core">
+                  <img src="assets/v23/aether_p2_showcase_2x2.jpg" width="1600" height="900" loading="lazy" alt="Ornate ringed vessel example: concept art next to real-time WebGL2 renders">
                 </a>
-                <figcaption><b>Aether P2 Halo Core Mothership</b><span class="mono">801,960 tris · 6.02 MiB · 9 draws · 0.3 ms CPU</span></figcaption>
+                <figcaption><b data-i18n="v23.c3">Ornate ringed vessel</b><span class="mono">802k tris · 6.02 MiB · 9 draws · 0.3 ms CPU</span></figcaption>
               </figure>
               <figure class="shot">
                 <a href="assets/v23/swarm_z2_showcase_2x2.jpg" target="_blank" rel="noopener">
-                  <img src="assets/v23/swarm_z2_showcase_2x2.jpg" width="1600" height="900" loading="lazy" alt="Swarm Z2 Brood-Leviathan: concept art next to real-time WebGL2 renders of the hero 3/4 view, the aft 3/4 view and the fanged maw with wave tentacles">
+                  <img src="assets/v23/swarm_z2_showcase_2x2.jpg" width="1600" height="900" loading="lazy" alt="Organic tentacled leviathan example: concept art next to real-time WebGL2 renders">
                 </a>
-                <figcaption><b>Swarm Z2 Brood-Leviathan</b><span class="mono">1,114,594 tris · 8.03 MiB · 5 draws · 0.7 ms CPU</span></figcaption>
+                <figcaption><b data-i18n="v23.c4">Organic tentacled leviathan</b><span class="mono">1.11M tris · 8.03 MiB · 5 draws · Hull IoU 0.88–0.93</span></figcaption>
               </figure>
             </div>
-            <p class="shots-hint" data-i18n="v23.hint">Each sheet: panel 01 is the original 2D concept art, panels 02–04 are live WebGL2 frames. Click a sheet to open it at full resolution.</p>
-          </div>
-
-          <div class="rel-group">
-            <h3 data-i18n="g.evo">What improved · v2.0 → v2.2 → v2.3</h3>
-            <div class="tbl-wrap">
-              <table class="evo">
-                <thead>
-                  <tr><th scope="col" data-i18n="evo.h">Pipeline</th><th scope="col">v2.0</th><th scope="col">v2.2</th><th scope="col" class="now">v2.3</th></tr>
-                </thead>
-                <tbody>
-                  <tr><th scope="row" data-i18n="evo.fmt">Macro geometry</th><td data-v="v2.0"><code>MEGA_V2</code> 48 B/vert + Uint32</td><td data-v="v2.2"><code>packed20</code> 20 B/vert + Uint16 = 92 B/quad</td><td data-v="v2.3" class="now"><code>quad16</code> <b>16 B/quad</b>, <span data-i18n="evo.noidx">no index buffer</span></td></tr>
-                  <tr><th scope="row" data-i18n="evo.cap">Vertex cap per part</th><td data-v="v2.0">—</td><td data-v="v2.2"><span data-i18n="evo.cap2">65,535 (split hulls into regions)</span></td><td data-v="v2.3" class="now"><b data-i18n="evo.cap3">none</b></td></tr>
-                  <tr><th scope="row" data-i18n="evo.size">Curved hull size</th><td data-v="v2.0">—</td><td data-v="v2.2">2,870 KiB</td><td data-v="v2.3" class="now"><b>567 KiB</b> (5.06×–5.75×)</td></tr>
-                  <tr><th scope="row" data-i18n="evo.budget">G6 budget</th><td data-v="v2.0">4.0 MB · 12 draws · 120k tris · Δ&nbsp;&lt;&nbsp;1.0 ms</td><td data-v="v2.2">4 MiB · 12 draws · 288k tris · Δ&nbsp;≤&nbsp;1.5 ms</td><td data-v="v2.3" class="now"><b>12 MiB</b> · 16 draws · 1.2M tris · Δ&nbsp;≤&nbsp;2.5 ms</td></tr>
-                  <tr><th scope="row" data-i18n="evo.ao">Macro cavity AO</th><td data-v="v2.0" data-i18n="evo.ao1">dual-scale (micro + macro)</td><td data-v="v2.2" data-i18n="evo.ao2">2–6 levels (byte-bound)</td><td data-v="v2.3" class="now"><b data-i18n="evo.ao3">16 levels on every hero (up to 256)</b></td></tr>
-                  <tr><th scope="row" data-i18n="evo.g5">G5 concept diff</th><td data-v="v2.0" data-i18n="evo.g51">Silhouette IoU</td><td data-v="v2.2" data-i18n="evo.g52">+ Edge F1 / chamfer + amber / cyan band</td><td data-v="v2.3" class="now"><b data-i18n="evo.g53">+ Hull-Only IoU ≥ 0.86</b></td></tr>
-                  <tr><th scope="row" data-i18n="evo.shade">Shading</th><td data-v="v2.0" data-i18n="evo.sh1">Shader micro detail</td><td data-v="v2.2" data-i18n="evo.sh2">70/30 visual-rest hard surface</td><td data-v="v2.3" class="now"><b data-i18n-html="evo.sh3">Faction-scoped <code>matTag 6/7/8</code></b></td></tr>
-                  <tr><th scope="row" data-i18n="evo.test">Kit self-test</th><td data-v="v2.0">39/39</td><td data-v="v2.2">55/55</td><td data-v="v2.3" class="now"><b>78/78</b></td></tr>
-                </tbody>
-              </table>
-            </div>
-          </div>
-
-          <div class="rel-group">
-            <h3 data-i18n="g.ships">Per-ship before → after</h3>
-            <div class="ships">
-              <section class="ship" style="--fc: #38bdf8">
-                <header><h4>Vanguard T2 Dreadnought</h4><span class="ship-tag" data-i18n="ship.v.tag">Terran hard-surface carrier</span></header>
-                <dl>
-                  <div><dt data-i18n="m.tris">Triangles</dt><dd><s>178k</s> → <b>410,002</b></dd></div>
-                  <div><dt data-i18n="m.vox">Macro voxel</dt><dd><s>2.5</s> → <b>1.7 u/vox</b></dd></div>
-                  <div><dt data-i18n="m.ao">Macro AO</dt><dd><s>6</s> → <b data-i18n="m.ao16">16 levels</b></dd></div>
-                  <div><dt data-i18n="m.g5edge">G5 ortho Edge F1</dt><dd><s>0.541 FAIL</s> → <b>0.560 PASS</b></dd></div>
-                  <div class="wide"><dt data-i18n="m.hangar">Hangars</dt><dd><s data-i18n="v.h0">Y-symmetric compromise</s> → <b data-i18n="v.h1">true asymmetric 1.0 u/vox port / starboard bays, single aft cyan portal</b></dd></div>
-                  <div class="wide"><dt data-i18n="m.engines">Engines</dt><dd data-i18n="v.e1">0.95 u/vox beveled 2×3 thruster pods with 4 u gaps</dd></div>
-                </dl>
-                <p class="ship-perf mono">8.93 MiB · 10 draws · Δ 0.79 ms · 0.3 ms CPU</p>
-              </section>
-              <section class="ship" style="--fc: #fbbf24">
-                <header><h4>Aether P2 Halo Core Mothership</h4><span class="ship-tag" data-i18n="ship.a.tag">Aether gold-ivory temple ship</span></header>
-                <dl>
-                  <div><dt data-i18n="m.tris">Triangles</dt><dd><s>284k</s> → <b>801,960</b></dd></div>
-                  <div><dt data-i18n="m.ao">Macro AO</dt><dd><s>2</s> → <b data-i18n="m.ao16">16 levels</b></dd></div>
-                  <div><dt data-i18n="m.hull">Hull</dt><dd data-i18n-html="a.hull">Unified 2.2 u/vox <code>quad16</code>, 0 sector seams</dd></div>
-                  <div><dt data-i18n="m.g5">G5 hero</dt><dd><b>IoU 0.880 · Edge F1 0.674 PASS</b></dd></div>
-                  <div class="wide"><dt data-i18n="m.features">Features</dt><dd data-i18n-html="a.feat">True circular cylindrical warp portal (6 phase grooves) · 8-faceted elongated diamond crystal (<code>rotateBob</code>) · 3 intersecting golden gyro rings (<code>rotate</code>) · <code>matTag 7</code> gold-ivory temple shader</dd></div>
-                </dl>
-                <p class="ship-perf mono">6.02 MiB · 9 draws · 0.3 ms CPU</p>
-              </section>
-              <section class="ship" style="--fc: #e879f9">
-                <header><h4>Swarm Z2 Brood-Leviathan</h4><span class="ship-tag" data-i18n="ship.s.tag">Swarm bio-organic leviathan</span></header>
-                <dl>
-                  <div><dt data-i18n="m.tris">Triangles</dt><dd><s>188k</s> → <b>1,114,594</b></dd></div>
-                  <div><dt data-i18n="m.vox">Macro voxel</dt><dd><s>5.0</s> → <b>2.4 u/vox</b></dd></div>
-                  <div><dt data-i18n="m.ao">Macro AO</dt><dd><s>4</s> → <b data-i18n="m.ao16">16 levels</b></dd></div>
-                  <div><dt data-i18n="m.hulliou">Hull-Only IoU (T / S / F)</dt><dd><s>0.68 / 0.59 / 0.69</s> → <b>0.880 / 0.925 / 0.934 <span data-i18n="m.allpass">ALL PASS</span></b></dd></div>
-                  <div class="wide"><dt data-i18n="m.features">Features</dt><dd data-i18n-html="s.feat">Curved dome carapace · ivory U-mandible &amp; ribbed chin cage · 46 curved fangs · 82 magenta bio-sac nodules · sucker-lined Catmull-Rom wave tentacles (2.5 u/vox) · <code>matTag 6/8</code> organic chitin &amp; bio-cavity shaders</dd></div>
-                </dl>
-                <p class="ship-perf mono">8.03 MiB · 5 draws · 0.7 ms CPU</p>
-              </section>
-            </div>
-          </div>
-
-          <div class="rel-group">
-            <h3 data-i18n="g.tech">Technical highlights</h3>
-            <ul>
-              <li data-i18n-html="v23.1"><code>svox.mega/v2.3</code> <code>quad16</code>: every greedy quad is one 16-byte instance of a shared unit quad, one <code>drawElementsInstanced</code> per part. No index buffer, no 65,535-vertex cap, 5.06×–5.75× smaller than v2.2 on curved hulls, triangle-for-triangle identical to the v2.2 mesher</li>
-              <li data-i18n-html="v23.2"><code>MEGA_V23_BUDGET</code> hero budget: 12 MiB · 16 draws · 1.2M triangles · Δ ≤ 2.5 ms, so voxel scale, AO levels and dome curvature no longer have to be traded away</li>
-              <li data-i18n-html="v23.3">Faction-scoped shaders: <code>matTag 6</code> organic chitin, <code>7</code> ornate gold &amp; ivory temple, <code>8</code> bio-luminescent cavity. The hangar bounce light stays Vanguard-only</li>
-              <li data-i18n-html="v23.4">Hull-Only G5 gate (<code>computeHullSilhouetteIoU</code>): scores a tentacled carapace independently of how its appendages curl</li>
-              <li data-i18n-html="v23.5">Zero-dependency Node kit self-test: <code>78/78</code> checks (core + v2.2 + v2.3 + configurable accent bands, <code>generic_megastructure</code> archetype &amp; <code>MATERIAL_PRESETS</code>)</li>
-            </ul>
-          </div>
-
-          <div class="rel-group notes">
-            <h3 data-i18n="g.notes">Checkpoint notes · honest remaining improvements</h3>
-            <ul>
-              <li data-i18n-html="v23.n1">Aether P2 ortho IoU (<code>0.799 / 0.688 / 0.730</code>) still trails the 0.85 target, held back by the fixed <code>r = 78</code> launch-bore constraint</li>
-              <li data-i18n="v23.n2">Swarm Z2: the perspective hero tentacle pose differs from the ortho pose, and the Clay view shows dense contour lines on fine curved steps</li>
-              <li data-i18n-html="v23.n3">Vanguard T2: the Zone C railgun framing in the breakdown sheet needs another pass, and the Side view alone scores Edge F1 <code>0.538</code> (the ortho average <code>0.560</code> passes)</li>
-              <li data-i18n="v23.n4">Low-spec / mobile LOD and progressive streaming are planned after the visual craft passes</li>
-            </ul>
+            <p class="shots-hint" data-i18n="v23.hint">Panel 01 is the 2D concept art; panels 02–04 are live WebGL2 frames. Click any sheet for full resolution. (Checkpoint release — mobile LOD and streaming optimizations are planned next.)</p>
           </div>
 
           <div class="rel-links">
             <a href="https://github.com/yskim3271/hybrid-voxel-sprite/releases/tag/v2.3.0" data-i18n="log.notes">GitHub release notes</a>
-            <a href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/references/04_megastructure_voxel_pipeline.md" data-i18n="log.ref04">Capital-ship pipeline (04)</a>
+            <a href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/SKILL.md" data-i18n="log.skill">Read SKILL.md</a>
+            <a href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/references/04_megastructure_voxel_pipeline.md" data-i18n="log.ref04">Megastructure pipeline (04)</a>
           </div>
         </div>
       </article>
