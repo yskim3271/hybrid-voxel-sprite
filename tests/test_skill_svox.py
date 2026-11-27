@@ -52,7 +52,7 @@ EXPECTED_FILES = [
     "references/01_contract_and_math.md", "references/02_shader_pipeline_spec.md", "references/03_pitfalls_and_qa_gates.md",
     "references/targets/webgl2_threejs.md", "references/targets/godot4.md", "references/targets/unity_urp.md",
     "references/targets/blender_exporter.md",
-    # v2.0-v2.3 Megastructure / Capital Ship track
+    # Track B: megastructures and large vessels
     "references/04_megastructure_voxel_pipeline.md",
     "scripts/mega_voxel_kit.mjs", "scripts/mega_diff_utils.mjs", "scripts/test_mega_kit.mjs",
     "assets/minimal_reference/rig.json", "assets/minimal_reference/sample_cube.vox",
@@ -61,16 +61,15 @@ EXPECTED_FILES = [
     "assets/minimal_reference/parts/cape.albedo.png", "assets/minimal_reference/parts/cape.normal_ao.png",
 ]
 EXPECTED_DESCRIPTION = (
-    "Build real-time articulated 3D pixel-art sprite renderers using modular voxel parts, per-part OBB 3D volume "
-    "raymarching, analytic per-slice inverse deformation (squash/twist/shear/wave), spring secondary motion, dynamic 3D "
-    "cel lighting/AO/self-shadow, pixel-perfect virtual grid snapping, and 1px depth/normal auto-outlines. Includes an "
-    "engine-neutral SVOX asset pipeline CLI (.vox and slice-strip import, 3D normal/AO baking, rig validation) plus "
-    "target adapters for WebGL2/Three.js (Verified), Godot 4, Unity URP, and Blender export. "
-    "v2.0-v2.3 add a Megastructure / Capital Ship track for ~1000-unit ships: 3-view visual-hull carving, detail-zone "
-    "callouts, macro/meso/micro multi-scale greedy meshes with instanced prefabs, dual-scale AO, the svox.mega/v2.2 "
-    "packed20 (20 B/vert) and v2.3 quad16 (16 B/quad instanced, no index buffer) formats, a 12 MiB hero budget, "
-    "faction materials (matTag 6/7/8), multi-cue and hull-only G5 concept-diff gates and a G6 perf gate, via "
-    "zero-dependency Node scripts (69-check self-test).")
+    "Build real-time voxel renderers for 3D pixel-art games, on two tracks. Track A, articulated voxel sprites "
+    "(characters, creatures, vehicles): modular voxel parts raymarched per part inside oriented boxes, analytic "
+    "squash/twist/shear/wave deformation, spring secondary motion, cel lighting with AO and self-shadow, "
+    "pixel-perfect virtual-grid snapping and 1px outlines, plus an engine-neutral SVOX asset CLI (.vox and "
+    "slice-strip import, normal/AO baking, rig validation) and adapters for WebGL2/Three.js, Godot 4, Unity URP and "
+    "Blender. Track B, megastructures and large vessels (~500-1500 units): 3-view visual-hull carving, detail-zone "
+    "callouts, multi-scale greedy meshes (16-byte quad16 macro quads, instanced packed20 meso prefabs, procedural "
+    "micro shader), dual-scale AO, a 12 MiB budget, and concept-diff and performance gates, via zero-dependency "
+    "Node scripts.")
 
 
 def run_cli(*args, expect=0):
@@ -642,14 +641,14 @@ class T08_SkillDocs(unittest.TestCase):
         self.assertLessEqual(len(fm["description"]), 1024)
         self.assertEqual(fm["description"], EXPECTED_DESCRIPTION)
         n = len(text.splitlines())
-        # v2.3 routes the capital-ship track (04_megastructure_voxel_pipeline.md) from SKILL.md, so the body grew past the
-        # v1.1 240-line target; it stays well under the 500-line SKILL.md guideline.
+        # SKILL.md routes both tracks (Track B lives in 04_megastructure_voxel_pipeline.md), so the body is past the original
+        # 240-line target; it stays well under the 500-line SKILL.md guideline.
         self.assertTrue(160 <= n <= 320, "SKILL.md has %d lines (want 160-320)" % n)
         for needle in ("01_contract_and_math.md", "02_shader_pipeline_spec.md", "03_pitfalls_and_qa_gates.md", "webgl2_threejs.md",
                        "godot4.md", "unity_urp.md", "blender_exporter.md", "from-vox", "from-strip", "bake-normal-ao", "validate",
                        "pack-atlas", "init-demo", "uv run", "python scripts/svox_cli.py",
                        "04_megastructure_voxel_pipeline.md", "mega_voxel_kit.mjs", "mega_diff_utils.mjs", "test_mega_kit.mjs",
-                       "quad16", "packed20", "MEGA_V23_BUDGET", "69/69"):
+                       "quad16", "packed20", "MEGA_V23_BUDGET", "78/78", "Track A", "Track B"):
             self.assertIn(needle, text)
 
     def test_all_relative_links_resolve(self):

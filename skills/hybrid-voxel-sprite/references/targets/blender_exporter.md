@@ -1,8 +1,9 @@
 # Target: Blender (asset extraction bridge)
 
 **Status: Verified ✅ (Blender 5.3.0)** — runtime-verified on 2026-11-25 inside real Blender 5.3.0
-(`--background --factory-startup`, bundled Python 3.13.13, Windows 11). The script in this file is a byte-identical
-copy of `target_tests/blender/export_svox_from_blender.py`, which produced the verified bundle. It needs Blender
+(`--background --factory-startup`, bundled Python 3.13.13, Windows 11). The script in this file is a copy of the
+exporter (`export_svox_from_blender.py`) that produced the verified bundle, identical except that its usage comment
+names the script by file name. It needs Blender
 **4.4 or newer**, because it uses slotted Actions. Only 5.3.0 has actually been run.
 
 The round trip that was verified:
@@ -11,8 +12,8 @@ The round trip that was verified:
 3. `svox_cli.py bake-normal-ao`, then `svox_cli.py validate`: **0 errors, 0 warnings**.
 4. The real WebGL2 T3 `HybridRenderer` renders it, and gates **G1–G4 pass** with **0 JS / WebGL errors**.
 
-The QA driver is `uv run target_tests/blender/run_blender_qa.py`, and all evidence is in
-`artifacts/qa/adapters/blender/`.
+The QA driver is `uv run blender/run_blender_qa.py` in the reference Blender QA project, and all evidence is in its
+QA output folder.
 
 ## Why Blender is a bridge, not a renderer
 
@@ -29,7 +30,7 @@ validates and packs it, and a real target ([webgl2_threejs.md](webgl2_threejs.md
 **Coordinates match exactly.** Blender is right-handed **Z-up**, and a character facing `−Y` is the SVOX convention. Only
 a scale factor is needed: `voxel_size` metres per voxel.
 
-## Runtime evidence (Blender 5.3.0, `artifacts/qa/adapters/blender/`)
+## Runtime evidence (Blender 5.3.0, reference QA output folder)
 
 | Check | Result |
 |---|---|
@@ -130,27 +131,28 @@ a scale factor is needed: `voxel_size` metres per voxel.
 ## Run it
 
 ```bash
+# run from the reference Blender QA project
 BL="D:/SteamLibrary/steamapps/common/Blender/blender.exe"          # any Blender >= 4.4; verified 5.3.0
-"$BL" --background --factory-startup --python-exit-code 1 --python target_tests/blender/build_demo_blend.py
-"$BL" --background --factory-startup target_tests/blender/demo_hero.blend --python-exit-code 1 \
-      --python target_tests/blender/export_svox_from_blender.py -- --compare
-#  -> target_tests/blender/exported_svox/{rig.json, parts/*.albedo.png, parts/*.normal_ao.png, bake_stats.json}
-#  -> artifacts/qa/adapters/blender/{export_report.json, validate_report.json}   (bake + strict validate run automatically)
-node target_tests/blender/render_t3.mjs --backend swiftshader      # real T3 render + G1-G4 of the exported bundle
-uv run target_tests/blender/run_blender_qa.py                      # everything above + determinism, negative control,
+"$BL" --background --factory-startup --python-exit-code 1 --python blender/build_demo_blend.py
+"$BL" --background --factory-startup blender/demo_hero.blend --python-exit-code 1 \
+      --python blender/export_svox_from_blender.py -- --compare
+#  -> blender/exported_svox/{rig.json, parts/*.albedo.png, parts/*.normal_ao.png, bake_stats.json}
+#  -> <qa out>/{export_report.json, validate_report.json}   (bake + strict validate run automatically)
+node blender/render_t3.mjs --backend swiftshader      # real T3 render + G1-G4 of the exported bundle
+uv run blender/run_blender_qa.py                      # everything above + determinism, negative control,
                                                                    # voxeliser stress test, Cycles reference renders
 ```
 
 For your own project, set `SVOX_SCRIPTS=<folder containing svox_cli.py>` and pass `--out <bundle dir>` (also `--report`
 and `--validate-output`). The exporter is otherwise self-contained.
 
-## The verified exporter (`export_svox_from_blender.py`, byte-identical copy)
+## The verified exporter (`export_svox_from_blender.py`)
 
 ```python
 # export_svox_from_blender.py - Blender (verified on 5.3.0) -> SVOX bundle (svox.rig/v1) exporter bridge.
 #
 #   blender.exe --background --factory-startup <scene.blend> --python-exit-code 1 \
-#       --python target_tests/blender/export_svox_from_blender.py -- \
+#       --python export_svox_from_blender.py -- \
 #       [--out DIR] [--method parity|nearest] [--compare] [--report export_report.json]
 #       [--validate-output validate_report.json] [--no-bake] [--allow-warnings] [--allow-open (debug only)]
 #   env SVOX_SCRIPTS = folder holding svox_cli.py   (default <repo>/.agents/skills/hybrid-voxel-sprite/scripts)

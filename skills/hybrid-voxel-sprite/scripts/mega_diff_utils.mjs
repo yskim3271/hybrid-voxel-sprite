@@ -11,20 +11,22 @@
 //   * composeComparisonSheet(pairs, outPng, opts) → [Concept / Callout | 3D Voxel Render | Silhouette IoU] rows with a
 //     built-in 3×5 bitmap font for labels and PASS / FAIL borders.
 //   * v2.2 multi-cue G5: computeEdgeG5 (internal Sobel/NMS edges → dilated edge F1 + chamfer distance), computeBandG5
-//     (amber / cyan accent share + centroid), computeMultiCueG5 / multiCueSummary / composeMultiCueSheet.
+//     (accent-colour share + centroid per configurable HSV band; DEFAULT_ACCENT_BANDS = amber + cyan),
+//     computeMultiCueG5 / multiCueSummary / composeMultiCueSheet.
 //   * v2.3 G5 hull-only: computeHullSilhouetteIoU — core-hull silhouette IoU (target 0.86) for organic / tentacled ships,
 //     from explicit hull-only masks (concept with appendages painted out + render with the `wave` part excluded) or by
-//     automatic morphological opening + largest-component isolation; re-registered on the HULL bbox so curling tentacles
-//     can neither help nor hurt the carapace dome / jaw proportions.
+//     automatic morphological opening + largest-component isolation; re-registered on the HULL bbox so curling appendages
+//     can neither help nor hurt the core hull's dome / jaw proportions.
 //
 // CLI:
 //   node mega_diff_utils.mjs iou   --ref concept.png --render render.png [--target 0.78] [--register bbox|bbox-stretch|none]
 //                                  [--size 256] [--channel auto|alpha|luma|key] [--threshold 128] [--invert] [--diff out.png]
-//   node mega_diff_utils.mjs sheet --pairs pairs.json --out sheet.png [--title "VANGUARD T2 PASS 2"]
+//   node mega_diff_utils.mjs sheet --pairs pairs.json --out sheet.png [--title "CARRIER PASS 2"]
 //          pairs.json = [{ "label": "HERO 3/4", "ref": "a.png", "render": "b.png", "target": 0.78 }, …]
 //          (relative paths resolve against the pairs.json directory)
 //   node mega_diff_utils.mjs mask  --input concept.png --out mask.png [--channel key] [--register bbox --size 256]
 //   node mega_diff_utils.mjs multicue --ref concept.png --render render.png [--kind hero|ortho] [--out sheet.png]
+//                                  [--bands name:minH-maxH[:minS[:minV[:#rrggbb]]],…]   (e.g. crimson:340-20:0.45:0.30,gold:35-58)
 //   node mega_diff_utils.mjs hull  --ref concept.png --render render.png [--ref-hull hull_mask.png] [--render-hull hull_render.png]
 //                                  [--open 3] [--target 0.86] [--diff out.png]
 // Exit code 1 on errors or when an IoU is below its --target / pair target.
@@ -525,8 +527,9 @@ export function composeComparisonSheet(pairs, outPng = null, opts = {}) {
 //            silhouette rim (mask eroded by `inset` px) excluded. Symmetric dilated-edge F1 (radius 2–3 px) + mean
 //            chamfer distance (3-4 chamfer DT, px at the registered size). Missing bevel steps, flat bulkheads or a
 //            wrong bridge slope drop recall / raise the chamfer distance immediately.
-//   G5-Band  accent palette distribution: screen-area share + centroid of the AMBER armour bands and CYAN emissive zones
-//            inside the mask, concept vs render (over-painted or missing accent stripes fail).
+//   G5-Band  accent palette distribution: screen-area share + centroid of each accent colour band (HSV hue range +
+//            minimum saturation / value; default amber paint + cyan emissive) inside the mask, concept vs render
+//            (over-painted or missing accent stripes fail).
 export const G5_V22_TARGETS = Object.freeze({
   hero: { iou: 0.78, edgeF1: 0.52 }, ortho: { iou: 0.85, edgeF1: 0.55 },
   band: { ratioMin: 0.5, ratioMax: 2.0, centroidMax: 0.16, minShare: 0.004 },
@@ -767,42 +770,89 @@ export function computeEdgeG5(ref, render, opts = {}) {
     refEdges: s.na, renderEdges: s.nb, baselineF1: base.f1, radius, size, diff: img };
 }
 
-/** HSV accent classifier: 'amber' (armour bands / hazard), 'cyan' (emissive), or null. */
-export function accentClass(r, g, b) {
+/**
+ * Accent colour bands for G5-Band: { name, hue [minDeg, maxDeg] (inclusive; minDeg > maxDeg wraps through 0°, e.g. crimson
+ * [340, 20]), minS 0..1, minV 0..1, rgb? [r, g, b] (diff / sheet colour) }. A pixel belongs to the FIRST band it matches.
+ * The defaults are the original amber (paint / hazard bands) + cyan (emissive) pair.
+ */
+export const DEFAULT_ACCENT_BANDS = Object.freeze([
+  Object.freeze({ name: 'amber', hue: Object.freeze([20, 54]), minS: 0.45, minV: 0.3, rgb: Object.freeze([255, 176, 40]) }),
+  Object.freeze({ name: 'cyan', hue: Object.freeze([165, 205]), minS: 0.4, minV: 0.42, rgb: Object.freeze([60, 235, 255]) }),
+]);
+const BAND_RESERVED = new Set(['pass', 'bands', 'diff']);
+const hsvToRgb = (h, s, v) => {
+  const f = (n) => { const k = (n + h / 60) % 6; return Math.round(255 * (v - v * s * Math.max(0, Math.min(k, 4 - k, 1)))); };
+  return [f(5), f(3), f(1)];
+};
+/** Validate + complete band descriptors (default rgb = the band's mid hue at s 0.85, v 1). → frozen plain objects. */
+export function normalizeAccentBands(bands = DEFAULT_ACCENT_BANDS) {
+  if (bands === DEFAULT_ACCENT_BANDS) return DEFAULT_ACCENT_BANDS;
+  if (!Array.isArray(bands) || !bands.length) throw new Error('bands: a non-empty array of { name, hue [min, max], minS, minV } is required');
+  const seen = new Set();
+  return Object.freeze(bands.map((b, i) => {
+    if (!b || typeof b.name !== 'string' || !/^[a-z][a-z0-9_-]*$/i.test(b.name)) throw new Error(`bands[${i}]: name must match [a-z][a-z0-9_-]*`);
+    if (BAND_RESERVED.has(b.name) || seen.has(b.name)) throw new Error(`bands[${i}]: name '${b.name}' is reserved or duplicated`);
+    seen.add(b.name);
+    if (!Array.isArray(b.hue) || b.hue.length !== 2 || !b.hue.every((h) => Number.isFinite(h))) throw new Error(`bands[${i}] (${b.name}): hue must be [minDeg, maxDeg]`);
+    const hue = b.hue.map((h) => ((h % 360) + 360) % 360);
+    const minS = b.minS ?? 0.4, minV = b.minV ?? 0.3;
+    if (!(minS >= 0 && minS <= 1 && minV >= 0 && minV <= 1)) throw new Error(`bands[${i}] (${b.name}): minS / minV must be in 0..1`);
+    const mid = hue[0] <= hue[1] ? (hue[0] + hue[1]) / 2 : ((hue[0] + hue[1] + 360) / 2) % 360;
+    const rgb = Array.isArray(b.rgb) && b.rgb.length === 3 ? b.rgb.map((c) => Math.max(0, Math.min(255, Math.round(c)))) : hsvToRgb(mid, 0.85, 1);
+    return Object.freeze({ name: b.name, hue: Object.freeze(hue), minS, minV, rgb: Object.freeze(rgb) });
+  }));
+}
+/** CLI / config form 'name:minH-maxH[:minS[:minV[:#rrggbb]]],…' → band descriptors (e.g. 'crimson:340-20:0.45:0.30,gold:35-58'). */
+export function parseAccentBands(spec) {
+  if (typeof spec !== 'string' || !spec.trim()) throw new Error('bands: empty spec');
+  return normalizeAccentBands(spec.split(',').map((t) => t.trim()).filter(Boolean).map((t) => {
+    const [name, hue, minS, minV, hex] = t.split(':');
+    const m = /^(-?\d+(?:\.\d+)?)-(-?\d+(?:\.\d+)?)$/.exec(hue || '');
+    if (!m) throw new Error(`bands: '${t}' needs name:minH-maxH`);
+    const rgb = hex && /^#?[0-9a-f]{6}$/i.test(hex) ? [0, 2, 4].map((k) => parseInt(hex.replace('#', '').slice(k, k + 2), 16)) : undefined;
+    return { name, hue: [Number(m[1]), Number(m[2])], minS: minS !== undefined && minS !== '' ? Number(minS) : undefined, minV: minV !== undefined && minV !== '' ? Number(minV) : undefined, rgb };
+  }));
+}
+const inHue = (h, [lo, hi]) => (lo <= hi ? h >= lo && h <= hi : h >= lo || h <= hi);
+
+/** HSV accent classifier → the name of the first matching band (default: 'amber' paint / 'cyan' emissive), or null. */
+export function accentClass(r, g, b, bands = DEFAULT_ACCENT_BANDS) {
   const mx = Math.max(r, g, b), mn = Math.min(r, g, b), v = mx / 255, s = mx ? (mx - mn) / mx : 0;
   if (mx === mn) return null;
   let hdeg;
   if (mx === r) hdeg = 60 * (((g - b) / (mx - mn)) % 6); else if (mx === g) hdeg = 60 * ((b - r) / (mx - mn) + 2); else hdeg = 60 * ((r - g) / (mx - mn) + 4);
   if (hdeg < 0) hdeg += 360;
-  if (hdeg >= 20 && hdeg <= 54 && s >= 0.45 && v >= 0.3) return 'amber';
-  if (hdeg >= 165 && hdeg <= 205 && s >= 0.4 && v >= 0.42) return 'cyan';
+  for (const band of bands) if (inHue(hdeg, band.hue) && s >= band.minS && v >= band.minV) return band.name;
   return null;
 }
 
 /**
- * G5-Band: amber / cyan accent distribution inside the registered foreground masks.
- * Returns { amber: { ref, render, ratio, centroidDist, pass }, cyan: {…}, pass, diff (RGBA: amber / cyan pixels of the
- * reference on the left half, render on the right half) } with share = accent px / foreground px, centroid in 0..1.
+ * G5-Band: accent-colour distribution inside the registered foreground masks, one entry per band of `opts.bands`
+ * (default DEFAULT_ACCENT_BANDS = amber + cyan). Returns { pass, <band name>: { ref, render, ratio, centroidDist,
+ * refCentroid, renderCentroid, pass }, … , bands [descriptors], diff (RGBA: band-coloured accent pixels of the reference on
+ * the left half, the render on the right half) } with share = accent px / foreground px, centroid in 0..1. With the default
+ * bands the result therefore keeps its `amber` / `cyan` keys exactly as before.
  */
 export function computeBandG5(ref, render, opts = {}) {
   const { size = 256 } = opts;
   const T = { ...G5_V22_TARGETS.band, ...(opts.targets || {}) };
+  const bands = normalizeAccentBands(opts.bands || DEFAULT_ACCENT_BANDS), names = bands.map((b) => b.name);
   const A = registerImage(ref, { size, maskOpts: opts.refOpts || {} }), Bm = registerImage(render, { size, maskOpts: opts.renderOpts || {} });
   const stat = (R) => {
-    const o = { amber: { n: 0, x: 0, y: 0 }, cyan: { n: 0, x: 0, y: 0 } }; let fg = 0;
+    const o = Object.fromEntries(names.map((k) => [k, { n: 0, x: 0, y: 0 }])); let fg = 0;
     for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
       const i = y * size + x;
       if (!R.mask.data[i]) continue;
       fg++;
-      const c = accentClass(R.image.data[i * 4], R.image.data[i * 4 + 1], R.image.data[i * 4 + 2]);
+      const c = accentClass(R.image.data[i * 4], R.image.data[i * 4 + 1], R.image.data[i * 4 + 2], bands);
       if (c) { o[c].n++; o[c].x += x; o[c].y += y; }
     }
-    for (const k of ['amber', 'cyan']) { const q = o[k]; q.share = fg ? q.n / fg : 0; q.cx = q.n ? q.x / q.n / size : null; q.cy = q.n ? q.y / q.n / size : null; }
+    for (const k of names) { const q = o[k]; q.share = fg ? q.n / fg : 0; q.cx = q.n ? q.x / q.n / size : null; q.cy = q.n ? q.y / q.n / size : null; }
     return o;
   };
   const sa = stat(A), sb = stat(Bm);
   const out = { pass: true };
-  for (const k of ['amber', 'cyan']) {
+  for (const k of names) {
     const a = sa[k], b = sb[k];
     const present = a.share >= T.minShare;
     const ratio = present ? b.share / a.share : b.share < T.minShare ? 1 : Infinity;
@@ -812,13 +862,15 @@ export function computeBandG5(ref, render, opts = {}) {
       refCentroid: a.cx === null ? null : [+a.cx.toFixed(3), +a.cy.toFixed(3)], renderCentroid: b.cx === null ? null : [+b.cx.toFixed(3), +b.cy.toFixed(3)], pass };
     if (!pass) out.pass = false;
   }
+  out.bands = bands.map((b) => ({ name: b.name, hue: b.hue.slice(), minS: b.minS, minV: b.minV, rgb: b.rgb.slice() }));
   if (opts.diff !== false) {
     const img = createImage(size * 2 + 4, size, [16, 18, 24, 255]);
+    const col = Object.fromEntries(bands.map((b) => [b.name, [...b.rgb, 255]]));
     for (const [R, ox] of [[A, 0], [Bm, size + 4]]) for (let y = 0; y < size; y++) for (let x = 0; x < size; x++) {
       const i = y * size + x;
       if (!R.mask.data[i]) continue;
-      const c = accentClass(R.image.data[i * 4], R.image.data[i * 4 + 1], R.image.data[i * 4 + 2]);
-      img.data.set(c === 'amber' ? [255, 176, 40, 255] : c === 'cyan' ? [60, 235, 255, 255] : [44, 48, 60, 255], (y * img.width + x + ox) * 4);
+      const c = accentClass(R.image.data[i * 4], R.image.data[i * 4 + 1], R.image.data[i * 4 + 2], bands);
+      img.data.set(c ? col[c] : [44, 48, 60, 255], (y * img.width + x + ox) * 4);
     }
     out.diff = img;
   }
@@ -827,7 +879,8 @@ export function computeBandG5(ref, render, opts = {}) {
 
 /**
  * Full G5-v2.2 multi-cue gate for one reference / render pair. kind 'hero' | 'ortho' selects the default targets.
- * Returns { silhouette { iou, precision, recall, pass }, edge { f1, chamfer, …, pass }, band { amber, cyan, pass }, pass }.
+ * Returns { silhouette { iou, precision, recall, pass }, edge { f1, chamfer, …, pass }, band { <band name>…, bands, pass }, pass }
+ * (opts.bands → computeBandG5; default amber + cyan).
  * (The ortho F1 target applies to the AVERAGE over top / side / front — see multiCueSummary.)
  */
 export function computeMultiCueG5(ref, render, opts = {}) {
@@ -852,12 +905,21 @@ export function multiCueSummary(res) {
   return { silhouette: silPass, heroEdgeF1: res.hero ? res.hero.edge.f1 : null, orthoAvgEdgeF1: orthoF1, edge: heroEdge && orthoEdge, band: bandPass, pass: silPass && heroEdge && orthoEdge && bandPass };
 }
 
+/** Short per-band labels for sheet text: the first letter when unique among the bands, else the first 3 letters. */
+function bandShortNames(names) {
+  const first = names.map((n) => n[0].toUpperCase());
+  return names.map((n, i) => (first.filter((f) => f === first[i]).length > 1 ? n.slice(0, 3).toUpperCase() : first[i]));
+}
+
 /**
  * Multi-cue comparison sheet: one row per pair → [Concept | Render | Silhouette IoU diff | Edge overlay | Band split],
- * label "LABEL IOU 0.874 EDGE F1 0.61 CH 2.3PX BAND A/C PASS". pairs: [{ label, ref, render, kind }].
+ * label "LABEL IOU 0.874 EDGE F1 0.61 CH 2.3PX BAND A OK C OK PASS" (one short name per band). pairs: [{ label, ref,
+ * render, kind, opts? }]; opts.bands applies to every pair (default amber + cyan). The band column header names each band
+ * in its own diff colour.
  */
 export function composeMultiCueSheet(pairs, outPng = null, opts = {}) {
   const { cellW = 260, cellH = 190, pad = 10, scale = 2, title = null } = opts;
+  const bands = normalizeAccentBands(opts.bands || DEFAULT_ACCENT_BANDS), names = bands.map((b) => b.name), shortNames = bandShortNames(names);
   const lineH = 5 * scale + 4, cols = 5;
   const W = pad + cols * (cellW + pad);
   const headH = pad + (title ? lineH + 4 : 0) + lineH + 2;
@@ -865,13 +927,21 @@ export function composeMultiCueSheet(pairs, outPng = null, opts = {}) {
   const img = createImage(W, headH + pairs.length * rowH + pad, [12, 14, 20, 255]);
   let y = pad;
   if (title) { drawText(img, pad, y, title, [255, 214, 102, 255], scale); y += lineH + 4; }
-  ['CONCEPT / BLUEPRINT', '3D RENDER', 'SILHOUETTE IOU', 'EDGES W=HIT C=EXTRA R=MISS', 'BAND REF / RENDER'].forEach((c, k) => drawText(img, pad + k * (cellW + pad), y, c.slice(0, Math.floor((cellW + pad) / (4 * scale))), [150, 160, 180, 255], scale));
+  ['CONCEPT / BLUEPRINT', '3D RENDER', 'SILHOUETTE IOU', 'EDGES W=HIT C=EXTRA R=MISS'].forEach((c, k) => drawText(img, pad + k * (cellW + pad), y, c.slice(0, Math.floor((cellW + pad) / (4 * scale))), [150, 160, 180, 255], scale));
+  {   // band column header: "BAND" + each band name in its diff colour (clipped to the column width)
+    const x0 = pad + 4 * (cellW + pad), xMax = x0 + cellW;
+    let x = drawText(img, x0, y, 'BAND', [150, 160, 180, 255], scale) + 4 * scale;
+    for (const b of bands) { const t = b.name.toUpperCase(); if (x + t.length * 4 * scale > xMax) break; x = drawText(img, x, y, t, [...b.rgb, 255], scale) + 4 * scale; }
+  }
   const rows = [];
   pairs.forEach((p, r) => {
     const y0 = headH + r * rowH;
-    const res = p.result || computeMultiCueG5(p.ref, p.render, { kind: p.kind || 'hero', ...(p.opts || {}) });
+    const res = p.result || computeMultiCueG5(p.ref, p.render, { kind: p.kind || 'hero', bands, ...(p.opts || {}) });
     const ok = res.pass, border = ok ? [70, 205, 110, 255] : [235, 70, 70, 255];
-    const label = `${p.label}  IOU ${res.silhouette.iou.toFixed(3)}  EDGE F1 ${res.edge.f1.toFixed(3)} (/${res.edge.target}) CH ${res.edge.chamfer.toFixed(1)}PX  BAND A ${res.band.amber.pass ? 'OK' : 'X'} C ${res.band.cyan.pass ? 'OK' : 'X'}  ${ok ? 'PASS' : 'FAIL'}`;
+    const rowNames = res.band.bands ? res.band.bands.map((b) => b.name) : names.filter((n) => res.band[n]);
+    const rowShort = bandShortNames(rowNames);
+    const bandText = rowNames.map((n, i) => `${rowShort[i]} ${res.band[n] && res.band[n].pass ? 'OK' : 'X'}`).join(' ');
+    const label = `${p.label}  IOU ${res.silhouette.iou.toFixed(3)}  EDGE F1 ${res.edge.f1.toFixed(3)} (/${res.edge.target}) CH ${res.edge.chamfer.toFixed(1)}PX  BAND ${bandText}  ${ok ? 'PASS' : 'FAIL'}`;
     drawText(img, pad, y0, label, border, scale);
     const cy = y0 + lineH + 4;
     [loadImage(p.ref), loadImage(p.render), res.silhouette.diff, res.edge.diff, res.band.diff].forEach((c, k) => {
@@ -880,7 +950,7 @@ export function composeMultiCueSheet(pairs, outPng = null, opts = {}) {
       if (c) blitFit(img, c, cx + 3, cy + 3, cellW - 6, cellH - 6);
       strokeRect(img, cx, cy, cellW, cellH, border, 2);
     });
-    rows.push({ label: p.label, kind: p.kind || 'hero', iou: res.silhouette.iou, edgeF1: res.edge.f1, chamfer: res.edge.chamfer, baselineF1: res.edge.baselineF1, band: { amber: res.band.amber, cyan: res.band.cyan }, pass: ok, result: res });
+    rows.push({ label: p.label, kind: p.kind || 'hero', iou: res.silhouette.iou, edgeF1: res.edge.f1, chamfer: res.edge.chamfer, baselineF1: res.edge.baselineF1, band: Object.fromEntries(rowNames.map((n) => [n, res.band[n]])), pass: ok, result: res });
   });
   if (outPng) writePNG(outPng, img);
   return { width: img.width, height: img.height, image: img, rows, path: outPng || null };
@@ -923,9 +993,11 @@ function cli(argv) {
   if (cmd === 'multicue') {
     if (!a.ref || !a.render) throw new Error('multicue: --ref and --render are required');
     const kind = a.kind === 'ortho' ? 'ortho' : 'hero';
-    const s = composeMultiCueSheet([{ label: kind.toUpperCase(), ref: a.ref, render: a.render, kind }], typeof a.out === 'string' ? a.out : null, { title: 'G5-V2.2 MULTI-CUE' });
+    const bands = typeof a.bands === 'string' ? parseAccentBands(a.bands) : DEFAULT_ACCENT_BANDS;
+    const s = composeMultiCueSheet([{ label: kind.toUpperCase(), ref: a.ref, render: a.render, kind }], typeof a.out === 'string' ? a.out : null, { title: 'G5 MULTI-CUE', bands });
     const r = s.rows[0];
-    console.log(`${r.pass ? 'PASS' : 'FAIL'} ${kind}: IoU ${r.iou.toFixed(4)}  edge F1 ${r.edgeF1.toFixed(4)} (chance ${r.baselineF1.toFixed(3)})  chamfer ${r.chamfer.toFixed(2)} px  amber ${r.band.amber.pass ? 'ok' : 'FAIL'} cyan ${r.band.cyan.pass ? 'ok' : 'FAIL'}${s.path ? `  → ${s.path}` : ''}`);
+    const bandText = Object.entries(r.band).map(([n, b]) => `${n} ${b.pass ? 'ok' : 'FAIL'}`).join(' ');
+    console.log(`${r.pass ? 'PASS' : 'FAIL'} ${kind}: IoU ${r.iou.toFixed(4)}  edge F1 ${r.edgeF1.toFixed(4)} (chance ${r.baselineF1.toFixed(3)})  chamfer ${r.chamfer.toFixed(2)} px  ${bandText}${s.path ? `  → ${s.path}` : ''}`);
     return r.pass ? 0 : 1;
   }
   if (cmd === 'hull') {

@@ -232,7 +232,7 @@ node scripts/mega_diff_utils.mjs hull --ref side.png --render side_render.png --
 
 **v2.3.0 · 2026-11-28 · 체크포인트.** `svox.mega/v2.3` `quad16` 인스턴스 쿼드(쿼드당 16 B, 인덱스 버퍼 없음, 65,535 정점 상한 없음),
 `MEGA_V23_BUDGET`(12 MiB · 드로우 16 · 삼각형 1.2M · Δ 2.5 ms), 진영별 셰이더(`matTag 6/7/8`), 선체 전용 G5,
-키트 자체 테스트 69/69. Vanguard T2, Aether P2, Swarm Z2로 검증.
+키트 자체 테스트 78/78. Vanguard T2, Aether P2, Swarm Z2로 검증.
 
 **v2.2.0 · 2026-11-27.** `svox.mega/v2.2` `packed20`(정점당 20 B, Uint16 인덱스, 2.4배 밀도), 멀티 큐 G5(실루엣 IoU + 내부
 엣지 F1 / 챔퍼 + 앰버/시안 밴드), 실제 엔진 기반 `capital_studio.html`에서 진행하는 클레이→룩데브 4단계 루프, 70/30 비주얼 레스트
@@ -280,7 +280,7 @@ hybrid-voxel-sprite/
 
 ```bash
 SKIP_WEBGL=1 python tests/test_skill_svox.py               # 독립 저장소: 26 통과 · 0 실패 · 4 스킵 (원본 저장소 전용 하네스)
-node skills/hybrid-voxel-sprite/scripts/test_mega_kit.mjs    # 메가스트럭처 키트: 69/69 통과 (임시 파일은 os.tmpdir()에만)
+node skills/hybrid-voxel-sprite/scripts/test_mega_kit.mjs    # 메가스트럭처 키트: 78/78 통과 (임시 파일은 os.tmpdir()에만)
 ```
 
 - 노멀/AO 베이크는 원본 JS 코어(`computeNormalAndAO`)와 바이트 단위로 같습니다. 테스트는 기록된 sha256과 비교하고, `SVOX_JS_CORE=<voxel_builder.js>`를 지정하면 Node로 실시간 비교합니다.

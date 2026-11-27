@@ -1,11 +1,11 @@
 # 02 — T3 Shader Pipeline Spec (engine-neutral, GLSL-style)
 
-This file mirrors the verified `HybridRenderer` (`src/renderers/hybrid/hybrid_renderer.js`). The constants below are
+This file mirrors the verified `HybridRenderer` of the reference WebGL2 implementation. The constants below are
 the shipped values; change them only on purpose. Math helpers are in [01](01_contract_and_math.md). For the WebGL2
 mapping, see [targets/webgl2_threejs.md](targets/webgl2_threejs.md).
 
 The **v1.1** sections (§8 depth-bucket tie-break, §9 6-slot emissive, §10 view modes and `SPRITE STACK`) are optional.
-They mirror the verified Three.js r187 showcase renderers: Four Symbols at 119,391 voxels, and 4 articulated vehicles
+They mirror the verified Three.js r187 showcase renderers: a four-creature set at 119,391 voxels, and 4 articulated vehicles
 at 166,290 voxels in 39 parts.
 
 ```
@@ -262,7 +262,7 @@ wheel arch, a hydraulic barrel and its rod, shared spine ball caps, joint sphere
 
 **Why a plain epsilon fails.** The first attempt added a per-part epsilon, `gl_FragDepth += partIndex·4e-6` (the
 "~1e-6 · slot / slots" idea). It only makes ties **rarer**. Bisection error (≈ 0.005 voxel) is larger than the bias
-(≈ 0.0016 voxel), so quantised depths still collide. In the Four Symbols 1,536-pose sweep, **40 of 1,536 renders
+(≈ 0.0016 voxel), so quantised depths still collide. In the four-creature 1,536-pose sweep, **40 of 1,536 renders
 (2.6%) differed from the reversed-order render by 9–27 px each (441 px in total)**.
 
 **Verified fix: quantise into buckets and put the slot in the low bits.**
@@ -283,7 +283,7 @@ gl_FragDepth = min((q * bucket + uDepthSlot * 4.0 + 2.0) / D24, 1.0);   // centr
 - Ground-shadow quads keep their own LESS rule (03 pitfall 11). World meshes that share the depth buffer
   ([webgl2_threejs.md §4.5](targets/webgl2_threejs.md#45-perspectivecamera--3d-world-mrt-hybrid-recipe-v11)) write
   plain depth.
-- **Result.** Reversed draw order differs by **0 px in all 1,536 sweep poses** on the real Four Symbols bundles,
+- **Result.** Reversed draw order differs by **0 px in all 1,536 sweep poses** on the real four-creature bundles,
   against 40 failing renders before the fix. G1/G2 do not change.
   - The vehicle engine's 1,536-render sweep also reports reorder 0. It ran on fallback subjects, before the bundles
     existed.

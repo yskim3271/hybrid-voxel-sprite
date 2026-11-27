@@ -2,15 +2,15 @@
 
 **Status: Verified ✅ (raw WebGL2) · Verified ✅ (Three.js r187 / `three@0.187.0`) · v1.1 Verified ✅ (PerspectiveCamera 3D-world MRT hybrid, §4.5).**
 
-- **Raw WebGL2 path.** This is the origin renderer, `src/renderers/hybrid/hybrid_renderer.js`. The skill's
+- **Raw WebGL2 path.** This is the reference WebGL2 renderer (`HybridRenderer`). The skill's
   `assets/minimal_reference` bundle was loaded into it from SVOX files, in headless Chrome on D3D11 (GTX 1080) and on
   SwiftShader. All four gates passed with 0 JS and 0 WebGL errors (see [03 §2](../03_pitfalls_and_qa_gates.md)).
-- **Three.js path (§4).** A standalone pure-Three.js port (origin repo `target_tests/threejs/`) loaded the same bundle
+- **Three.js path (§4).** A standalone pure-Three.js port (the reference Three.js QA project) loaded the same bundle
   through `svox_cli.py pack-atlas --format raw_3d` into `THREE.Data3DTexture`s. All four gates passed in headless Chrome
   on D3D11 (GTX 1080) **and** SwiftShader, with 0 console, 0 page and 0 WebGL errors (measurements in §4.4). It also
   matched the raw-WebGL2 renderer to ≤ 72 differing pixels out of 115,560 per view across 15 views.
 - **v1.1 production use (§4.5).** The same Three.js r187 contract drives a 4-vehicle showroom (39 parts, 166,290
-  voxels) and the *Four Worlds* 60 fps daylight showcase, with one `PerspectiveCamera` and one shared depth buffer.
+  voxels) and a multi-world 60 fps daylight showcase, with one `PerspectiveCamera` and one shared depth buffer.
 
 Pipeline and constants: [02_shader_pipeline_spec.md](../02_shader_pipeline_spec.md). Math:
 [01_contract_and_math.md](../01_contract_and_math.md).
@@ -129,7 +129,7 @@ r.render({ camera: Math.buildCameraState(yaw, pitch, zoom, [0, 0, rig.targetHeig
 ## 4. Three.js adaptation (✅ Verified on three r187)
 
 Verified on 2026-11-25 with `three@0.187.0` (`THREE.REVISION` `187`) in Chrome with ANGLE, on D3D11 (GTX 1080) and on
-SwiftShader. The origin repo's reference port is in `target_tests/threejs/`:
+SwiftShader. The reference port (Three.js QA project) is laid out as:
 - `src/svox_three.js`: raw_3d loader, pose, camera and light.
 - `src/t3_shaders.js`: GLSL.
 - `src/t3_three_renderer.js`: the `ThreeT3Renderer` class.
@@ -213,7 +213,7 @@ counts 8 because it does not count the clear.
   - D3D11: at most 72 of 115,560 pixels differed, and at most 9 by more than 8/255.
   - SwiftShader: at most 45 pixels differed; one `slices` band edge showed Δ 115.
 
-The minimal pure-Three.js frame loop, condensed from `target_tests/threejs/src/t3_three_renderer.js`:
+The minimal pure-Three.js frame loop, condensed from the reference port's `src/t3_three_renderer.js`:
 ```js
 renderer.autoClear = false;  renderer.setPixelRatio(1);
 // per frame: snap (§4.1) -> per part: mesh.matrix = M', uniforms (uInvModel = invM·T(-rootDelta), box, deform, light)
@@ -225,9 +225,9 @@ renderer.render(postScene, postCam); renderer.setScissorTest(false);
 ### 4.5 PerspectiveCamera + 3D world MRT hybrid recipe (v1.1)
 
 **Status: Verified ✅ on three r187.** It is backed by two builds:
-- the 4-vehicle showroom: excavator, F1, Mini and Cybertruck, 39 parts and 166,290 voxels, real SVOX bundles plus
+- the 4-vehicle showroom: a construction vehicle, an F1 car, a compact car and a pickup, 39 parts and 166,290 voxels, real SVOX bundles plus
   motion plugins;
-- the *Four Worlds* v1–v3 daylight showcase: 1920×1080 and 1080×1920, 1,635 frames at 60 fps each, headless Chrome on
+- a multi-world daylight showcase (three iterations): 1920×1080 and 1080×1920, 1,635 frames at 60 fps each, headless Chrome on
   ANGLE D3D11, **glError 0** and 0 console or page errors.
 
 The same G-buffer contract as §4.1 drives a full perspective 3D world, in which Three.js meshes and T3 voxel actors
@@ -316,8 +316,9 @@ reading back the full-resolution RGBA frame every frame. The capture recipe is i
    - Store the result as `window.__result`.
 6. **Capture.** Poll for `window.__result`, then run `Page.captureScreenshot`. **Open the PNG and inspect it**: a gate
    can pass on a black frame.
-7. **Three.js port.** The same pattern is used, through the origin repo's `scripts/cdp_harness.mjs`:
-   - `node target_tests/threejs/run_qa.mjs --backend d3d11|swiftshader` runs the gates, timing and parity checks. It
-     writes `threejs_minimal_reference_t3.png` and `threejs_gates.json` to `artifacts/qa/adapters/threejs/`.
-   - `node target_tests/threejs/run_extra.mjs` runs the API probes and a viewer smoke test.
+7. **Three.js port.** The same pattern is used, through the reference implementation's CDP harness
+   (`scripts/cdp_harness.mjs` there). Commands below are from the reference Three.js QA project:
+   - `node threejs/run_qa.mjs --backend d3d11|swiftshader` runs the gates, timing and parity checks. It
+     writes `threejs_minimal_reference_t3.png` and `threejs_gates.json` to its QA output folder.
+   - `node threejs/run_extra.mjs` runs the API probes and a viewer smoke test.
    - The mask is read with `renderer.readRenderTargetPixels(rt, …, textureIndex = 1)` instead of raw `readBuffer`.

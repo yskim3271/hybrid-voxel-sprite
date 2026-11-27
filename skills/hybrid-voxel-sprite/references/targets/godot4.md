@@ -3,7 +3,7 @@
 **Status: ✅ Verified (Godot 4.7.2) — Forward+ and Mobile on Vulkan.** 🧪 Compatibility (OpenGL 3.3): runs, but not
 verified (§9).
 
-- **What was run.** A standalone Godot 4.7.2.stable project (origin repo `target_tests/godot4/`) loaded the skill's
+- **What was run.** A standalone Godot 4.7.2.stable project (the reference Godot QA project) loaded the skill's
   `assets/minimal_reference` bundle through `svox_cli.py pack-atlas --format raw_3d` into `ImageTexture3D`s. It ran the
   full two-pass T3 pipeline ([02](../02_shader_pipeline_spec.md)) as GDShaders on a real GPU (GTX 1080, Vulkan 1.4).
 - **Gates.** All four gates in [03 §2](../03_pitfalls_and_qa_gates.md) passed **inside Godot**, on both Forward+ and
@@ -256,9 +256,10 @@ The same project runs with `--rendering-driver opengl3 --rendering-method gl_com
 ## 10. QA harness & measured results
 
 ```powershell
-uv run .agents/skills/hybrid-voxel-sprite/scripts/svox_cli.py pack-atlas --bundle .agents/skills/hybrid-voxel-sprite/assets/minimal_reference --format raw_3d --out target_tests/godot4/svox_raw
-powershell -File target_tests/godot4/run_qa.ps1                            # Forward+ / Vulkan (also: -Method mobile -Sub mobile_vulkan)
-uv run target_tests/godot4/tools/post_check.py                             # pose parity vs svox_cli, log scan, renderer parity
+# run from the reference Godot QA project; <skill> = this skill's folder
+uv run <skill>/scripts/svox_cli.py pack-atlas --bundle <skill>/assets/minimal_reference --format raw_3d --out godot4/svox_raw
+powershell -File godot4/run_qa.ps1                            # Forward+ / Vulkan (also: -Method mobile -Sub mobile_vulkan)
+uv run godot4/tools/post_check.py                             # pose parity vs svox_cli, log scan, renderer parity
 ```
 
 These results are from Godot 4.7.2.stable, Forward+, Vulkan 1.4.312, GTX 1080, 320×360 output at ×3 (106×120). Mobile

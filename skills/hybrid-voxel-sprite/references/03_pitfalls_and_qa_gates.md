@@ -1,7 +1,7 @@
 # 03 — Pitfalls & QA Gates
 
-Every item here was hit in the real build, in core, track 2/3, assets A/B, reel, skill v1 or the v1.1 showcases. Each entry gives the
-symptom, the cause and the fix that shipped. Formulas are in [01](01_contract_and_math.md) and shaders in
+Every item here was hit in a real build of the reference implementation (core renderer, asset pipeline, showcase
+reels and production showcases). Each entry gives the symptom, the cause and the fix that shipped. Formulas are in [01](01_contract_and_math.md) and shaders in
 [02](02_shader_pipeline_spec.md).
 
 ## 1. Pitfalls
@@ -20,7 +20,7 @@ symptom, the cause and the fix that shipped. Formulas are in [01](01_contract_an
    - *Cause:* Chrome's `finish()` does not block on the GPU.
    - *Fix:* close each timed frame with a 1×1 `gl.readPixels`, or use `EXT_disjoint_timer_query_webgl2`.
    - ANGLE then logs "GPU stall due to ReadPixels" performance notes. Treat them as information, not errors.
-   - Older track 2/3 numbers measured with `gl.finish` (1–5 ms) are **not** trustworthy. The skill v1 figures
+   - Older numbers measured with `gl.finish` (1–5 ms) are **not** trustworthy. The figures in this skill
      (0.8–0.9 ms at 640×360 @×3 on a GTX 1080) are readPixels-bracketed.
 3. **Convex staircase AO false darkening.**
    - *Symptom:* after AO was first strengthened, curved surfaces such as spheres and helmets turned uniformly grey.
@@ -56,12 +56,12 @@ symptom, the cause and the fix that shipped. Formulas are in [01](01_contract_an
 8. **Flipped-cloth ground contact.** Capes and robes with local `+Z` down get wave and shear at the hem, so a forward
    lean can push the hem below `z = 0`. Add a hem guard that lifts the body. The tail tip on the drake needed a ground
    clamp for the same reason.
-9. **AO bake reads beyond its padding (found in skill v1).**
+9. **AO bake reads beyond its padding.**
    - AO windows reach 3 voxels, but `PAD = 2`.
    - The JS core's `computeNormalAndAO` keeps a **shared scratch buffer** sized for the largest grid seen so far.
      When a smaller part has voxels in its top layer, the reads past `total` pick up **stale occupancy** from an earlier,
      larger grid.
-   - Repro: `artifacts/qa/skill_v1/js_scratch_stale_read_repro.js` in the origin repo. It shows 56 bytes differing,
+   - Repro (reference implementation's QA suite): a stale-scratch read repro shows 56 bytes differing,
      with AO off by up to 63 of 255.
    - Fresh contexts are deterministic, and `svox_cli.py` treats out-of-range as empty, so it is byte-identical to a
      fresh JS context.
@@ -72,8 +72,8 @@ symptom, the cause and the fix that shipped. Formulas are in [01](01_contract_an
 11. **Ground shadows double-darken where parts overlap.** Every part's shadow fragment writes the depth of the exact
     pixel-ray/ground intersection, and the pass uses `depthFunc(LESS)`. Identical depth means the first part wins.
 12. **GL state leaks between renderers sharing a context.** Unbind the samplers (`bindSampler(unit, null)`), the 3D
-    and 2D textures, the VAO and the program. Reset scissor, cull, blend and `drawBuffers`. The track 2/3 shot "hybrid
-    first, then T0/T1/T2" verified this.
+    and 2D textures, the VAO and the program. Reset scissor, cull, blend and `drawBuffers`. A capture that ran the hybrid
+    renderer first, then three other renderers on the same context, verified this.
 13. **Brim versus eyes at 33°.** Faces 2–3 voxels under a wide brim vanish at the default pitch. Set the brim back,
     tilt the hat about 0.17 rad, and keep the eyes 1 voxel apart so a head turn does not hide one.
 14. **Canvas PNG decode corrupts `normal_ao`.** A 2D canvas stores pixels premultiplied, so `getImageData` loses RGB
@@ -84,8 +84,8 @@ symptom, the cause and the fix that shipped. Formulas are in [01](01_contract_an
       `UNPACK_PREMULTIPLY_ALPHA_WEBGL = false`.
     - Our decoder matched Chrome's native decode on every opaque albedo texel, with 0 mismatches.
 
-**v1.1 production pitfalls.** These were found during the Four Symbols, 4-vehicle showroom and *Four Worlds* v1–v3
-showcase builds, all on Three.js r187.
+**v1.1 production pitfalls.** These were found while building a four-creature showcase, a 4-vehicle showroom and a
+multi-world 60 fps daylight showcase, all on Three.js r187.
 
 15. **Three.js `ColorManagement` gamma washout.**
     - *Symptom:* voxel albedo comes out washed out or shifted in hue, and decoded normals are bent, even though the
@@ -188,8 +188,8 @@ was not run counts as failed.
 
 ### How the reference harness runs it (WebGL2)
 
-These paths are in the origin repo:
-- `node artifacts/qa/skill_v1/harness/smoke_render.mjs [--backend d3d11|swiftshader]` serves the workspace and drives
+These scripts belong to the reference implementation's QA project:
+- `node harness/smoke_render.mjs [--backend d3d11|swiftshader]` serves the workspace and drives
   headless Chrome over CDP. It loads `assets/minimal_reference` into the real `HybridRenderer` and writes
   `minimal_reference_t3.png` plus `smoke_results.json`: the gates, 0 JS/GL errors, timing, and a PNG-decoder
   cross-check against the browser's native decoder.
@@ -240,5 +240,5 @@ ffmpeg -f rawvideo -pix_fmt rgba -s 1920x1080 -r 60 -i pipe:0 -i bgm.mp3 -map 0:
 
 - Verify with `ffprobe -count_frames`: exactly frames ÷ 60 s and 1,635/1,635 frames in both files.
 - Build a 4×4 contact sheet with `-vf tile=4x4` and **inspect it by eye**.
-- Reference run, *Four Worlds* v3: glError 0, 0 console or page errors, at most 46 draw calls. It encoded in 131.8 s
+- Reference run, a multi-world 60 fps daylight showcase: glError 0, 0 console or page errors, at most 46 draw calls. It encoded in 131.8 s
   at 16:9 and 96.3 s at 9:16.

@@ -1,7 +1,8 @@
 # 01 — Contract & Math (coordinates, pivots, SVOX rig, IK, springs, deformation)
 
 Every formula here is copied from verified code:
-- `src/core/math.js`, `src/core/voxel_builder.js` and `src/renderers/hybrid/hybrid_renderer.js` in the origin repo.
+- the reference WebGL2 / Three.js implementation: its math core, its voxel builder (normal/AO bake) and its
+  `HybridRenderer`.
 - [`scripts/svox_cli.py`](../scripts/svox_cli.py), which is byte-exact against the JS normal/AO bake and is also
   tested numerically.
 
@@ -77,8 +78,8 @@ Part channels are `posX/Y/Z`, `rotX/Y/Z`, `scale` and the 8 deform keys (§6). `
 
 ### 3.1 v1.1 emissive schema (optional)
 
-Verified on the 4-vehicle showroom (excavator, F1, Mini, Cybertruck: 39 parts, 166,290 voxels) and the Four Symbols
-set. All keys are optional. `svox_cli validate` ignores unknown top-level keys, so v1 tools still load the bundle.
+Verified on a 4-vehicle showroom (a construction vehicle, an F1 car, a compact car and a pickup: 39 parts, 166,290
+voxels) and a four-creature showcase set. All keys are optional. `svox_cli validate` ignores unknown top-level keys, so v1 tools still load the bundle.
 
 ```json
 { "schema": "svox.rig/v1",
@@ -256,7 +257,7 @@ exposed in the JS core.
 
 ## 9. Multi-clip framing & hard-surface / mechanical rigging
 
-These v1.1 rules come from the Four Symbols set (4 beasts, 119,391 voxels) and the 4 articulated vehicles (39 parts,
+These rules come from a four-creature showcase set (4 beasts, 119,391 voxels) and the 4 articulated vehicles (39 parts,
 166,290 voxels). Both ran on the Three.js port.
 
 **Multi-clip framing.** Never size the camera from the rest pose alone.
@@ -266,7 +267,7 @@ These v1.1 rules come from the Four Symbols set (4 beasts, 119,391 voxels) and t
   `R` is the XY half-diagonal and `hz` the height above `max(0, zMin)`. Take the larger value and add about 8% headroom.
 - Aim at the box's XY centre, about 42% of its height up, which leaves room for the ground ring and contact shadow.
 - *Why:* with rest-pose framing, 13 of 48 zoomed QA frames clipped at the top edge during the flying specials (+6 to
-  +8 voxels of lift). A raised excavator boom, a lifted truck body or an open DRS flap does the same. With the union box,
+  +8 voxels of lift). A raised construction-vehicle boom, a lifted truck body or an open DRS flap does the same. With the union box,
   every frame kept at least 6 px of margin on all four edges.
 
 **Hard-surface rigs need no deform.** Rigid parts use the identity deform and no springs; motion comes from matrices.

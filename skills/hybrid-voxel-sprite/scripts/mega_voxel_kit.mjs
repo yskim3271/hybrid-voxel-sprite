@@ -2,7 +2,7 @@
 // mega_voxel_kit.mjs — hybrid-voxel-sprite v2.3 · Megastructure / Capital Ship multi-scale voxel kit.
 //
 // Pure Node ES module, ZERO npm dependencies (node:fs / node:path / node:crypto + ./mega_diff_utils.mjs). Node >= 18.
-// Engine-neutral; output matches the WebGL2 / Three.js + SVOX ecosystem (V12 capital greedy meshes, 11-float layout).
+// Engine-neutral; the output loads straight into WebGL2 / Three.js (or any engine) as typed-array views over one .bin.
 //
 //   VoxelGrid           Uint8 palette index (0 = air) + Uint8 flags; CSG: box · ellipsoid · capsule · prism · subtract ·
 //                       mirrorX · resample (emissive-priority) · projectSilhouettes
@@ -12,7 +12,7 @@
 //   bakeMacroCavityAO   Stage 3: coarse hemisphere ray visibility per exposed face (smoothed-normal start offset → no
 //                       convex-staircase greying)
 //   greedyMeshPart      Stage 2/3: AO-preserving greedy mesher (micro voxel AO + macro cavity AO + material tag, diagonal
-//                       flip, exact vertex de-dup) → MEGA_V2 (12 floats) or legacy V12 (11 floats)
+//                       flip, exact vertex de-dup) → MEGA_V2 (12 floats) or legacy FLOAT11 (11 floats)
 //   packMegaAsset       deterministic svox.mega/v2 .json + .bin (macro parts, meso prefab geometry, instance streams,
 //                       detailZones[], stats, static G6 budget); format 'MEGA_V22' → svox.mega/v2.2 (20 B/vert quantized
 //                       packed20: Int16×4 pos+bevelHint · Int8×4 normal+microAo · Uint8×4 rgb+emissive · Uint8×4 matTag,
@@ -27,14 +27,15 @@
 //   renderPreview       engine-free CPU z-buffer preview of a packed asset (ortho top / side / front, hero 3/4, or any
 //                       yaw / pitch) with cel key light × micro AO × macro AO + emissive — for G5 sheets and smoke checks
 //
-// World convention (STARFIGHTER_CONTRACT): +X starboard, +Y forward (bow), +Z dorsal. Ship-local units "u".
+// World convention: right-handed, Z-up — +X right (starboard), +Y forward (bow), +Z up (dorsal). Asset-local units "u".
 // Grid convention: voxel (x, y, z) covers [x, x+1) × [y, y+1) × [z, z+1); shapes are tested at voxel centres.
 //
 // CLI:
-//   node mega_voxel_kit.mjs demo           [--out DIR] [--v22 | --v23] [--name ID] [--asset-only] [--faction-tags]   synthetic carrier → svox.mega/v2
-//                                          (v2.2 / v2.3 — --v23 adds matTag 6/7/8 faction swatches) + zones + PNGs
-//   node mega_voxel_kit.mjs zones-template --archetype hard_surface_carrier|halo_mothership|bio_leviathan
-//                                          [--hull-size 288,1000,160] [--out detail_zones.json]
+//   node mega_voxel_kit.mjs demo           [--out DIR] [--format MEGA_V2|FLOAT11|MEGA_V22|MEGA_V23] [--name ID] [--asset-only]
+//                                          [--faction-tags | --material-swatches]   synthetic carrier → svox.mega/v2 (v2.2 / v2.3)
+//                                          + zones + PNGs; MEGA_V23 adds matTag 6/7/8 material swatches. Short form: --v<major><minor>
+//   node mega_voxel_kit.mjs zones-template --archetype hard_surface_carrier|halo_mothership|bio_leviathan|generic_megastructure
+//                                          [--hull-size 288,1000,160] [--asset ID | --ship ID] [--out detail_zones.json]
 //   node mega_voxel_kit.mjs validate-zones --zones detail_zones.json [--hull-size X,Y,Z]
 //   node mega_voxel_kit.mjs hull           --top t.png --side s.png --front f.png --length-y 1000 [--voxel-scale 3.5]
 //                                          [--channel auto] [--zones detail_zones.json] [--out build/ship] [--no-ao]
@@ -68,7 +69,7 @@ export const MAT_TAGS = Object.freeze({
   6: 'crystal (facet glints)', 7: 'gold / pearl filigree (engraved bands)', 8: 'glass / viewport',
 });
 
-/** Interleaved Float32 vertex layouts. MEGA_V2 floats 0–10 are bit-compatible with the V12 capital layout. */
+/** Interleaved Float32 vertex layouts. MEGA_V2 floats 0–9 are bit-identical to the legacy 11-float layout (FLOAT11). */
 export const MEGA_V2_LAYOUT = Object.freeze({
   name: 'MEGA_V2', floats: 12, stride: 48, index: 'uint32',
   attributes: { position: [0, 3], normal: [3, 3], color: [6, 3], emissive: [9, 1], ao: [10, 1], meta: [11, 1] },
@@ -90,13 +91,21 @@ export const MEGA_V22_LAYOUT = Object.freeze({
   },
   matTags: { 0: 'default', 1: 'armor', 2: 'hazard', 3: 'deck', 4: 'glass', 5: 'hangar_interior', 6: 'engine_frame' },
 });
-export const V12_LAYOUT = Object.freeze({
-  name: 'V12', floats: 11, stride: 44, index: 'uint32',
+/**
+ * Legacy 11-float layout (44 B / vertex, format 'FLOAT11'): floats 0–9 as MEGA_V2, float 10 = microAo · macroCavityAo, so
+ * an existing 11-float capital shader with no meta attribute still renders the cavity depth with no shader edit.
+ */
+export const FLOAT11_LAYOUT = Object.freeze({
+  name: 'FLOAT11', floats: 11, stride: 44, index: 'uint32',
   attributes: { position: [0, 3], normal: [3, 3], color: [6, 3], emissive: [9, 1], ao: [10, 1] },
-  ao: 'microAo * macroCavityAo (folded so unchanged V12 CAPITAL_FRAG shaders get the cavity depth)',
+  ao: 'microAo * macroCavityAo (folded so an unchanged 11-float capital shader gets the cavity depth)',
 });
+/** Back-compat: the 11-float layout's original format token. Callers and assets that use it keep working unchanged. */
+const LEGACY_FLOAT11_FORMAT = 'V12';
+export const V12_LAYOUT = Object.freeze({ ...FLOAT11_LAYOUT, name: LEGACY_FLOAT11_FORMAT });
+const isFloat11 = (format) => format === 'FLOAT11' || format === LEGACY_FLOAT11_FORMAT;
 
-/** G6 megastructure runtime budget (SPEC_SKILL_MEGA_V2 Stage 5). */
+/** G6 megastructure runtime budget (svox.mega/v2, Stage 5). */
 export const MEGA_BUDGET = Object.freeze({
   maxDrawCalls: 12, macroDrawCalls: [1, 3], maxMesoBatches: 9,
   maxTotalTriangles: 120000, maxMesoUniqueTriangles: 60000, maxBinBytes: 4 * 1024 * 1024, maxGpuDeltaMs: 1.0,
@@ -129,7 +138,7 @@ export const QUAD16_LAYOUT = Object.freeze({
   bevel: 'bevelHint(corner) = bevelQ / 3 on corners with micro AO 3 (unoccluded), else 0 — bevelQ = round(3 · convex / unoccluded corners)',
   crease: 'creaseMask(corner) = creaseQ / 3 on corners with micro AO < 3, else 0 — creaseQ = 3 on narrow (≤ 2 vox) quads (exact v2.2 rule)',
   panel: 'panelId (low 4 bits of the grid panel) / 15',
-  matTags: { 0: 'default', 1: 'armor', 2: 'hazard', 3: 'deck', 4: 'glass', 5: 'hangar_interior', 6: 'engine_frame (vanguard) | organic chitin (swarm / other)', 7: 'ornate gold & ivory temple (aether)', 8: 'bio-luminescent cavity (swarm)' },
+  matTags: { 0: 'default', 1: 'armor', 2: 'hazard', 3: 'deck', 4: 'glass', 5: 'hangar_interior', 6: 'engine_frame (hard_surface profile) | organic chitin (other profiles)', 7: 'ornate gold & ivory temple (any profile)', 8: 'bio-luminescent cavity (any profile)' },
 });
 
 /**
@@ -141,6 +150,58 @@ export const MEGA_V23_BUDGET = Object.freeze({
   // checkPerfBudget keys (aliases of the four headline limits + the macro / meso split)
   maxTotalTriangles: 1200000, maxGpuDeltaMs: 2.5, macroDrawCalls: [1, 8], maxMesoBatches: 15, maxMesoUniqueTriangles: 600000,
 });
+
+/**
+ * Material profiles. `matTag` is a 4-bit (0..15) per-voxel material CHANNEL: the kit only stores it (palette entry or
+ * `flags & MAT_MASK`) and packs it (MEGA_V2 meta, packed20 aMeta2Q.x, quad16 aQMeta.w low nibble). What a tag looks like
+ * is decided by your lookdev shader, so a project maps 0..15 onto its own legend. These presets document the legend the
+ * reference capital shader implements; `index` is the value its per-asset profile uniform expects (3 = any other profile).
+ * Tags 9..15 are unassigned in every preset — use them for your own materials.
+ * Pass `materialProfile: '<preset>' | { id, tags { n: name }, index?, uniforms? }` to packMegaAsset.
+ */
+const SHARED_TAGS = { 0: 'default', 1: 'armor plates (70/30 resting plates)', 2: 'hazard / accent paint', 3: 'deck', 4: 'glass / viewport' };
+const SHARED_ACCENTS = { 7: 'ornate gold & ivory trim', 8: 'bio-luminescent cavity (glow scales with cavity depth)' };   // same under every profile
+export const MATERIAL_PRESETS = Object.freeze({
+  hard_surface: Object.freeze({
+    id: 'hard_surface', index: 0, description: 'Hard-surface vessels, stations, mechs, fortresses: armour plates, hazard paint, decks, glass, a warm interior-bay bounce',
+    tags: Object.freeze({ ...SHARED_TAGS, 5: 'interior bay (warm bounce + service lines)', 6: 'engine frame plates', ...SHARED_ACCENTS }),
+    uniforms: Object.freeze({ uHangarBounce: 1 }),
+  }),
+  ornate_stone: Object.freeze({
+    id: 'ornate_stone', index: 1, description: 'Ornate temples, monuments, ringed halo structures: gold / ivory trim, recessed inlays, plain interiors',
+    tags: Object.freeze({ ...SHARED_TAGS, 5: 'interior (plain, no service lines)', 6: 'organic chitin / bio-carapace', ...SHARED_ACCENTS }),
+    uniforms: Object.freeze({ uHangarBounce: 0 }),
+  }),
+  organic_bio: Object.freeze({
+    id: 'organic_bio', index: 2, description: 'Organic creatures and bio-structures: chitin carapace, glowing cavities, no mechanical lines',
+    tags: Object.freeze({ ...SHARED_TAGS, 5: 'interior (plain, no service lines)', 6: 'organic chitin / bio-carapace', ...SHARED_ACCENTS }),
+    uniforms: Object.freeze({ uHangarBounce: 0 }),
+  }),
+});
+
+/**
+ * Resolve a material profile: a MATERIAL_PRESETS name, any other string (custom profile, index 3, no legend), or a custom
+ * object { id, tags { 0..15: name }, index = 3, uniforms = {} }. → { id, index, tags | null, uniforms } (plain JSON).
+ */
+export function resolveMaterialProfile(profile) {
+  if (profile === undefined || profile === null || profile === '') return null;
+  const plain = (p) => ({ id: p.id, index: p.index, tags: p.tags ? { ...p.tags } : null, uniforms: { ...(p.uniforms || {}) } });
+  if (typeof profile === 'string') {
+    if (!/^[a-z0-9_-]+$/i.test(profile)) throw new Error(`materialProfile: id must match [a-z0-9_-]+ (got ${profile})`);
+    return plain(MATERIAL_PRESETS[profile] || { id: profile, index: 3, tags: null });
+  }
+  if (typeof profile !== 'object' || typeof profile.id !== 'string' || !/^[a-z0-9_-]+$/i.test(profile.id)) throw new Error('materialProfile: object needs an id matching [a-z0-9_-]+');
+  const base = MATERIAL_PRESETS[profile.id];
+  const tags = profile.tags || (base && base.tags) || null;
+  if (tags) for (const [k, v] of Object.entries(tags)) {
+    const n = Number(k);
+    if (!Number.isInteger(n) || n < 0 || n > 15) throw new Error(`materialProfile ${profile.id}: matTag ${k} outside 0..15 (4-bit channel)`);
+    if (typeof v !== 'string' || !v.trim()) throw new Error(`materialProfile ${profile.id}: matTag ${k} needs a non-empty name`);
+  }
+  const index = profile.index ?? (base ? base.index : 3);
+  if (!Number.isInteger(index) || index < 0 || index > 255) throw new Error(`materialProfile ${profile.id}: index must be an integer 0..255`);
+  return plain({ id: profile.id, index, tags, uniforms: profile.uniforms || (base && base.uniforms) || {} });
+}
 
 const r4 = (v) => Math.round(v * 1e4) / 1e4;
 const clamp = (x, a, b) => (x < a ? a : x > b ? b : x);
@@ -324,7 +385,7 @@ export class VoxelGrid {
   /**
    * Point-resample by factor K (0.8 → 80 % resolution, 2 → double). A coarse cell is solid when its centre's source
    * cell is solid; an emissive source cell overlapping the coarse cell wins (thin glowing conduits survive). Port of the
-   * verified V12 build_capitals resample. Remember to multiply voxelScale by 1/K.
+   * verified reference-implementation resample. Remember to multiply voxelScale by 1/K.
    */
   resample(K, palette = null) {
     const nx = Math.max(1, Math.round(this.nx * K)), ny = Math.max(1, Math.round(this.ny * K)), nz = Math.max(1, Math.round(this.nz * K));
@@ -508,7 +569,7 @@ const Z = (zoneId, kind, cameraView, targetVoxelScale, frac, requiredFeatures) =
  */
 export const DETAIL_ZONE_ARCHETYPES = Object.freeze({
   hard_surface_carrier: {
-    example: 'Vanguard T2 Dreadnought', macroVoxelScale: 3.5,
+    example: 'Hard-surface modular vessel / carrier', macroVoxelScale: 3.5,
     zones: [
       Z('catapult_trench', 'occluded_cavity', 'interior_front', 1.5, [[-0.12, 0.05, 0.10], [0.12, 0.5, 0.5]],
         ['open trench floor with white centreline + amber hazard ticks', 'roof rails / catapult shuttle track along both walls', 'cyan edge light strips on both lips', 'covered launch bay with amber ceiling lights', 'aft plasma hangar gate']),
@@ -525,7 +586,7 @@ export const DETAIL_ZONE_ARCHETYPES = Object.freeze({
     ],
   },
   halo_mothership: {
-    example: 'Aether P2 Mothership', macroVoxelScale: 3.5,
+    example: 'Ringed ornate temple structure', macroVoxelScale: 3.5,
     zones: [
       Z('launch_aperture_bore', 'occluded_cavity', 'interior_front', 1.5, [[-0.15, 0.25, -0.15], [0.15, 0.5, 0.15]],
         ['bore cut fully through the prow housing', 'glowing interior ring bands (emissive, evenly spaced)', 'rear glow gate', 'bore lip trim']),
@@ -540,7 +601,7 @@ export const DETAIL_ZONE_ARCHETYPES = Object.freeze({
     ],
   },
   bio_leviathan: {
-    example: 'Swarm Z2 Brood-Mother', macroVoxelScale: 3.5,
+    example: 'Organic tentacled leviathan', macroVoxelScale: 3.5,
     zones: [
       Z('launch_maws', 'occluded_cavity', 'interior_front', 1.5, [[-0.35, 0.2, -0.3], [0.35, 0.5, 0.1]],
         ['twin hollow launch maws (both sides)', 'bone ribs lining each maw interior', 'teeth crown on the maw lip', 'glowing throat at the back (emissive lime)']),
@@ -554,18 +615,40 @@ export const DETAIL_ZONE_ARCHETYPES = Object.freeze({
         ['brood-pod prefab', 'chitin rib prefab', 'tooth / spike prefab']),
     ],
   },
+  generic_megastructure: {
+    example: 'Any large static structure: fortress, landmark, station, mech, building', macroVoxelScale: 3.5,
+    zones: [
+      Z('exterior_focal', 'hero_superstructure', 'oblique_closeup', 1.2, [[-0.25, -0.25, 0.2], [0.25, 0.25, 0.5]],
+        ['primary focal mass (tower / bridge / head / keep) with stepped tiers', 'framed openings or viewports per tier', 'crowning element (mast, spire, antenna, crest)']),
+      Z('occluded_cavity', 'occluded_cavity', 'interior_front', 1.5, [[-0.15, 0.2, -0.2], [0.15, 0.5, 0.15]],
+        ['recess depth >= 3 macro voxels (gate, bay, courtyard, intake)', 'interior structure (ribs, beams, platforms)', 'interior lighting or emissive accents', 'framed lip / threshold trim']),
+      Z('hero_accent', 'hero_superstructure', 'side_closeup', 1.5, [[-0.5, -0.4, -0.1], [-0.3, 0.4, 0.3]],
+        ['repeated accent modules along the flank (buttresses, pods, turrets, pylons)', 'accent paint or trim bands', 'secondary silhouette breakers (fins, spikes, antennae)']),
+      Z('under_structure', 'ventral_underhull', 'ventral_34', 2.0, [[-0.3, -0.45, -0.5], [0.3, 0.45, -0.3]],
+        ['foundation / keel / base plinth', 'under-side panels or block rows', 'landing gear, supports or roots', 'under-side lights or vents']),
+      Z('modular_prefabs', 'modular_prefab', 'oblique_closeup', 1.2, [[-0.5, -0.5, -0.5], [0.5, 0.5, 0.5]],
+        ['repeated module prefab (window bay, turret, pylon, buttress)', 'secondary trim prefab', 'instanced >= 4 times each']),
+    ],
+  },
 });
+/** Archetype presets by name (alias of DETAIL_ZONE_ARCHETYPES). */
+export const ARCHETYPES = DETAIL_ZONE_ARCHETYPES;
 
-/** detail_zones.json template for an archetype, with boundsLocal resolved against a hull size [X, Y, Z] (u). */
-export function scaffoldDetailZones(archetype, { hullSize = [300, 1000, 200], shipId = 'ship' } = {}) {
+/**
+ * detail_zones.json template for an archetype, with boundsLocal resolved against a hull size [X, Y, Z] (u).
+ * opts.assetId names the asset (written as `assetId`); the older `shipId` option is still accepted (written as `shipId`).
+ */
+export function scaffoldDetailZones(archetype, { hullSize = [300, 1000, 200], assetId = undefined, shipId = undefined } = {}) {
   const a = DETAIL_ZONE_ARCHETYPES[archetype];
   if (!a) throw new Error(`scaffoldDetailZones: unknown archetype ${archetype} (${Object.keys(DETAIL_ZONE_ARCHETYPES).join(' | ')})`);
+  const id = assetId ?? shipId ?? 'ship';
+  if (typeof id !== 'string' || !id) throw new Error('scaffoldDetailZones: assetId / shipId must be a non-empty string');
   return {
-    schema: ZONES_SCHEMA, shipId, archetype, example: a.example, units: 'u', hullSize: hullSize.slice(), macroVoxelScale: a.macroVoxelScale,
+    schema: ZONES_SCHEMA, ...(assetId !== undefined ? { assetId: id } : { shipId: id }), archetype, example: a.example, units: 'u', hullSize: hullSize.slice(), macroVoxelScale: a.macroVoxelScale,
     zones: a.zones.map((z) => ({
       zoneId: z.zoneId, kind: z.kind,
       boundsLocal: { min: z.boundsFrac[0].map((f, k) => r4(f * hullSize[k])), max: z.boundsFrac[1].map((f, k) => r4(f * hullSize[k])) },
-      cameraView: z.cameraView, calloutImage: `callouts/${shipId}_${z.zoneId}.png`, targetVoxelScale: z.targetVoxelScale,
+      cameraView: z.cameraView, calloutImage: `callouts/${id}_${z.zoneId}.png`, targetVoxelScale: z.targetVoxelScale,
       requiredFeatures: z.requiredFeatures.slice(),
       ...(z.kind === 'occluded_cavity' ? { carve: [{ shape: 'box', min: z.boundsFrac[0].map((f, k) => r4(f * hullSize[k])), max: z.boundsFrac[1].map((f, k) => r4(f * hullSize[k])) }] } : {}),
       status: 'todo',
@@ -575,13 +658,20 @@ export function scaffoldDetailZones(archetype, { hullSize = [300, 1000, 200], sh
 
 /**
  * Validate a detail_zones.json document (or a bare zones array).
- * opts.hullBounds { min, max } (u) → warns when a zone lies outside the hull. Returns { ok, errors[], warnings[], zones }.
+ * opts.hullBounds { min, max } (u) → warns when a zone lies outside the hull. The asset is named by `assetId` or the older
+ * `shipId` alias (both optional). Returns { ok, errors[], warnings[], zones, assetId (assetId ?? shipId ?? null) }.
  */
 export function validateDetailZones(doc, { hullBounds = null } = {}) {
   const errors = [], warnings = [];
   const zones = Array.isArray(doc) ? doc : doc && doc.zones;
-  if (!Array.isArray(doc) && doc && doc.schema && doc.schema !== ZONES_SCHEMA) errors.push(`schema must be ${ZONES_SCHEMA} (got ${doc.schema})`);
-  if (!Array.isArray(zones) || !zones.length) return { ok: false, errors: ['zones[] missing or empty'], warnings, zones: [] };
+  let assetId = null;
+  if (!Array.isArray(doc) && doc && typeof doc === 'object') {
+    if (doc.schema && doc.schema !== ZONES_SCHEMA) errors.push(`schema must be ${ZONES_SCHEMA} (got ${doc.schema})`);
+    for (const k of ['assetId', 'shipId']) if (doc[k] !== undefined && (typeof doc[k] !== 'string' || !doc[k])) errors.push(`${k} must be a non-empty string`);
+    if (typeof doc.assetId === 'string' && typeof doc.shipId === 'string' && doc.assetId && doc.shipId && doc.assetId !== doc.shipId) warnings.push(`assetId '${doc.assetId}' and its alias shipId '${doc.shipId}' differ — assetId wins`);
+    assetId = (typeof doc.assetId === 'string' && doc.assetId) || (typeof doc.shipId === 'string' && doc.shipId) || null;
+  }
+  if (!Array.isArray(zones) || !zones.length) return { ok: false, errors: [...errors, 'zones[] missing or empty'], warnings, zones: [], assetId };
   const ids = new Set();
   const vec3 = (v) => Array.isArray(v) && v.length === 3 && v.every((x) => typeof x === 'number' && Number.isFinite(x));
   zones.forEach((z, i) => {
@@ -608,7 +698,7 @@ export function validateDetailZones(doc, { hullBounds = null } = {}) {
       else z.carve.forEach((c, k) => { try { shapeFromSpec(c); } catch (e) { errors.push(`${tag}: carve[${k}]: ${e.message}`); } });
     }
   });
-  return { ok: errors.length === 0, errors, warnings, zones };
+  return { ok: errors.length === 0, errors, warnings, zones, assetId };
 }
 
 /** ship-local u → voxel coordinates: v = p / voxelScale + center */
@@ -746,22 +836,22 @@ export function bakeMacroCavityAO(grid, opts = {}) {
 }
 
 // =============================================================================================== Stage 2/3 — greedy mesher
-const AXES = [[0, 1, 2], [1, 2, 0], [2, 0, 1]];   // d, u, v with e_u × e_v = e_d (cyclic) — as verified in V12
+const AXES = [[0, 1, 2], [1, 2, 0], [2, 0, 1]];   // d, u, v with e_u × e_v = e_d (cyclic) — as in the verified reference mesher
 
 /**
- * AO-preserving greedy mesher (port of the verified V12 build_capitals mesher, extended for v2.0).
+ * AO-preserving greedy mesher (port of the verified reference WebGL2 / Three.js capital-ship mesher, extended for v2.0).
  * Cells merge only when (palette, 4 micro-AO corners, macro-AO level, matTag) are identical AND the micro AO does not
  * vary along the merge direction → merged quads reproduce per-voxel silhouette + interpolated AO exactly. The quad
  * diagonal flips when ao00 + ao11 < ao10 + ao01. Vertices are de-duplicated exactly.
  * opts: { voxelScale 1, center [0,0,0] (voxel coords of the local origin), macroAo (bakeMacroCavityAO result | null),
- *         macroLevels 8 (2..16 quantisation steps — fewer = more merging), format 'MEGA_V2' | 'V12' | 'MEGA_V22', name }
+ *         macroLevels 8 (2..16 quantisation steps — fewer = more merging), format 'MEGA_V2' | 'FLOAT11' | 'MEGA_V22', name }
  * matTag per voxel = flags & MAT_MASK, else the palette entry's matTag.
  * format 'MEGA_V22' (svox.mega/v2.2) returns the same 12-float MEGA_V2 vertices PLUS `extra` (3 floats / vertex):
  *   bevelHint  1 on the convex corners of narrow (≤ 2 vox) quads — stepped 45° chamfer treads, strap crests, rib tops
  *   creaseMask 1 on the concave corners of narrow quads — step risers' feet, grooves, recess floors, panel slots
  *   panelId    grid.panel sub-assembly id (0..255) / 255 — cells only merge inside one panel, so panel boundaries are
  *              real quad edges (crisp tonal breaks between adjacent armour plates, no repeated tiling)
- * MEGA_V2 / V12 output is byte-identical to v2.0/v2.1 (extras off).
+ * MEGA_V2 / FLOAT11 output is byte-identical to v2.0/v2.1 (extras off).
  * opts.region { min [3], max [3] } (voxel coords, max exclusive) meshes only the cells inside the box while exposure, micro
  * AO and the macro AO still see the whole grid — split one hull into 2–3 macro parts (each ≤ 65 535 vertices → Uint16
  * indices in v2.2) without seams in the shading.
@@ -769,11 +859,11 @@ const AXES = [[0, 1, 2], [1, 2, 0], [2, 0, 1]];   // d, u, v with e_u × e_v = e
 export function greedyMeshPart(grid, palette, opts = {}) {
   const { voxelScale = 1, center = [0, 0, 0], macroAo = null, macroLevels = 8, name = 'part' } = opts;
   const format = opts.format || 'MEGA_V2';
-  if (format !== 'MEGA_V2' && format !== 'V12' && format !== 'MEGA_V22') throw new Error(`greedyMeshPart: format must be MEGA_V2 | V12 | MEGA_V22 (got ${format})`);
+  if (format !== 'MEGA_V2' && !isFloat11(format) && format !== 'MEGA_V22') throw new Error(`greedyMeshPart: format must be MEGA_V2 | FLOAT11 | MEGA_V22 (got ${format})`);
   const X = format === 'MEGA_V22';
   if (!(macroLevels >= 2 && macroLevels <= 16)) throw new Error('greedyMeshPart: macroLevels must be 2..16');
   if (macroAo && (macroAo.nx !== grid.nx || macroAo.ny !== grid.ny || macroAo.nz !== grid.nz)) throw new Error('greedyMeshPart: macroAo was baked for a different grid');
-  const FL = format === 'V12' ? 11 : 12;
+  const FL = isFloat11(format) ? 11 : 12;
   const N = [grid.nx, grid.ny, grid.nz], off = grid.offset, nx = grid.nx, nxy = grid.nx * grid.ny;
   const R = Math.max(...N) + 1;
   if (R ** 3 * 6 * 256 * 4 * 16 * 16 > Number.MAX_SAFE_INTEGER) throw new Error('greedyMeshPart: grid too large for the exact vertex key — split it into parts');
@@ -1211,8 +1301,9 @@ export function checkPerfBudget(stats, budget = {}, runtime = null) {
 
 /**
  * Pack a megastructure into a deterministic svox.mega/v2 asset.
- * manifest: { id, name, faction?, archetype?, palette (MegaPalette), voxelScale (macro u/vox), center? (macro voxel coords
- *             of the ship origin, default: first macro grid centre), format 'MEGA_V2' | 'V12' | 'MEGA_V22' | 'MEGA_V23', macroLevels 8, aoOpts,
+ * manifest: { id, name, faction? (kept verbatim for existing engines), materialProfile? (MATERIAL_PRESETS name | custom
+ *             string | { id, tags }), styleTag? (free string), archetype?, palette (MegaPalette), voxelScale (macro u/vox), center? (macro voxel coords
+ *             of the ship origin, default: first macro grid centre), format 'MEGA_V2' | 'FLOAT11' | 'MEGA_V22' | 'MEGA_V23', macroLevels 8, aoOpts,
  *             detailZones (doc | array), budget, meta (free JSON) }
  * macroParts: [{ name, kind?, grid | mesh, bakeAo = true, aoOpts?, voxelScale?, center?, anim? }]  (1–3 recommended)
  * mesoPrefabs: [{ id, grid | mesh, voxelScale = 1.5, pivot? (voxel coords, default [nx/2, ny/2, 0]), bakeAo = false }]
@@ -1230,12 +1321,13 @@ export function packMegaAsset(manifest, macroParts = [], mesoPrefabs = [], insta
   if (!manifest.id || !/^[a-z0-9_-]+$/i.test(manifest.id)) throw new Error('packMegaAsset: manifest.id required ([a-z0-9_-])');
   if (!(manifest.voxelScale > 0)) throw new Error('packMegaAsset: manifest.voxelScale (macro u/vox) required');
   if (!macroParts.length) throw new Error('packMegaAsset: at least one macro part is required');
+  const materialProfile = resolveMaterialProfile(manifest.materialProfile);   // optional; validated before any meshing
   const fmtIn = manifest.format || 'MEGA_V2';
-  if (fmtIn !== 'MEGA_V2' && fmtIn !== 'V12' && fmtIn !== 'MEGA_V22' && fmtIn !== 'MEGA_V23') throw new Error(`packMegaAsset: format must be MEGA_V2 | V12 | MEGA_V22 | MEGA_V23 (got ${fmtIn})`);
+  if (fmtIn !== 'MEGA_V2' && !isFloat11(fmtIn) && fmtIn !== 'MEGA_V22' && fmtIn !== 'MEGA_V23') throw new Error(`packMegaAsset: format must be MEGA_V2 | FLOAT11 | MEGA_V22 | MEGA_V23 (got ${fmtIn})`);
   // v2.3: macro parts → quad16 (16 B / quad, greedyQuad16Part); meso prefabs keep packed20 (MEGA_V22 mesher + codec)
   const V23 = fmtIn === 'MEGA_V23';
   const format = V23 ? 'MEGA_V22' : fmtIn;
-  const FL = format === 'V12' ? 11 : 12;
+  const FL = isFloat11(format) ? 11 : 12;
   const Q = format === 'MEGA_V22';
   const chunks = [];
   let byte = 0;
@@ -1355,7 +1447,8 @@ export function packMegaAsset(manifest, macroParts = [], mesoPrefabs = [], insta
   const json = {
     schema: V23 ? MEGA_V23_SCHEMA : Q ? MEGA_V22_SCHEMA : MEGA_SCHEMA, kitVersion: KIT_VERSION, id: manifest.id, name: manifest.name || manifest.id,
     faction: manifest.faction || null, archetype: manifest.archetype || null,
-    vertexLayout: format === 'V12' ? V12_LAYOUT : Q ? MEGA_V22_LAYOUT : MEGA_V2_LAYOUT,
+    ...(materialProfile ? { materialProfile } : {}), ...(manifest.styleTag !== undefined && manifest.styleTag !== null ? { styleTag: String(manifest.styleTag) } : {}),
+    vertexLayout: format === 'FLOAT11' ? FLOAT11_LAYOUT : isFloat11(format) ? V12_LAYOUT : Q ? MEGA_V22_LAYOUT : MEGA_V2_LAYOUT,
     ...(V23 ? { vertexFormat: 'quad16+packed20', macroFormat: 'quad16', mesoFormat: 'packed20', quadStrideBytes: 16, vertexStrideBytes: 20, quadLayout: QUAD16_LAYOUT }
       : Q ? { vertexFormat: 'packed20', vertexStrideBytes: 20 } : {}),
     instanceLayout: { matrix: 'Float32 mat4 column-major (64 B)', color: 'Float32 rgb (12 B)' },
@@ -1552,7 +1645,7 @@ export function renderPreview(asset, opts = {}) {
       tris.push({ P, A, n, c: tint ? c.map((v, k) => v * tint[k]) : c, em: verts[o0 + 9] });
     }
   };
-  // v2.3 G5 hull-only: skip macro parts by name / kind (e.g. excludeKinds ['wave'] drops Swarm tentacles)
+  // v2.3 G5 hull-only: skip macro parts by name / kind (e.g. excludeKinds ['wave'] drops animated tentacles)
   const exN = new Set(opts.excludeParts || []), exK = new Set(opts.excludeKinds || []);
   for (const p of a.json.macro.parts) { if (exN.has(p.name) || exK.has(p.kind)) continue; const m = a.part(p.name); addMesh(m.verts, m.idx); }
   if (includeInstances) for (const p of a.json.meso.prefabs) {
@@ -1611,10 +1704,12 @@ function cli(argv) {
   const vec = (s) => String(s).split(',').map(Number);
   if (cmd === 'demo') {
     const out = path.resolve(typeof a.out === 'string' ? a.out : 'mega_demo');
-    const v23 = a.format === 'MEGA_V23' || !!a.v23;
-    const d = buildDemoCarrier({ factionTags: v23 || !!a['faction-tags'] });
-    if (a.format === 'MEGA_V22' || a.v22) d.manifest.format = 'MEGA_V22';   // v2.2: 20 B/vert packed20
-    if (v23) d.manifest.format = 'MEGA_V23';                                  // v2.3: quad16 macro (16 B/quad) + packed20 meso
+    // --format MEGA_V2 | FLOAT11 | MEGA_V22 (20 B/vert packed20) | MEGA_V23 (quad16 macro 16 B/quad + packed20 meso).
+    // Short form: --v<major><minor> means --format MEGA_V<major><minor> (the highest one given wins).
+    const short = Object.keys(a).filter((k) => /^v\d\d$/.test(k) && a[k]).sort().pop();
+    const format = typeof a.format === 'string' ? a.format : short ? `MEGA_V${short.slice(1)}` : 'MEGA_V2';
+    const d = buildDemoCarrier({ factionTags: format === 'MEGA_V23' || !!a['faction-tags'] || !!a['material-swatches'] });
+    if (format !== 'MEGA_V2') d.manifest.format = format;
     if (typeof a.name === 'string') { if (!/^[a-z0-9_-]+$/i.test(a.name)) throw new Error('demo: --name must match [a-z0-9_-]+'); d.manifest.id = a.name; }
     const packed = packMegaAsset(d.manifest, d.macroParts, d.mesoPrefabs, d.instances);
     const w = writeMegaAsset(path.join(out, typeof a.name === 'string' ? a.name : 'demo_carrier'), packed);
@@ -1628,7 +1723,8 @@ function cli(argv) {
     return packed.json.budget.staticPass ? 0 : 1;
   }
   if (cmd === 'zones-template') {
-    const doc = scaffoldDetailZones(a.archetype, { hullSize: a['hull-size'] ? vec(a['hull-size']) : undefined, shipId: typeof a.ship === 'string' ? a.ship : 'ship' });
+    const doc = scaffoldDetailZones(a.archetype, { hullSize: a['hull-size'] ? vec(a['hull-size']) : undefined,
+      ...(typeof a.asset === 'string' ? { assetId: a.asset } : { shipId: typeof a.ship === 'string' ? a.ship : 'ship' }) });
     const text = JSON.stringify(doc, null, 1) + '\n';
     if (typeof a.out === 'string') { fs.mkdirSync(path.dirname(path.resolve(a.out)), { recursive: true }); fs.writeFileSync(a.out, text); console.log(`${doc.zones.length} zones (${a.archetype}) → ${a.out}`); }
     else process.stdout.write(text);

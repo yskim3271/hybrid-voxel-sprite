@@ -67,7 +67,7 @@
     'v10.5': '필수 QA 게이트 4종: G1 저각 틈 · G2 서브텍셀 스냅 · G3 역변형 오차 · G4 지면 · 루프 · 가림',
     'log.notes': 'GitHub 릴리스 노트', 'log.skill': 'SKILL.md 보기', 'log.compare': '변경 내역 비교',
     // v2.3.0
-    'log.checkpoint': '체크포인트', 'log.ref04': '캐피털 함선 파이프라인 (04)', 'log.ref12': '04 §12 보기',
+    'log.checkpoint': '체크포인트', 'log.ref04': '캐피털 함선 파이프라인 (04)', 'log.ref12': '04 부록 A 보기',
     'g.gallery': '콘셉트 레퍼런스 → 실시간 WebGL2', 'g.evo': '개선 내역 · v2.0 → v2.2 → v2.3', 'g.ships': '함선별 개선 전 → 후',
     'g.tech': '기술 하이라이트', 'g.notes': '체크포인트 노트 · 남은 개선 과제',
     'g.format': '포맷', 'g.qa': 'QA · 워크플로', 'g.pipeline': '파이프라인', 'g.tools': '도구 · 게이트',
@@ -95,7 +95,7 @@
     'v23.2': '<code>MEGA_V23_BUDGET</code> 히어로 예산: 12 MiB · 드로우 16 · 삼각형 1.2M · Δ ≤ 2.5 ms. 이제 복셀 크기, AO 단계, 돔 곡률을 서로 맞바꾸지 않아도 됩니다',
     'v23.3': '진영별 셰이더: <code>matTag 6</code> 유기 키틴, <code>7</code> 화려한 금 · 상아 신전, <code>8</code> 생체 발광 캐비티. 격납고 반사광은 Vanguard 전용으로 유지',
     'v23.4': '선체 전용 G5 게이트(<code>computeHullSilhouetteIoU</code>): 촉수가 어떻게 휘든 갑각 실루엣만 따로 채점',
-    'v23.5': '의존성 없는 Node 키트 자체 테스트: <code>69/69</code> 통과 (v2.0 39 + v2.2 16 + v2.3 14)',
+    'v23.5': '의존성 없는 Node 키트 자체 테스트: <code>78/78</code> 통과 (코어 + v2.2 + v2.3 + 사용자 정의 강조색 밴드 · <code>generic_megastructure</code> · <code>MATERIAL_PRESETS</code>)',
     'v23.n1': 'Aether P2의 정사영 IoU(<code>0.799 / 0.688 / 0.730</code>)는 고정된 <code>r = 78</code> 발진 보어 제약 때문에 아직 목표치 0.85에 못 미칩니다',
     'v23.n2': 'Swarm Z2: 원근 히어로 뷰의 촉수 포즈가 정사영 포즈와 다르고, Clay 뷰에서 잘게 꺾인 곡면 계단에 윤곽선이 촘촘하게 보입니다',
     'v23.n3': 'Vanguard T2: 분해도 시트의 Zone C 레일건 프레이밍을 한 번 더 다듬어야 하며, 측면 뷰 단독 엣지 F1은 <code>0.538</code>입니다(정사영 평균 <code>0.560</code>은 통과)',

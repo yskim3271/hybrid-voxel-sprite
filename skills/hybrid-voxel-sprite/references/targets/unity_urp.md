@@ -3,7 +3,7 @@
 **Status: ✅ Verified (Unity 6000.5.3f1 URP 17.5.0) — RenderGraph, Direct3D11. Also verified on Direct3D12.**
 Vulkan, Metal, GLES and player builds have not been run (§9).
 
-- **What was run.** A standalone Unity 6000.5.3f1 project (origin repo `target_tests/unity_urp/`) loaded the skill's
+- **What was run.** A standalone Unity 6000.5.3f1 project (the reference Unity QA project) loaded the skill's
   `assets/minimal_reference` bundle through `svox_cli.py pack-atlas --format raw_3d` into `Texture3D`s. It ran the full
   two-pass T3 pipeline ([02](../02_shader_pipeline_spec.md)) as a URP `ScriptableRendererFeature` that uses **only**
   `RecordRenderGraph`.
@@ -23,7 +23,7 @@ Vulkan, Metal, GLES and player builds have not been run (§9).
   - Label boxes and gate badges were masked out of the comparison (`Tools/compare_reference.py`).
 
 Pipeline and constants: [02](../02_shader_pipeline_spec.md). Math: [01](../01_contract_and_math.md). All code below is
-excerpted from the files that ran. Paths are relative to `target_tests/unity_urp/`.
+excerpted from the files that ran. Paths are relative to that project's root.
 
 | File | Role |
 |---|---|
@@ -246,7 +246,7 @@ read C1.a after `Camera.Render()`.
 7. **Read reversed depth in the post pass** as `1 − d` before applying the 02 §6 thresholds (§4). The G-buffer and
    output row order need no flips; only the back buffer does (§4).
 
-## 8. Results (D3D11, GTX 1080, `artifacts/qa/adapters/unity_urp/`)
+## 8. Results (D3D11, GTX 1080, reference QA output folder)
 
 | Gate | Unity 6000.5.3f1 URP (D3D11 = D3D12) | WebGL2 reference |
 |---|---|---|
@@ -266,8 +266,8 @@ read C1.a after `Camera.Render()`.
 - `*_direct3d12.*`: the same outputs from the D3D12 run.
 
 **Re-run:**
-1. `powershell -File target_tests/unity_urp/Tools/run_qa.ps1` (add `-Api d3d12` for the D3D12 run).
-2. `uv run --with pillow python target_tests/unity_urp/Tools/compose_sheet.py <raw> <gates> <out>`.
+1. `powershell -File Tools/run_qa.ps1` (in the reference Unity QA project) (add `-Api d3d12` for the D3D12 run).
+2. `uv run --with pillow python Tools/compose_sheet.py <raw> <gates> <out>`.
 
 ## 9. Not verified
 

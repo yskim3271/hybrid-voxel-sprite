@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 // test_mega_kit.mjs — hybrid-voxel-sprite v2.3 self-test for mega_voxel_kit.mjs + mega_diff_utils.mjs
 // (v2.0 sections 1–6 unchanged; v2.2: section 7 packed20 20 B/vert codec + MEGA_V22 assets, section 8 G5-Edge / G5-Band;
-//  v2.3: section 9 quad16 16 B/quad instanced quads + MEGA_V23 assets + MEGA_V23_BUDGET, section 10 G5-v2.3 hull-only IoU).
+//  v2.3: section 9 quad16 16 B/quad instanced quads + MEGA_V23 assets + MEGA_V23_BUDGET, section 10 G5-v2.3 hull-only IoU;
+//  section 11 project-neutral abstractions: configurable accent bands, generic archetype + assetId, material profiles).
 // Zero dependencies. Writes temporary files only under os.tmpdir() and removes them. Exit 0 = all checks PASS.
 //
-//   node .agents/skills/hybrid-voxel-sprite/scripts/test_mega_kit.mjs [--keep]   (--keep leaves the temp dir for inspection)
+//   node scripts/test_mega_kit.mjs [--keep]   (--keep leaves the temp dir for inspection)
 
 import fs from 'node:fs';
 import os from 'node:os';
@@ -19,11 +20,12 @@ import {
   MEGA_SCHEMA, F_CAVITY, F_LOCK, renderPreview,
   MEGA_V22_SCHEMA, MEGA_V22_BUDGET, packQuantizedMegaV22, unpackQuantizedMegaV22,
   MEGA_V23_SCHEMA, MEGA_V23_BUDGET, QUAD16_LAYOUT, greedyQuad16Part, packQuad16, unpackQuad16, quad16ToMesh, quad16Corner,
+  ARCHETYPES, MATERIAL_PRESETS, resolveMaterialProfile, V12_LAYOUT,
 } from './mega_voxel_kit.mjs';
 import {
   decodePNG, encodePNG, readPNG, writePNG, createImage, maskToImage, toMask, computeSilhouetteIoU, composeComparisonSheet,
   computeEdgeG5, computeBandG5, computeMultiCueG5, multiCueSummary, composeMultiCueSheet, G5_V22_TARGETS,
-  computeHullSilhouetteIoU, G5_V23_TARGETS,
+  computeHullSilhouetteIoU, G5_V23_TARGETS, DEFAULT_ACCENT_BANDS, normalizeAccentBands, parseAccentBands, accentClass,
 } from './mega_diff_utils.mjs';
 
 const HERE = path.dirname(fileURLToPath(import.meta.url));
@@ -137,7 +139,7 @@ section('2 · Stage 3 cavity subtraction + bakeMacroCavityAO', () => {
 });
 
 // ================================================================================================ 3 greedy mesher
-section('3 · greedyMeshPart (AO-preserving greedy, MEGA_V2 / V12)', () => {
+section('3 · greedyMeshPart (AO-preserving greedy, MEGA_V2 / FLOAT11)', () => {
   const pal = new MegaPalette();
   const H = pal.add('hull', '#7c8594', { matTag: 1 }), D = pal.add('dark', '#4a505c', { matTag: 2 }), E = pal.add('light', '#5ff0ff', { emissive: 1, matTag: 3 });
   // isolated box → exactly 6 quads, all micro AO = 1
@@ -169,15 +171,15 @@ section('3 · greedyMeshPart (AO-preserving greedy, MEGA_V2 / V12)', () => {
   const metas = new Set(); let tagOK = true;
   for (let i = 0; i < m.vertexCount; i++) { const d = decodeMeta(m.verts[i * 12 + 11]); metas.add(d.matTag); if (d.macroAo < 0 || d.macroAo > 1) tagOK = false; }
   check('indices in range; meta decodes matTag 1..3 + macroAo 0..1', idxOK && tagOK && [1, 2, 3].every((t) => metas.has(t)), `tags {${[...metas].join(',')}}`);
-  // V12 backward compatibility: identical topology, floats 0–9 identical, ao(V12) = microAo · macroAo
-  const m12 = greedyMeshPart(g, pal, { voxelScale: vs, center, macroAo: ao, format: 'V12' });
+  // legacy 11-float layout: identical topology, floats 0–9 identical, ao(FLOAT11) = microAo · macroAo
+  const m12 = greedyMeshPart(g, pal, { voxelScale: vs, center, macroAo: ao, format: 'FLOAT11' });
   let same = m12.vertexCount === m.vertexCount && m12.indexCount === m.indexCount && m12.idx.every((v, i) => v === m.idx[i]);
   let maxErr = 0;
   for (let i = 0; same && i < m.vertexCount; i++) {
     for (let c = 0; c < 10; c++) if (m12.verts[i * 11 + c] !== m.verts[i * 12 + c]) same = false;
     maxErr = Math.max(maxErr, Math.abs(m12.verts[i * 11 + 10] - m.verts[i * 12 + 10] * decodeMeta(m.verts[i * 12 + 11]).macroAo));
   }
-  check('V12 11-float export: same topology, floats 0–9 identical, ao = micro × macro', same && maxErr < 2.5e-3, `max |Δao| ${maxErr.toExponential(2)}`);
+  check('FLOAT11 11-float export: same topology, floats 0–9 identical, ao = micro × macro', same && maxErr < 2.5e-3, `max |Δao| ${maxErr.toExponential(2)}`);
 });
 
 // ================================================================================================ 4 pack svox.mega/v2
@@ -238,7 +240,7 @@ section('4 · packMegaAsset svox.mega/v2 (macro + instanced meso + detail zones)
   ] });
   check('unknown prefab instance throws; invalid zones are rejected (kind, dup id, bounds, scale, features)', threw && !bad.ok && bad.errors.length >= 5, `${bad.errors.length} errors`);
   const arch = Object.keys(DETAIL_ZONE_ARCHETYPES).map((k) => scaffoldDetailZones(k, { hullSize: [300, 1000, 200], shipId: k }));
-  check('3 archetype templates validate and cover all 4 zone kinds', arch.every((a) => validateDetailZones(a).ok && DETAIL_ZONE_KINDS.every((kd) => a.zones.some((z) => z.kind === kd))), arch.map((a) => `${a.archetype}:${a.zones.length}`).join(' '));
+  check('all archetype templates validate and cover all 4 zone kinds', arch.every((a) => validateDetailZones(a).ok && DETAIL_ZONE_KINDS.every((kd) => a.zones.some((z) => z.kind === kd))), arch.map((a) => `${a.archetype}:${a.zones.length}`).join(' '));
 });
 
 // ================================================================================================ 5 diff utils
@@ -631,6 +633,98 @@ section('10 · G5-v2.3 hull-only silhouette IoU (organic / tentacled megastructu
   writePNG(rp, ref); writePNG(cp, curled); writePNG(fp, flat);
   const c1 = spawnSync(process.execPath, [du, 'hull', '--ref', rp, '--render', cp], { encoding: 'utf8' }), c2 = spawnSync(process.execPath, [du, 'hull', '--ref', rp, '--render', fp, '--diff', path.join(TMP, 'hull_diff.png')], { encoding: 'utf8' });
   check('mega_diff_utils hull CLI: exit 0 on a curled-tentacle render, 1 on a flattened dome; diff PNG written', c1.status === 0 && c2.status === 1 && fs.existsSync(path.join(TMP, 'hull_diff.png')), `${c1.stdout.trim()} | ${c2.stdout.trim().slice(0, 50)}`);
+});
+
+// ================================================================================================ 11 project-neutral abstractions
+section('11 · Project-neutral abstractions (accent bands, generic archetype + assetId, material profiles, legacy aliases)', () => {
+  const du = path.join(HERE, 'mega_diff_utils.mjs'), kit = path.join(HERE, 'mega_voxel_kit.mjs');
+  const run = (script, args) => spawnSync(process.execPath, [script, ...args], { encoding: 'utf8' });
+  // --- 11.1 default bands unchanged: explicit DEFAULT_ACCENT_BANDS === omitted opts.bands, amber / cyan keys intact
+  const W = 240, H = 120;
+  const plate = (stripes) => {
+    const img = createImage(W, H, [0, 0, 0, 0]);
+    const set = (x, y, c) => img.data.set([...c, 255], (y * W + x) * 4);
+    for (let y = 20; y < 100; y++) for (let x = 10; x < 230; x++) set(x, y, [70, 76, 88]);
+    for (const st of stripes) for (let y = st.y; y < st.y + st.h; y++) for (let x = st.x; x < st.x + st.w; x++) set(x, y, st.c);
+    return img;
+  };
+  const amberCyan = plate([{ x: 30, y: 60, w: 80, h: 12, c: [226, 160, 44] }, { x: 140, y: 80, w: 80, h: 6, c: [60, 236, 255] }]);
+  const d0 = computeBandG5(amberCyan, amberCyan), d1 = computeBandG5(amberCyan, amberCyan, { bands: DEFAULT_ACCENT_BANDS });
+  const strip = (b) => JSON.stringify({ amber: b.amber, cyan: b.cyan, pass: b.pass });
+  const classOK = accentClass(226, 160, 44) === 'amber' && accentClass(60, 236, 255) === 'cyan' && accentClass(70, 76, 88) === null && accentClass(200, 30, 40) === null;
+  check('DEFAULT_ACCENT_BANDS = the original amber [20, 54] + cyan [165, 205] gate: omitted and explicit default bands give identical amber / cyan results',
+    classOK && strip(d0) === strip(d1) && d0.pass && d0.bands.map((b) => b.name).join() === 'amber,cyan' && DEFAULT_ACCENT_BANDS[0].hue.join() === '20,54' && DEFAULT_ACCENT_BANDS[1].minV === 0.42,
+    `amber share ${d0.amber.ref} · cyan share ${d0.cyan.ref}`);
+  // --- 11.2 custom bands: crimson wraps through 0° ([340, 20]), emerald [100, 150]
+  const bands = [{ name: 'crimson', hue: [340, 20], minS: 0.45, minV: 0.3 }, { name: 'emerald', hue: [100, 150], minS: 0.4, minV: 0.3, rgb: [40, 220, 120] }];
+  const nb = normalizeAccentBands(bands);
+  const wrapOK = accentClass(220, 30, 70, nb) === 'crimson' && accentClass(220, 60, 30, nb) === 'crimson' && accentClass(220, 150, 30, nb) === null && accentClass(40, 200, 90, nb) === 'emerald';
+  const cRef = plate([{ x: 30, y: 30, w: 50, h: 10, c: [220, 30, 70] }, { x: 90, y: 30, w: 40, h: 10, c: [220, 60, 30] }, { x: 140, y: 70, w: 70, h: 10, c: [40, 200, 90] }]);
+  const cNoCrimson = plate([{ x: 140, y: 70, w: 70, h: 10, c: [40, 200, 90] }]);
+  const c0 = computeBandG5(cRef, cRef, { bands }), c1 = computeBandG5(cRef, cNoCrimson, { bands });
+  check('custom bands: wrap-around crimson [340, 20] matches hue 345° and 9° but not 38°; emerald [100, 150]; per-band stats keyed by name (no amber / cyan keys)',
+    wrapOK && c0.pass && c0.crimson.ratio === 1 && c0.emerald.ratio === 1 && c0.crimson.ref > 0.04 && !('amber' in c0) && !('cyan' in c0) && c0.bands[0].hue.join() === '340,20',
+    `crimson share ${c0.crimson.ref} · emerald share ${c0.emerald.ref}`);
+  check('custom bands: a render missing the crimson accents FAILS on crimson (ratio 0) while emerald still passes',
+    !c1.pass && !c1.crimson.pass && c1.crimson.ratio === 0 && c1.emerald.pass, `crimson ratio ${c1.crimson.ratio} · emerald ratio ${c1.emerald.ratio}`);
+  let badBand = 0;
+  for (const b of [[{ name: 'pass', hue: [0, 10] }], [{ name: 'x', hue: [0] }], [{ name: 'a', hue: [0, 10] }, { name: 'a', hue: [20, 30] }], [{ name: 'y', hue: [0, 10], minS: 2 }]]) { try { normalizeAccentBands(b); } catch { badBand++; } }
+  const parsed = parseAccentBands('crimson:340-20:0.45:0.30,gold:35-58:0.45:0.35:#ffcc33,emerald:100-150');
+  check('parseAccentBands CLI spec (name:minH-maxH[:minS[:minV[:#rgb]]]) + invalid descriptors rejected (reserved / duplicate name, bad hue, minS > 1)',
+    badBand === 4 && parsed.length === 3 && parsed[0].hue.join() === '340,20' && parsed[0].minV === 0.3 && parsed[1].rgb.join() === '255,204,51' && parsed[2].minS === 0.4,
+    parsed.map((b) => `${b.name}[${b.hue.join('-')}]`).join(' '));
+  const sheetPath = path.join(TMP, 'multicue_custom_bands.png');
+  const sheet = composeMultiCueSheet([{ label: 'SAME', ref: cRef, render: cRef }, { label: 'NO CRIMSON', ref: cRef, render: cNoCrimson }], sheetPath, { title: 'CUSTOM BANDS', bands });
+  const rp = path.join(TMP, 'band_ref.png'), np = path.join(TMP, 'band_nocrimson.png');
+  writePNG(rp, cRef); writePNG(np, cNoCrimson);
+  const spec = 'crimson:340-20:0.45:0.30,emerald:100-150:0.4:0.3';
+  const k1 = run(du, ['multicue', '--ref', rp, '--render', rp, '--bands', spec, '--out', path.join(TMP, 'mc_cli_bands.png')]);
+  const k2 = run(du, ['multicue', '--ref', rp, '--render', np, '--bands', spec]);
+  check('composeMultiCueSheet + multicue CLI --bands: rows keyed by band name, crimson-less render FAILs (exit 1), sheet PNGs written',
+    Object.keys(sheet.rows[0].band).join() === 'crimson,emerald' && sheet.rows[1].band.crimson.pass === false && fs.existsSync(sheetPath)
+      && k1.status === 0 && k2.status === 1 && /crimson ok emerald ok/.test(k1.stdout) && /crimson FAIL/.test(k2.stdout) && fs.existsSync(path.join(TMP, 'mc_cli_bands.png')),
+    `${k1.stdout.trim().slice(-60)} | exit ${k2.status}`);
+  // --- 11.3 generic archetype + assetId (shipId stays a valid alias)
+  const gen = scaffoldDetailZones('generic_megastructure', { hullSize: [400, 600, 300], assetId: 'fortress_01' });
+  const vg = validateDetailZones(gen, { hullBounds: { min: [-200, -300, -150], max: [200, 300, 150] } });
+  const legacy = validateDetailZones(scaffoldDetailZones('hard_surface_carrier', { hullSize: [300, 1000, 200], shipId: 'carrier_01' }));
+  const both = validateDetailZones({ ...gen, shipId: 'other_id' });
+  const ids = gen.zones.map((z) => z.zoneId);
+  check('generic_megastructure archetype (exterior_focal / occluded_cavity / hero_accent / under_structure) scaffolds with assetId and validates with 0 errors / 0 warnings',
+    ARCHETYPES.generic_megastructure === DETAIL_ZONE_ARCHETYPES.generic_megastructure && ['exterior_focal', 'occluded_cavity', 'hero_accent', 'under_structure'].every((z) => ids.includes(z))
+      && gen.assetId === 'fortress_01' && !('shipId' in gen) && gen.zones[0].calloutImage.startsWith('callouts/fortress_01_') && vg.ok && vg.errors.length === 0 && vg.warnings.length === 0 && vg.assetId === 'fortress_01',
+    `${ids.join(', ')} · ${vg.warnings.length} warnings`);
+  const zf = path.join(TMP, 'generic_zones.json');
+  const zt = run(kit, ['zones-template', '--archetype', 'generic_megastructure', '--asset', 'tower_a', '--hull-size', '200,200,600', '--out', zf]);
+  const zv = run(kit, ['validate-zones', '--zones', zf, '--hull-size', '200,200,600']);
+  check('shipId alias: an old shipId-only doc validates with 0 errors / 0 warnings (assetId resolves to it); a differing assetId + shipId only warns; CLI --asset round-trips',
+    legacy.ok && legacy.errors.length === 0 && legacy.warnings.length === 0 && legacy.assetId === 'carrier_01' && both.ok && both.warnings.length === 1 && both.assetId === 'fortress_01'
+      && zt.status === 0 && zv.status === 0 && JSON.parse(fs.readFileSync(zf, 'utf8')).assetId === 'tower_a' && /0 errors, 0 warnings/.test(zv.stdout),
+    zv.stdout.trim().split('\n').pop());
+  // --- 11.4 material profiles: matTag 0..15 is a channel; presets document legends; no faction needed
+  const presetsOK = ['hard_surface', 'ornate_stone', 'organic_bio'].every((k) => MATERIAL_PRESETS[k] && Object.isFrozen(MATERIAL_PRESETS[k])
+    && Object.keys(MATERIAL_PRESETS[k].tags).every((t) => Number(t) >= 0 && Number(t) <= 15)) && MATERIAL_PRESETS.hard_surface.uniforms.uHangarBounce === 1
+    && MATERIAL_PRESETS.organic_bio.uniforms.uHangarBounce === 0 && MATERIAL_PRESETS.ornate_stone.tags[7] && MATERIAL_PRESETS.organic_bio.tags[8];
+  const dd = buildDemoCarrier();
+  const base = packMegaAsset(dd.manifest, dd.macroParts, dd.mesoPrefabs, dd.instances);
+  const { faction, ...noFaction } = dd.manifest;
+  const withProf = packMegaAsset({ ...noFaction, materialProfile: 'organic_bio', styleTag: 'bio' }, dd.macroParts, dd.mesoPrefabs, dd.instances);
+  const custom = packMegaAsset({ ...noFaction, materialProfile: { id: 'castle', tags: { 1: 'granite blocks', 9: 'stained glass' } } }, dd.macroParts, dd.mesoPrefabs, dd.instances);
+  let badTag = false; try { resolveMaterialProfile({ id: 'x', tags: { 16: 'out of range' } }); } catch { badTag = true; }
+  check('MATERIAL_PRESETS (hard_surface / ornate_stone / organic_bio, tags within 0..15) + packMegaAsset materialProfile with NO faction: same .bin, profile in JSON, faction null',
+    presetsOK && faction === 'demo' && withProf.json.faction === null && withProf.json.materialProfile.id === 'organic_bio' && withProf.json.materialProfile.index === 2 && withProf.json.styleTag === 'bio'
+      && sha(withProf.bin) === sha(base.bin) && !('materialProfile' in base.json) && base.json.faction === 'demo'
+      && custom.json.materialProfile.index === 3 && custom.json.materialProfile.tags[9] === 'stained glass' && badTag,
+    `profile ${withProf.json.materialProfile.id}#${withProf.json.materialProfile.index} · custom ${custom.json.materialProfile.id}#${custom.json.materialProfile.index}`);
+  // --- 11.5 backwards-compatible aliases: legacy 11-float token, CLI short forms
+  const f11 = packMegaAsset({ ...dd.manifest, format: 'FLOAT11' }, dd.macroParts, dd.mesoPrefabs, dd.instances);
+  const old11 = packMegaAsset({ ...dd.manifest, format: V12_LAYOUT.name }, dd.macroParts, dd.mesoPrefabs, dd.instances);
+  const o1 = path.join(TMP, 'alias_a'), o2 = path.join(TMP, 'alias_b');
+  const s1 = run(kit, ['demo', '--format', 'MEGA_V23', '--asset-only', '--out', o1]), s2 = run(kit, ['demo', '--v23', '--asset-only', '--out', o2]);
+  const binSame = s1.status === 0 && s2.status === 0 && sha(fs.readFileSync(path.join(o1, 'demo_carrier.bin'))) === sha(fs.readFileSync(path.join(o2, 'demo_carrier.bin')));
+  check('aliases: FLOAT11 == the legacy 11-float format token (identical .bin, layout name differs only); demo --format MEGA_V23 == the --v23 short form',
+    sha(f11.bin) === sha(old11.bin) && f11.json.vertexLayout.name === 'FLOAT11' && f11.json.vertexLayout.floats === 11 && old11.json.vertexLayout.name === V12_LAYOUT.name && binSame,
+    `FLOAT11 ${(f11.bin.length / 1024).toFixed(1)} KiB · v2.3 demo ${binSame ? 'identical' : 'DIFFERENT'}`);
 });
 
 // ================================================================================================ cleanup + summary

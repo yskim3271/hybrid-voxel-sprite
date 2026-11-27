@@ -232,7 +232,7 @@ so raise `pixelScale` or cap on-screen size.
 
 **v2.3.0 · 2026-11-28 · Checkpoint.** `svox.mega/v2.3` `quad16` instanced quads (16 B/quad, no index buffer, no 65,535-vertex
 cap), `MEGA_V23_BUDGET` (12 MiB · 16 draws · 1.2M tris · Δ 2.5 ms), faction-scoped shaders (`matTag 6/7/8`), Hull-Only G5,
-69/69 kit self-test, verified on Vanguard T2, Aether P2 and Swarm Z2.
+78/78 kit self-test, verified on Vanguard T2, Aether P2 and Swarm Z2.
 
 **v2.2.0 · 2026-11-27.** `svox.mega/v2.2` `packed20` (20 B/vert, Uint16 indices, 2.4× denser), Multi-Cue G5 (silhouette IoU +
 internal Edge F1 / chamfer + amber / cyan band), 4-pass clay-to-lookdev loop in the real-engine `capital_studio.html`, 70/30
@@ -280,7 +280,7 @@ hybrid-voxel-sprite/
 
 ```bash
 SKIP_WEBGL=1 python tests/test_skill_svox.py               # standalone repo: 26 passed · 0 failed · 4 skipped (dev-repo-only harness)
-node skills/hybrid-voxel-sprite/scripts/test_mega_kit.mjs    # megastructure kit: 69/69 PASS (temp files only in os.tmpdir())
+node skills/hybrid-voxel-sprite/scripts/test_mega_kit.mjs    # megastructure kit: 78/78 PASS (temp files only in os.tmpdir())
 ```
 
 - The normal/AO bake is byte-identical to the original JS core (`computeNormalAndAO`); tests compare against recorded sha256 values, or live through Node with `SVOX_JS_CORE=<voxel_builder.js>`.
