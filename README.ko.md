@@ -13,7 +13,7 @@
 <br>
 <a href="https://yskim3271.github.io/hybrid-voxel-sprite/?lang=ko">라이브 데모</a> ·
 <a href="#실제로-보기">실제로 보기</a> ·
-<a href="#v23-capital-ships">v2.3 캐피털 함선</a> ·
+<a href="#v23-megastructures">v2.3 메가스트럭처</a> ·
 <a href="#4개-엔진에서-검증">엔진</a> ·
 <a href="#빠른-시작">빠른 시작</a> ·
 <a href="#cli">CLI</a> ·
@@ -28,8 +28,8 @@
 squash·twist·shear·wave 변형은 샘플마다 분석적으로 되돌리고, 결과는 셀 라이팅과 베이크 AO·자기 그림자로 칠한 뒤
 가상 픽셀 격자에 스냅하고 1 px 외곽선을 두릅니다. 표준 라이브러리만 쓰는 **SVOX 에셋 CLI**와
 **WebGL2 / Three.js, Godot 4, Unity 6 URP, Blender 5** 어댑터를 함께 제공하며, 모두 같은 4대 QA 게이트로 검증했습니다.
-v2.0부터는 **약 1000 u 크기의 캐피털 함선과 메가스트럭처**도 다룹니다. 미리 베이크한 멀티 스케일 그리디 메시를 v2.3에서는
-`quad16`(쿼드당 16 B)으로 패킹하고, 콘셉트 비교(G5)와 성능(G6) 게이트로 검증합니다.
+**Track B로 대형 메가스트럭처(~500–1500 u)**도 다룹니다. 미리 베이크한 멀티 스케일 그리디 메시를 `quad16`(쿼드당 16 B)으로
+패킹하고, 확장 가능한 머티리얼 프리셋과 콘셉트 비교(G5) · 성능(G6) 게이트로 검증합니다.
 
 ## 실제로 보기
 
@@ -47,41 +47,31 @@ v2.0부터는 **약 1000 u 크기의 캐피털 함선과 메가스트럭처**도
 
 </div>
 
-<a id="v23-capital-ships"></a>
-## v2.3 메가스트럭처 / 캐피털 함선 체크포인트
+<a id="v23-megastructures"></a>
+## v2.3 메가스트럭처 트랙
 
-약 1000 u 크기의 히어로 캐피털 함선 3척을 2D 콘셉트 아트에서 실시간 WebGL2 엔진까지 구현했습니다. 각 시트의 패널 01은
-원본 콘셉트, 패널 02–04는 실시간 WebGL2 프레임입니다.
+Track B는 약 500–1500 u 크기의 대형 복셀 구조물(성채, 기지, 대형 함체, 거대 개체 등)을 `svox.mega/v2.3` 파이프라인으로 처리합니다.
+
+- **`quad16` 매크로 포맷 (`16 B/quad`)**: 인덱스 버퍼와 65,535 정점 상한 없이 파트당 인스턴스 1드로우(곡면·유기체에서 약 5배 절감).
+- **12 MiB 예산 & 16단계 듀얼 스케일 AO**: 드로우 ≤ 16, 삼각형 ≤ 1.2M, Δ ≤ 2.5 ms, 확장 가능한 4비트 `matTag` 머티리얼 프리셋(`hard_surface`, `ornate_stone`, `organic_bio`).
+- **범용 워크플로 & 게이트**: `generic_megastructure` 아키타입(`assetId`), 사용자 정의 HSV 강조색 밴드(`--bands`), 촉수형 에셋용 선체 전용 G5, 자체 테스트 `78/78` 통과.
+
+**적용 예시 (패널 01 = 2D 콘셉트 아트 · 패널 02–04 = 실시간 WebGL2):**
 
 <div align="center">
 
-<a href="docs/assets/v23/vanguard_t2_showcase_2x2.jpg"><img src="docs/assets/v23/vanguard_t2_showcase_2x2.jpg" width="100%" alt="Vanguard T2 드레드노트: 콘셉트 아트와 실시간 WebGL2 렌더 3장"></a>
+<a href="docs/assets/v23/vanguard_t2_showcase_2x2.jpg"><img src="docs/assets/v23/vanguard_t2_showcase_2x2.jpg" width="100%" alt="하드서피스 대형 구조물 예시: 콘셉트 아트와 실시간 WebGL2 렌더 3장"></a>
 
-<sub><b>Vanguard T2 Dreadnought</b> · 삼각형 410,002 · 8.93 MiB · 드로우 10 · Δ 0.79 ms</sub>
+<sub><b>하드서피스 대형 구조물 예시</b> · 삼각형 410k · 8.93 MiB · 드로우 10 · 16단계 AO</sub>
 
-<a href="docs/assets/v23/aether_p2_showcase_2x2.jpg"><img src="docs/assets/v23/aether_p2_showcase_2x2.jpg" width="49%" alt="Aether P2 헤일로 코어 모함: 콘셉트 아트와 실시간 WebGL2 렌더 3장"></a>
-<a href="docs/assets/v23/swarm_z2_showcase_2x2.jpg"><img src="docs/assets/v23/swarm_z2_showcase_2x2.jpg" width="49%" alt="Swarm Z2 브루드 리바이어던: 콘셉트 아트와 실시간 WebGL2 렌더 3장"></a>
+<a href="docs/assets/v23/aether_p2_showcase_2x2.jpg"><img src="docs/assets/v23/aether_p2_showcase_2x2.jpg" width="49%" alt="금·상아 링형 구조물 예시: 콘셉트 아트와 실시간 WebGL2 렌더 3장"></a>
+<a href="docs/assets/v23/swarm_z2_showcase_2x2.jpg"><img src="docs/assets/v23/swarm_z2_showcase_2x2.jpg" width="49%" alt="유기체 촉수형 거대 개체 예시: 콘셉트 아트와 실시간 WebGL2 렌더 3장"></a>
 
-<sub><b>Aether P2 Halo Core Mothership</b> · 삼각형 801,960 · 6.02 MiB · 드로우 9 &nbsp;|&nbsp; <b>Swarm Z2 Brood-Leviathan</b> · 삼각형 1,114,594 · 8.03 MiB · 드로우 5</sub>
+<sub><b>금·상아 링형 구조물 예시</b> · 삼각형 802k · 6.02 MiB · 드로우 9 &nbsp;|&nbsp; <b>유기체 촉수형 거대 개체 예시</b> · 삼각형 1.11M · 8.03 MiB · 드로우 5</sub>
 
 </div>
 
-| 함선 | 이전 (v2.2 시기 빌드) | v2.3 | G5 · G6 |
-|---|---|---|---|
-| **Vanguard T2 Dreadnought** | 삼각형 178k · 2.5 u/vox · AO 6단계 · Y축 대칭 격납고 타협안 | **삼각형 410,002** · 1.7 u/vox · AO 16단계 · 좌현/우현이 진짜 비대칭인 1.0 u/vox 격납고 · 0.95 u/vox 2×3 추진기 포드 | 정사영 엣지 F1 0.541 실패 → **0.560 통과** · 8.93 MiB · 드로우 10 · Δ 0.79 ms |
-| **Aether P2 Halo Core Mothership** | 삼각형 284k · AO 2단계 · 섹터 이음새 | **삼각형 801,960** · AO 16단계 · 2.2 u/vox `quad16` 통합 선체 · 원통형 워프 포털 · 다이아몬드 코어 · 자이로 링 3개 · `matTag 7` 금·상아 셰이더 | 히어로 IoU 0.880 · 엣지 F1 0.674 **통과** · 6.02 MiB · 드로우 9 · CPU 0.3 ms |
-| **Swarm Z2 Brood-Leviathan** | 삼각형 188k · 5.0 u/vox · AO 4단계 | **삼각형 1,114,594** · 2.4 u/vox · AO 16단계 · 곡면 돔 갑각 · 송곳니 46개 · 생체 낭 82개 · 빨판 달린 웨이브 촉수 · `matTag 6/8` 셰이더 | 선체 전용 IoU 0.68 / 0.59 / 0.69 → **0.880 / 0.925 / 0.934 전부 통과** · 8.03 MiB · 드로우 5 · CPU 0.7 ms |
-
-**가능하게 한 것:** `svox.mega/v2.3` `quad16`은 그리디 쿼드 하나를 16바이트 인스턴스 하나로 저장합니다(인덱스 버퍼 없음,
-65,535 정점 상한 없음, 곡면 선체에서 v2.2보다 5.06–5.75배 작음). 여기에 12 MiB · 드로우 16 · 삼각형 1.2M 히어로 예산,
-진영별 셰이더, 촉수 함선을 위한 선체 전용 G5 게이트를 더했습니다.
-
-> **체크포인트 노트.** 이번 버전은 완성이 아니라 솔직한 중간 점검입니다. Aether P2의 정사영 IoU(0.799 / 0.688 / 0.730)는
-> 고정된 `r = 78` 발진 보어 제약 때문에 아직 목표에 못 미칩니다. Swarm Z2는 원근 히어로 뷰의 촉수 포즈가 정사영 포즈와 다르고,
-> Clay 뷰에서 잘게 꺾인 곡면 계단의 윤곽선이 촘촘합니다. Vanguard T2는 측면 뷰 단독 엣지 F1이 0.538이고(정사영 평균 0.560은
-> 통과), Zone C 레일건 프레이밍을 한 번 더 다듬어야 합니다. 모바일 LOD와 점진적 스트리밍은 비주얼 작업 이후에 진행합니다.
-
-**[전체 버전 히스토리 →](https://yskim3271.github.io/hybrid-voxel-sprite/changelog.html?lang=ko)** (지오메트리 분해도 시트, v2.0 → v2.2 → v2.3 비교표, 함선별 상세)
+**[전체 버전 히스토리 →](https://yskim3271.github.io/hybrid-voxel-sprite/changelog.html?lang=ko)**
 
 ## 빠른 시작
 
@@ -148,9 +138,9 @@ cp -r hybrid-voxel-sprite/skills/hybrid-voxel-sprite ~/.claude/skills/
 | 10–40 파츠 리그에서도 Z-파이팅 없음 | D24 깊이 버킷 타이브레이크: 그리는 순서를 뒤집어도 0 px |
 | 완전한 3D 월드 안의 복셀 액터 | 깊이 버퍼 하나를 공유하는 PerspectiveCamera MRT 하이브리드, 액터 마스크 포스트 FX |
 | 원리를 보여 주기 | 볼륨을 실시간으로 2D 슬라이스 카드로 나눠 보여 주는 라이브 `SPRITE STACK` 모드 |
-| 콘셉트 아트로 약 1000 u 캐피털 함선·메가스트럭처 만들기 | v2.0+ 트랙: 3-뷰 비주얼 헐, `detail_zones.json` 콜아웃, 매크로/메소/마이크로 그리디 메시와 인스턴스 프리팹, 듀얼 스케일 AO |
-| 용량 예산 안에서 곡면·유기체 히어로 함선 | v2.3 `quad16`: 쿼드당 16 B, 인덱스 버퍼 없음, 12 MiB 히어로 예산. 메소 프리팹은 v2.2 `packed20`(정점당 20 B) |
-| 함선이 콘셉트와 맞는다는 증거 | G5 멀티 큐(실루엣 IoU + 엣지 F1 + 강조색 밴드)와 촉수 함선용 선체 전용 IoU, G6 드로우·삼각형·용량·ms 예산 |
+| 콘셉트 아트로 대형(~500–1500 u) 복셀 구조물 만들기 | Track B: 3-뷰 비주얼 헐, `detail_zones.json` 콜아웃, 매크로/메소/마이크로 그리디 메시와 인스턴스 프리팹, 듀얼 스케일 AO |
+| 용량 예산 안에서 곡면·유기체 대형 구조물 | `quad16`: 쿼드당 16 B, 인덱스 버퍼 없음, 12 MiB 예산. 메소 프리팹은 `packed20`(정점당 20 B) |
+| 결과물이 콘셉트와 맞는다는 증거 | G5 멀티 큐(실루엣 IoU + 엣지 F1 + 사용자 정의 강조색 밴드)와 촉수형 에셋용 선체 전용 IoU, G6 드로우·삼각형·용량·ms 예산 |
 
 <a id="cli"></a>
 <details>
@@ -183,9 +173,9 @@ python scripts/svox_cli.py pack-atlas --bundle build/hero --format raw_3d --out 
 
 ```bash
 cd skills/hybrid-voxel-sprite
-node scripts/test_mega_kit.mjs                                      # 자체 테스트: 69개 검사 (v2.0 39 + v2.2 16 + v2.3 14)
-# 디테일 존: 아키타입 템플릿 (hard_surface_carrier | halo_mothership | bio_leviathan)
-node scripts/mega_voxel_kit.mjs zones-template --archetype hard_surface_carrier --hull-size 478,1019,302 --out build/v/detail_zones.json
+node scripts/test_mega_kit.mjs                                      # 자체 테스트: 78개 검사
+# 디테일 존: 아키타입 템플릿 (generic_megastructure | hard_surface_carrier | halo_mothership | bio_leviathan)
+node scripts/mega_voxel_kit.mjs zones-template --archetype generic_megastructure --asset structure_01 --hull-size 400,900,300 --out build/s/detail_zones.json
 # 블루프린트 PNG → 비주얼 헐 → 존 카빙 → 매크로 AO → 그리디 메시 → .json + .bin
 node scripts/mega_voxel_kit.mjs hull --top bp_top.png --side bp_side.png --front bp_front.png --length-y 1019 \
     --voxel-scale 3.5 --zones build/v/detail_zones.json --out build/v/hull
@@ -218,12 +208,12 @@ node scripts/mega_diff_utils.mjs hull --ref side.png --render side_render.png --
 저사양 모바일에서 화면을 꽉 채우는 클로즈업에는 맞지 않습니다. 비용은 덮인 가상 픽셀 × 마치 길이에 비례하므로
 `pixelScale`을 올리거나 화면상 크기를 제한하세요.
 
-**캐피털 함선 게이트 (v2.0+, 함선마다 엔진 안에서 측정).**
+**메가스트럭처 게이트 (Track B, 에셋마다 엔진 안에서 측정).**
 
-| 게이트 | v2.3 통과 기준 | v2.3 히어로 캐피털 측정값 |
+| 게이트 | 통과 기준 | 레퍼런스 구조물 측정값 |
 |---|---|---|
-| **G5** 콘셉트 비교 | 실루엣 IoU 히어로 ≥ 0.78 / 정사영 ≥ 0.85 · 엣지 F1 히어로 ≥ 0.52 / 정사영 평균 ≥ 0.55 · 앰버/시안 밴드 0.5–2.0 · 촉수 선체는 **선체 전용 IoU ≥ 0.86** | Vanguard 정사영 엣지 F1 0.560 · Aether 히어로 IoU 0.880 / 엣지 F1 0.674 · Swarm 선체 0.880 / 0.925 / 0.934 |
-| **G6** 메가스트럭처 성능 | `MEGA_V23_BUDGET`: `.bin` ≤ 12 MiB · 드로우 ≤ 16 · 삼각형 ≤ 1.2M · Δ ≤ 2.5 ms · Early-Z 유지 | 8.93 / 6.02 / 8.03 MiB · 드로우 10 / 9 / 5 · 삼각형 410k / 802k / 1.11M · Δ 0.79 ms (Vanguard) |
+| **G5** 콘셉트 비교 | 실루엣 IoU 히어로 ≥ 0.78 / 정사영 ≥ 0.85 · 엣지 F1 히어로 ≥ 0.52 / 정사영 평균 ≥ 0.55 · 사용자 정의 강조색 밴드 0.5–2.0 · 촉수형은 **선체 전용 IoU ≥ 0.86** | 하드서피스 정사영 엣지 F1 0.560 · 링형 히어로 IoU 0.880 / 엣지 F1 0.674 · 유기체 선체 IoU 0.880 / 0.925 / 0.934 |
+| **G6** 메가스트럭처 성능 | `MEGA_V23_BUDGET`: `.bin` ≤ 12 MiB · 드로우 ≤ 16 · 삼각형 ≤ 1.2M · Δ ≤ 2.5 ms · Early-Z 유지 | 6.02–8.93 MiB · 드로우 5–10 · 삼각형 410k–1.11M · 0.3–0.8 ms |
 
 </details>
 
@@ -231,14 +221,13 @@ node scripts/mega_diff_utils.mjs hull --ref side.png --render side_render.png --
 <summary><b>버전 히스토리 하이라이트</b> (v2.3 · v2.2 · v2.0 · v1.1)</summary>
 
 **v2.3.0 · 2026-11-28 · 체크포인트.** `svox.mega/v2.3` `quad16` 인스턴스 쿼드(쿼드당 16 B, 인덱스 버퍼 없음, 65,535 정점 상한 없음),
-`MEGA_V23_BUDGET`(12 MiB · 드로우 16 · 삼각형 1.2M · Δ 2.5 ms), 진영별 셰이더(`matTag 6/7/8`), 선체 전용 G5,
-키트 자체 테스트 78/78. Vanguard T2, Aether P2, Swarm Z2로 검증.
+`MEGA_V23_BUDGET`(12 MiB · 드로우 16 · 삼각형 1.2M · Δ 2.5 ms), 확장 가능한 `MATERIAL_PRESETS`, `generic_megastructure`
+아키타입, 사용자 정의 `--bands` G5, 선체 전용 G5, Track A/B 스킬 재구성, 키트 자체 테스트 `78/78`.
 
 **v2.2.0 · 2026-11-27.** `svox.mega/v2.2` `packed20`(정점당 20 B, Uint16 인덱스, 2.4배 밀도), 멀티 큐 G5(실루엣 IoU + 내부
-엣지 F1 / 챔퍼 + 앰버/시안 밴드), 실제 엔진 기반 `capital_studio.html`에서 진행하는 클레이→룩데브 4단계 루프, 70/30 비주얼 레스트
-하드서피스 셰이더.
+엣지 F1 / 챔퍼 + 강조색 밴드), 실시간 엔진 스튜디오 프리뷰 기반 클레이→룩데브 4단계 루프, 70/30 비주얼 레스트 하드서피스 셰이더.
 
-**v2.0.0 · 2026-11-26.** 메가스트럭처 / 캐피털 함선 트랙(약 1000 u): 3-뷰 비주얼 헐 + 가려진 영역 `detail_zones.json` 콜아웃,
+**v2.0.0 · 2026-11-26.** 메가스트럭처 트랙(~500–1500 u): 3-뷰 비주얼 헐 + 가려진 영역 `detail_zones.json` 콜아웃,
 매크로/메소/마이크로 그리디 메시와 인스턴스 프리팹, 듀얼 스케일 AO, 의존성 없는 Node 키트, G5 · G6 게이트.
 
 **v1.1.0 · 2026-11-26.** 사신 4종(119,391 복셀), 관절형 차량 4대(39 파츠, 166,290 복셀), 실시간 3D 월드 쇼케이스에서 검증했습니다.
