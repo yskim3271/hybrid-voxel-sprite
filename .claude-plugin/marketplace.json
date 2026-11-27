@@ -2,15 +2,15 @@
   "name": "hybrid-voxel-sprite",
   "owner": { "name": "yskim3271" },
   "metadata": {
-    "description": "Real-time articulated 3D voxel sprites that never crack: T3 OBB raymarching, SVOX CLI and 4 verified engine adapters.",
-    "version": "1.1.0"
+    "description": "Real-time articulated 3D voxel sprites that never crack: T3 OBB raymarching, SVOX CLI, 4 verified engine adapters and a v2.3 Megastructure / Capital Ship track (quad16, packed20, Multi-Cue & Hull-Only G5).",
+    "version": "2.3.0"
   },
   "plugins": [
     {
       "name": "hybrid-voxel-sprite",
       "source": "./",
-      "description": "Agent skill: articulated voxel parts raymarched inside their own oriented boxes (T3), analytic inverse deform + springs, pixel-grid snap, 1px outline, SVOX asset CLI and adapters for WebGL2 / Three.js, Godot 4, Unity 6 URP and Blender 5, each verified against 4 QA gates.",
-      "version": "1.1.0",
+      "description": "Agent skill: articulated voxel parts raymarched inside their own oriented boxes (T3), analytic inverse deform + springs, pixel-grid snap, 1px outline, SVOX asset CLI and adapters for WebGL2 / Three.js, Godot 4, Unity 6 URP and Blender 5, each verified against 4 QA gates. v2.3 Megastructure / Capital Ship track for ~1000 u ships: quad16 16 B/quad instanced and packed20 20 B/vert formats, 12 MiB hero budget, matTag 6/7/8 faction shaders, Multi-Cue & Hull-Only G5 and G6 gates, zero-dependency Node kit (69/69).",
+      "version": "2.3.0",
       "strict": false,
       "skills": ["./skills/hybrid-voxel-sprite"]
     }

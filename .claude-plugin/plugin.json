@@ -1,10 +1,10 @@
 {
   "name": "hybrid-voxel-sprite",
-  "version": "1.1.0",
-  "description": "Agent skill for real-time articulated 3D voxel sprites: per-part T3 OBB raymarching, analytic inverse deform, a stdlib-only SVOX CLI and verified adapters for WebGL2 / Three.js, Godot 4, Unity 6 URP and Blender 5.",
+  "version": "2.3.0",
+  "description": "Agent skill for real-time articulated 3D voxel sprites: per-part T3 OBB raymarching, analytic inverse deform, a stdlib-only SVOX CLI and verified adapters for WebGL2 / Three.js, Godot 4, Unity 6 URP and Blender 5. v2.3 adds a Megastructure / Capital Ship track for ~1000 u ships: quad16 (16 B/quad instanced) and packed20 (20 B/vert) formats, a 12 MiB hero budget, faction materials, Multi-Cue and Hull-Only G5 concept-diff gates and a G6 perf gate, via a zero-dependency Node kit (69/69 self-test).",
   "author": { "name": "Yunsik Kim", "url": "https://github.com/yskim3271" },
   "homepage": "https://yskim3271.github.io/hybrid-voxel-sprite/",
   "repository": "https://github.com/yskim3271/hybrid-voxel-sprite",
   "license": "MIT",
-  "keywords": ["voxel", "sprite-stacking", "pixel-art", "raymarching", "webgl2", "threejs", "godot", "unity", "blender", "skill"]
+  "keywords": ["voxel", "sprite-stacking", "pixel-art", "raymarching", "webgl2", "threejs", "godot", "unity", "blender", "skill", "megastructure", "capital-ship", "greedy-mesh"]
 }
