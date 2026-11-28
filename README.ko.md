@@ -13,7 +13,7 @@
 <br>
 <a href="https://yskim3271.github.io/hybrid-voxel-sprite/?lang=ko">라이브 데모</a> ·
 <a href="#실제로-보기">실제로 보기</a> ·
-<a href="#v23-megastructures">v2.3 메가스트럭처</a> ·
+<a href="#v24-mesh-input">메가스트럭처 (v2.4)</a> ·
 <a href="#4개-엔진에서-검증">엔진</a> ·
 <a href="#빠른-시작">빠른 시작</a> ·
 <a href="#cli">CLI</a> ·
@@ -29,7 +29,9 @@ squash·twist·shear·wave 변형은 샘플마다 분석적으로 되돌리고, 
 가상 픽셀 격자에 스냅하고 1 px 외곽선을 두릅니다. 표준 라이브러리만 쓰는 **SVOX 에셋 CLI**와
 **WebGL2 / Three.js, Godot 4, Unity 6 URP, Blender 5** 어댑터를 함께 제공하며, 모두 같은 4대 QA 게이트로 검증했습니다.
 **Track B로 대형 메가스트럭처(~500–1500 u)**도 다룹니다. 미리 베이크한 멀티 스케일 그리디 메시를 `quad16`(쿼드당 16 B)으로
-패킹하고, 확장 가능한 머티리얼 프리셋과 콘셉트 비교(G5) · 성능(G6) 게이트로 검증합니다.
+패킹하고, 확장 가능한 머티리얼 프리셋과 콘셉트 비교(G5) · 성능(G6) 게이트로 검증합니다. Track B의 외형은 정사영 3-뷰만으로
+완전히 오프라인에서 만들 수도 있고(**모드 B1**, 기본값), 원할 때는 원하는 방법으로 구한 3D `.glb` / `.gltf` 모델에서 만들 수도
+있습니다(**모드 B2**).
 
 ## 실제로 보기
 
@@ -47,31 +49,38 @@ squash·twist·shear·wave 변형은 샘플마다 분석적으로 되돌리고, 
 
 </div>
 
-<a id="v23-megastructures"></a>
-## v2.3 메가스트럭처 트랙
+<a id="v24-mesh-input"></a>
+## Track B · 대형 메가스트럭처 (v2.4)
 
-Track B는 약 500–1500 u 크기의 대형 복셀 구조물(성채, 기지, 대형 함체, 거대 개체 등)을 `svox.mega/v2.3` 파이프라인으로 처리합니다.
+Track B는 약 500–1500 u 크기의 대형 복셀 구조물(성채, 기지, 대형 함체, 거대 개체 등)을 **`svox.mega/v2.3`**(`quad16` 16 B/quad 매크로 + 인스턴스 `packed20` 메소 프리팹 + 프로시저럴 마이크로 셰이더, 12 MiB / 16 드로우 / 1.2M 삼각형 예산 · 16단계 듀얼 AO)으로 처리합니다.
 
-- **`quad16` 매크로 포맷 (`16 B/quad`)**: 인덱스 버퍼와 65,535 정점 상한 없이 파트당 인스턴스 1드로우(곡면·유기체에서 약 5배 절감).
-- **12 MiB 예산 & 16단계 듀얼 스케일 AO**: 드로우 ≤ 16, 삼각형 ≤ 1.2M, Δ ≤ 2.5 ms, 확장 가능한 4비트 `matTag` 머티리얼 프리셋(`hard_surface`, `ornate_stone`, `organic_bio`).
-- **범용 워크플로 & 게이트**: `generic_megastructure` 아키타입(`assetId`), 사용자 정의 HSV 강조색 밴드(`--bands`), 촉수형 에셋용 선체 전용 G5, 자체 테스트 `78/78` 통과.
+**v2.4 주요 업데이트**
+- **사용자가 고르는 Track B 두 모드**: **모드 B1** *(기본값)*은 정사영 3-뷰 비주얼 헐 카빙으로 100% 오프라인을 유지하고, **모드 B2** *(선택)*는 유기체·장식·깊은 조형에 맞게 `.glb` / `.gltf`를 복셀화합니다. 스킬은 3D 입력을 가정하지 않고 어느 모드를 쓸지 먼저 묻습니다.
+- **교체 가능한 모델 공급자** (`mesh_source.mjs`): `local` 파일 *(기본값)*, `command` *(셸 없이 실행하는 임의 CLI · 로컬 오픈소스 모델)*, `manual` 웹 UI · DCC 수동 전달, 선택형 `tripo` API 어댑터, 그 밖의 서비스는 `registerProvider()`로 확장합니다. 검증·SHA-256 캐시·비밀 값 마스킹을 기본 제공합니다.
+- **메시→복셀 엔진** (`mesh_to_voxel.mjs`): CPU 6-뷰 정렬 시트, 보수적 복셀화, 내부 채움, 좌우 대칭, 팔레트·발광 규칙, 디테일 존 카빙, 통합 16단계 AO 1회 굽기와 wave 자동 앵커를 갖춘 다중 파트 분할.
+- **구조 인식 셰이더**: 곡면·유기체에서 1-복셀 계단마다 생기던 검은 선을 없애면서 1 px 외곽 실루엣과 실제 단차는 유지합니다(하드서피스 변화 `0 px`). 클리핑 없는 발광으로 수정 면과 발광 구체 음영을 살리고, 뿌리 이음매 이동 `0 px`인 앵커 wave 모드(`'box'` / `'ellipsoid'`)를 지원하며 Early-Z를 그대로 유지합니다.
+- **검증**: `test_mesh_harness.mjs` **32/32** (합성 `.glb`, 네트워크 호출 0) · `test_mega_kit.mjs` **78/78** · Python 스위트 **26 통과 / 0 실패**.
 
-**적용 예시 (패널 01 = 2D 콘셉트 아트 · 패널 02–04 = 실시간 WebGL2):**
+**적용 예시 (패널 01 = 2D 콘셉트 아트 · 패널 02–04 = 실시간 WebGL2, 모드 B2로 제작):**
 
 <div align="center">
 
-<a href="docs/assets/v23/vanguard_t2_showcase_2x2.jpg"><img src="docs/assets/v23/vanguard_t2_showcase_2x2.jpg" width="100%" alt="하드서피스 대형 구조물 예시: 콘셉트 아트와 실시간 WebGL2 렌더 3장"></a>
+<a href="docs/assets/v24/hard_surface_carrier_v24.jpg"><img src="docs/assets/v24/hard_surface_carrier_v24.jpg" width="100%" alt="3D 메시로 만든 하드서피스 캐리어: 콘셉트 아트와 실시간 WebGL2 렌더 3장"></a>
 
-<sub><b>하드서피스 대형 구조물 예시</b> · 삼각형 410k · 8.93 MiB · 드로우 10 · 16단계 AO</sub>
+<sub><b>하드서피스 캐리어</b> · 삼각형 662k · 8.74 MiB · 드로우 8 · 인스턴스 프리팹 31개</sub>
 
-<a href="docs/assets/v23/aether_p2_showcase_2x2.jpg"><img src="docs/assets/v23/aether_p2_showcase_2x2.jpg" width="49%" alt="금·상아 링형 구조물 예시: 콘셉트 아트와 실시간 WebGL2 렌더 3장"></a>
-<a href="docs/assets/v23/swarm_z2_showcase_2x2.jpg"><img src="docs/assets/v23/swarm_z2_showcase_2x2.jpg" width="49%" alt="유기체 촉수형 거대 개체 예시: 콘셉트 아트와 실시간 WebGL2 렌더 3장"></a>
+<a href="docs/assets/v24/ornate_ringed_vessel_v24.jpg"><img src="docs/assets/v24/ornate_ringed_vessel_v24.jpg" width="49%" alt="3D 메시로 만든 금·상아 링형 구조물: 콘셉트 아트와 실시간 WebGL2 렌더 3장"></a>
+<a href="docs/assets/v24/organic_leviathan_v24.jpg"><img src="docs/assets/v24/organic_leviathan_v24.jpg" width="49%" alt="3D 메시로 만든 유기체 촉수형 거대 개체: 콘셉트 아트와 실시간 WebGL2 렌더 3장"></a>
 
-<sub><b>금·상아 링형 구조물 예시</b> · 삼각형 802k · 6.02 MiB · 드로우 9 &nbsp;|&nbsp; <b>유기체 촉수형 거대 개체 예시</b> · 삼각형 1.11M · 8.03 MiB · 드로우 5</sub>
+<sub><b>금·상아 링형 구조물</b> · 삼각형 908k · 6.93 MiB · 드로우 3 (회전 링 + 코어) &nbsp;|&nbsp; <b>유기체 거대 개체</b> · 삼각형 1.13M · 8.61 MiB · 드로우 2 (wave 촉수)</sub>
+
+<a href="docs/assets/v24/structure_aware_ink_v24.jpg"><img src="docs/assets/v24/structure_aware_ink_v24.jpg" width="100%" alt="곡면 링의 구조 인식 잉크 적용 전후와 하드서피스 구조물의 무변화 비교"></a>
+
+<sub><b>구조 인식 잉크</b> · 같은 에셋, 같은 카메라: 곡면 링의 계단 잉크는 사라지고 하드서피스 구조물은 그대로입니다</sub>
 
 </div>
 
-**[전체 버전 히스토리 →](https://yskim3271.github.io/hybrid-voxel-sprite/changelog.html?lang=ko)**
+**[전체 버전 히스토리 (v2.4 · v2.3 · v2.2 · v2.0 · v1.x) →](https://yskim3271.github.io/hybrid-voxel-sprite/changelog.html?lang=ko)**
 
 ## 빠른 시작
 
@@ -187,7 +196,21 @@ node scripts/mega_diff_utils.mjs multicue --ref concept_34.png --render render_3
 node scripts/mega_diff_utils.mjs hull --ref side.png --render side_render.png --ref-hull side_hull.png --render-hull side_render_nowave.png --target 0.86
 ```
 
-6단계 파이프라인 전체는 [04_megastructure_voxel_pipeline.md](skills/hybrid-voxel-sprite/references/04_megastructure_voxel_pipeline.md)에 있습니다.
+**모드 B2 (선택형 3D 메시 입력).** 모델 공급자를 고른 뒤 복셀화합니다:
+
+```bash
+node scripts/test_mesh_harness.mjs                                  # 자체 테스트: 32개 검사, 네트워크 호출 0
+node scripts/mesh_source.mjs list-providers                         # local · command · manual · tripo (+ 직접 등록한 공급자)
+node scripts/mesh_source.mjs acquire --provider local --glb exports/vessel.glb --out build/vessel/mesh
+node scripts/mesh_source.mjs acquire --provider command --image concept_clean.png --out build/vessel/mesh \
+    --cmd "my-image-to-3d --input {image} --output {out}"
+node scripts/mesh_to_voxel.mjs inspect --source build/vessel/mesh/mesh_source.json --out build/vessel/inspect --rot-x 90 --length-y 950
+node scripts/mesh_to_voxel.mjs voxelize --source build/vessel/mesh/mesh_source.json --out-asset build/vessel/vessel \
+    --rot-x 90 --length-y 950 --voxel-scale 2.0 --solidify --symmetrize x:high \
+    --split-part "tentacles:wave:z<-60,ax>95:wave=16,0.012,0:axis=box:auto:cc=400"
+```
+
+모드 결정표를 포함한 파이프라인 전체는 [04_megastructure_voxel_pipeline.md](skills/hybrid-voxel-sprite/references/04_megastructure_voxel_pipeline.md)에 있습니다.
 
 </details>
 
@@ -218,7 +241,11 @@ node scripts/mega_diff_utils.mjs hull --ref side.png --render side_render.png --
 </details>
 
 <details>
-<summary><b>버전 히스토리 하이라이트</b> (v2.3 · v2.2 · v2.0 · v1.1)</summary>
+<summary><b>버전 히스토리 하이라이트</b> (v2.4 · v2.3 · v2.2 · v2.0 · v1.1)</summary>
+
+**v2.4.0 · 2026-11-28.** Track B 모드 선택(기본값 B1 오프라인 3-뷰 헐, 선택형 B2 3D 메시 입력), 교체 가능한 모델 공급자
+(`local`, `command`, `manual`, 선택형 `tripo`, `registerProvider`), 다중 파트 분할과 통합 AO 1회 굽기를 갖춘 메시→복셀 변환,
+구조 인식 잉크, 클리핑 없는 발광, 앵커 wave, 메시 자체 테스트 `32/32`.
 
 **v2.3.0 · 2026-11-28 · 체크포인트.** `svox.mega/v2.3` `quad16` 인스턴스 쿼드(쿼드당 16 B, 인덱스 버퍼 없음, 65,535 정점 상한 없음),
 `MEGA_V23_BUDGET`(12 MiB · 드로우 16 · 삼각형 1.2M · Δ 2.5 ms), 확장 가능한 `MATERIAL_PRESETS`, `generic_megastructure`
@@ -256,11 +283,13 @@ hybrid-voxel-sprite/
 │   ├── index.html · changelog.html · styles.css · site.js
 │   ├── demo/                     # T3 렌더러, SPRITE STACK 셰이더, 모션 플러그인, SVOX 번들 4종, 내장 three.js
 │   └── assets/                   # 배너 · showcase_loop.gif · modes_compare · CTA 버튼 · 엔진 아이콘
-│       └── v23/                  # v2.3 콘셉트 → 실시간 WebGL2 2×2 시트 (1600×900 JPEG)
+│       ├── v23/                  # v2.3 콘셉트 → 실시간 WebGL2 2×2 시트 (1600×900 JPEG)
+│       └── v24/                  # v2.4 메시 기반 예시 + 구조 인식 잉크 비교 (JPEG)
 ├── skills/hybrid-voxel-sprite/   # ← 스킬 본체 (이 폴더만 설치하면 됨)
 │   ├── SKILL.md                  # 개요 · 라우팅 · 워크플로 · CLI · 주요 함정 · QA 게이트 G1–G6
 │   ├── scripts/svox_cli.py       # 표준 라이브러리 SVOX 파이프라인 CLI
 │   ├── scripts/mega_*.mjs        # 의존성 없는 메가스트럭처 키트 (mega_voxel_kit · mega_diff_utils · test_mega_kit)
+│   ├── scripts/mesh_*.mjs        # 모드 B2: mesh_source (모델 공급자) · mesh_to_voxel · test_mesh_harness
 │   ├── references/               # 01 계약·수학 · 02 셰이더 파이프라인 · 03 함정·게이트 · 04 메가스트럭처 · targets/
 │   └── assets/minimal_reference/ # 3-파츠 레퍼런스 리그 + sample_cube.vox
 ├── tests/                        # CLI · 베이크 패리티 · validate · pack-atlas · 문서/링크 검사
@@ -270,6 +299,7 @@ hybrid-voxel-sprite/
 ```bash
 SKIP_WEBGL=1 python tests/test_skill_svox.py               # 독립 저장소: 26 통과 · 0 실패 · 4 스킵 (원본 저장소 전용 하네스)
 node skills/hybrid-voxel-sprite/scripts/test_mega_kit.mjs    # 메가스트럭처 키트: 78/78 통과 (임시 파일은 os.tmpdir()에만)
+node skills/hybrid-voxel-sprite/scripts/test_mesh_harness.mjs   # 모드 B2 메시 도구: 32/32 통과 (네트워크 호출 0)
 ```
 
 - 노멀/AO 베이크는 원본 JS 코어(`computeNormalAndAO`)와 바이트 단위로 같습니다. 테스트는 기록된 sha256과 비교하고, `SVOX_JS_CORE=<voxel_builder.js>`를 지정하면 Node로 실시간 비교합니다.

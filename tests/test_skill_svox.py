@@ -55,6 +55,8 @@ EXPECTED_FILES = [
     # Track B: megastructures and large vessels
     "references/04_megastructure_voxel_pipeline.md",
     "scripts/mega_voxel_kit.mjs", "scripts/mega_diff_utils.mjs", "scripts/test_mega_kit.mjs",
+    # Track B Mode B2: opt-in 3D mesh input (pluggable model providers + mesh-to-voxel)
+    "scripts/mesh_source.mjs", "scripts/mesh_to_voxel.mjs", "scripts/test_mesh_harness.mjs",
     "assets/minimal_reference/rig.json", "assets/minimal_reference/sample_cube.vox",
     "assets/minimal_reference/parts/torso.albedo.png", "assets/minimal_reference/parts/torso.normal_ao.png",
     "assets/minimal_reference/parts/arm_blade.albedo.png", "assets/minimal_reference/parts/arm_blade.normal_ao.png",
@@ -62,14 +64,15 @@ EXPECTED_FILES = [
 ]
 EXPECTED_DESCRIPTION = (
     "Build real-time voxel renderers for 3D pixel-art games, on two tracks. Track A, articulated voxel sprites "
-    "(characters, creatures, vehicles): modular voxel parts raymarched per part inside oriented boxes, analytic "
+    "(characters, creatures, vehicles): voxel parts raymarched per part inside oriented boxes, analytic "
     "squash/twist/shear/wave deformation, spring secondary motion, cel lighting with AO and self-shadow, "
-    "pixel-perfect virtual-grid snapping and 1px outlines, plus an engine-neutral SVOX asset CLI (.vox and "
-    "slice-strip import, normal/AO baking, rig validation) and adapters for WebGL2/Three.js, Godot 4, Unity URP and "
-    "Blender. Track B, megastructures and large vessels (~500-1500 units): 3-view visual-hull carving, detail-zone "
-    "callouts, multi-scale greedy meshes (16-byte quad16 macro quads, instanced packed20 meso prefabs, procedural "
-    "micro shader), dual-scale AO, a 12 MiB budget, and concept-diff and performance gates, via zero-dependency "
-    "Node scripts.")
+    "pixel-snapped 1px outlines, an engine-neutral SVOX asset CLI and adapters for WebGL2/Three.js, Godot 4, "
+    "Unity URP and Blender. Track B, megastructures and large vessels (~500-1500 units), in two modes the user "
+    "picks: B1 (default, fully offline) 3-view visual-hull carving plus detail zones, or B2 (opt-in) voxelizing a"
+    " 3D .glb/.gltf mesh from a pluggable source (local file, any custom command, manual web-UI hand-off, "
+    "optional API adapter) with multi-part splits. Both feed multi-scale greedy meshes (16-byte quad16 macro "
+    "quads, instanced packed20 prefabs, micro shader), dual-scale AO, structure-aware ink, a 12 MiB budget, and "
+    "concept-diff and performance gates, via zero-dependency Node scripts.")
 
 
 def run_cli(*args, expect=0):
@@ -648,7 +651,9 @@ class T08_SkillDocs(unittest.TestCase):
                        "godot4.md", "unity_urp.md", "blender_exporter.md", "from-vox", "from-strip", "bake-normal-ao", "validate",
                        "pack-atlas", "init-demo", "uv run", "python scripts/svox_cli.py",
                        "04_megastructure_voxel_pipeline.md", "mega_voxel_kit.mjs", "mega_diff_utils.mjs", "test_mega_kit.mjs",
-                       "quad16", "packed20", "MEGA_V23_BUDGET", "78/78", "Track A", "Track B"):
+                       "quad16", "packed20", "MEGA_V23_BUDGET", "78/78", "Track A", "Track B",
+                       "Mode B1", "Mode B2", "mesh_source.mjs", "mesh_to_voxel.mjs", "test_mesh_harness.mjs", "32/32",
+                       "registerProvider", "list-providers"):
             self.assertIn(needle, text)
 
     def test_all_relative_links_resolve(self):

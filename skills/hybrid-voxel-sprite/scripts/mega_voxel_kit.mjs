@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// mega_voxel_kit.mjs — hybrid-voxel-sprite v2.3 · Megastructure / Capital Ship multi-scale voxel kit.
+// mega_voxel_kit.mjs — hybrid-voxel-sprite v2.3 · Megastructure multi-scale voxel kit.
 //
 // Pure Node ES module, ZERO npm dependencies (node:fs / node:path / node:crypto + ./mega_diff_utils.mjs). Node >= 18.
 // Engine-neutral; the output loads straight into WebGL2 / Three.js (or any engine) as typed-array views over one .bin.
@@ -93,12 +93,12 @@ export const MEGA_V22_LAYOUT = Object.freeze({
 });
 /**
  * Legacy 11-float layout (44 B / vertex, format 'FLOAT11'): floats 0–9 as MEGA_V2, float 10 = microAo · macroCavityAo, so
- * an existing 11-float capital shader with no meta attribute still renders the cavity depth with no shader edit.
+ * an existing 11-float megastructure shader with no meta attribute still renders the cavity depth with no shader edit.
  */
 export const FLOAT11_LAYOUT = Object.freeze({
   name: 'FLOAT11', floats: 11, stride: 44, index: 'uint32',
   attributes: { position: [0, 3], normal: [3, 3], color: [6, 3], emissive: [9, 1], ao: [10, 1] },
-  ao: 'microAo * macroCavityAo (folded so an unchanged 11-float capital shader gets the cavity depth)',
+  ao: 'microAo * macroCavityAo (folded so an unchanged 11-float megastructure shader gets the cavity depth)',
 });
 /** Back-compat: the 11-float layout's original format token. Callers and assets that use it keep working unchanged. */
 const LEGACY_FLOAT11_FORMAT = 'V12';
@@ -142,7 +142,7 @@ export const QUAD16_LAYOUT = Object.freeze({
 });
 
 /**
- * v2.3 hero-capital budget: 12 MiB .bin, ≤ 16 draws, ≤ 1.2 M triangles, runtime Δ ≤ 2.5 ms. With quad16 (5.75× smaller than
+ * v2.3 hero-asset budget: 12 MiB .bin, ≤ 16 draws, ≤ 1.2 M triangles, runtime Δ ≤ 2.5 ms. With quad16 (5.75× smaller than
  * v2.2's 92 B / quad) the same bytes carry ~15× the curved voxel detail of the v2.2 4 MiB budget.
  */
 export const MEGA_V23_BUDGET = Object.freeze({
@@ -155,7 +155,7 @@ export const MEGA_V23_BUDGET = Object.freeze({
  * Material profiles. `matTag` is a 4-bit (0..15) per-voxel material CHANNEL: the kit only stores it (palette entry or
  * `flags & MAT_MASK`) and packs it (MEGA_V2 meta, packed20 aMeta2Q.x, quad16 aQMeta.w low nibble). What a tag looks like
  * is decided by your lookdev shader, so a project maps 0..15 onto its own legend. These presets document the legend the
- * reference capital shader implements; `index` is the value its per-asset profile uniform expects (3 = any other profile).
+ * reference megastructure shader implements; `index` is the value its per-asset profile uniform expects (3 = any other profile).
  * Tags 9..15 are unassigned in every preset — use them for your own materials.
  * Pass `materialProfile: '<preset>' | { id, tags { n: name }, index?, uniforms? }` to packMegaAsset.
  */
@@ -690,7 +690,7 @@ export function validateDetailZones(doc, { hullBounds = null } = {}) {
     else if (!CAMERA_VIEWS.includes(z.cameraView)) warnings.push(`${tag}: non-standard cameraView '${z.cameraView}'`);
     if (typeof z.calloutImage !== 'string' || !z.calloutImage) errors.push(`${tag}: calloutImage path required`);
     if (typeof z.targetVoxelScale !== 'number' || !(z.targetVoxelScale > 0)) errors.push(`${tag}: targetVoxelScale must be > 0`);
-    else if (z.targetVoxelScale < 0.8 || z.targetVoxelScale > 4.0) warnings.push(`${tag}: targetVoxelScale ${z.targetVoxelScale} outside the 0.8–4.0 u/vox capital range`);
+    else if (z.targetVoxelScale < 0.8 || z.targetVoxelScale > 4.0) warnings.push(`${tag}: targetVoxelScale ${z.targetVoxelScale} outside the 0.8–4.0 u/vox megastructure range`);
     if (!Array.isArray(z.requiredFeatures) || !z.requiredFeatures.length || !z.requiredFeatures.every((f) => typeof f === 'string' && f.trim())) errors.push(`${tag}: requiredFeatures[] must be a non-empty string list`);
     if (z.kind === 'occluded_cavity' && !(Array.isArray(z.carve) && z.carve.length)) warnings.push(`${tag}: occluded_cavity without carve[] — the visual hull cannot recover it; add CSG subtractions`);
     if (z.carve !== undefined) {
@@ -839,7 +839,7 @@ export function bakeMacroCavityAO(grid, opts = {}) {
 const AXES = [[0, 1, 2], [1, 2, 0], [2, 0, 1]];   // d, u, v with e_u × e_v = e_d (cyclic) — as in the verified reference mesher
 
 /**
- * AO-preserving greedy mesher (port of the verified reference WebGL2 / Three.js capital-ship mesher, extended for v2.0).
+ * AO-preserving greedy mesher (port of the verified reference WebGL2 / Three.js megastructure mesher, extended for v2.0).
  * Cells merge only when (palette, 4 micro-AO corners, macro-AO level, matTag) are identical AND the micro AO does not
  * vary along the merge direction → merged quads reproduce per-voxel silhouette + interpolated AO exactly. The quad
  * diagonal flips when ao00 + ao11 < ao10 + ao01. Vertices are de-duplicated exactly.
@@ -1325,8 +1325,8 @@ export function packMegaAsset(manifest, macroParts = [], mesoPrefabs = [], insta
   const fmtIn = manifest.format || 'MEGA_V2';
   if (fmtIn !== 'MEGA_V2' && !isFloat11(fmtIn) && fmtIn !== 'MEGA_V22' && fmtIn !== 'MEGA_V23') throw new Error(`packMegaAsset: format must be MEGA_V2 | FLOAT11 | MEGA_V22 | MEGA_V23 (got ${fmtIn})`);
   // v2.3: macro parts → quad16 (16 B / quad, greedyQuad16Part); meso prefabs keep packed20 (MEGA_V22 mesher + codec)
-  const V23 = fmtIn === 'MEGA_V23';
-  const format = V23 ? 'MEGA_V22' : fmtIn;
+  const isQuad16 = fmtIn === 'MEGA_V23';
+  const format = isQuad16 ? 'MEGA_V22' : fmtIn;
   const FL = isFloat11(format) ? 11 : 12;
   const Q = format === 'MEGA_V22';
   const chunks = [];
@@ -1345,7 +1345,7 @@ export function packMegaAsset(manifest, macroParts = [], mesoPrefabs = [], insta
   const partsJson = macroParts.map((p) => {
     if (!p.name || names.has(p.name)) throw new Error(`packMegaAsset: macro part name missing or duplicate (${p.name})`);
     names.add(p.name);
-    if (V23) return packQuad16Part(p);
+    if (isQuad16) return packQuad16Part(p);
     let mesh = p.mesh, ao = null;
     if (!mesh) {
       if (!(p.grid instanceof VoxelGrid)) throw new Error(`packMegaAsset: macro part ${p.name} needs grid or mesh`);
@@ -1442,14 +1442,14 @@ export function packMegaAsset(manifest, macroParts = [], mesoPrefabs = [], insta
     uniqueTriangles: st.macroTriangles + st.mesoUniqueTriangles, totalTriangles: st.macroTriangles + st.instancedTriangles,
     macroDrawCalls: partsJson.length, mesoBatches, drawCalls: partsJson.length + mesoBatches,
     instanceCount: insts.length, prefabCount: prefabsJson.length, binBytes: bin.length,
-    ...(V23 ? { macroQuads: st.macroQuads, macroQuadBytes: st.macroQuads * 16, quadStrideBytes: 16 } : {}),
+    ...(isQuad16 ? { macroQuads: st.macroQuads, macroQuadBytes: st.macroQuads * 16, quadStrideBytes: 16 } : {}),
   };
   const json = {
-    schema: V23 ? MEGA_V23_SCHEMA : Q ? MEGA_V22_SCHEMA : MEGA_SCHEMA, kitVersion: KIT_VERSION, id: manifest.id, name: manifest.name || manifest.id,
+    schema: isQuad16 ? MEGA_V23_SCHEMA : Q ? MEGA_V22_SCHEMA : MEGA_SCHEMA, kitVersion: KIT_VERSION, id: manifest.id, name: manifest.name || manifest.id,
     faction: manifest.faction || null, archetype: manifest.archetype || null,
     ...(materialProfile ? { materialProfile } : {}), ...(manifest.styleTag !== undefined && manifest.styleTag !== null ? { styleTag: String(manifest.styleTag) } : {}),
     vertexLayout: format === 'FLOAT11' ? FLOAT11_LAYOUT : isFloat11(format) ? V12_LAYOUT : Q ? MEGA_V22_LAYOUT : MEGA_V2_LAYOUT,
-    ...(V23 ? { vertexFormat: 'quad16+packed20', macroFormat: 'quad16', mesoFormat: 'packed20', quadStrideBytes: 16, vertexStrideBytes: 20, quadLayout: QUAD16_LAYOUT }
+    ...(isQuad16 ? { vertexFormat: 'quad16+packed20', macroFormat: 'quad16', mesoFormat: 'packed20', quadStrideBytes: 16, vertexStrideBytes: 20, quadLayout: QUAD16_LAYOUT }
       : Q ? { vertexFormat: 'packed20', vertexStrideBytes: 20 } : {}),
     instanceLayout: { matrix: 'Float32 mat4 column-major (64 B)', color: 'Float32 rgb (12 B)' },
     units: 'u', axes: '+X starboard, +Y bow, +Z dorsal',
@@ -1460,7 +1460,7 @@ export function packMegaAsset(manifest, macroParts = [], mesoPrefabs = [], insta
     detailZones: zones,
     palette: pal.toJSON(),
     stats,
-    budget: checkPerfBudget(stats, V23 ? { ...MEGA_V23_BUDGET, ...(manifest.budget || {}) } : Q ? { ...MEGA_V22_BUDGET, ...(manifest.budget || {}) } : manifest.budget),
+    budget: checkPerfBudget(stats, isQuad16 ? { ...MEGA_V23_BUDGET, ...(manifest.budget || {}) } : Q ? { ...MEGA_V22_BUDGET, ...(manifest.budget || {}) } : manifest.budget),
     ...(manifest.meta ? { meta: manifest.meta } : {}),
   };
   return { json, bin, stats };
@@ -1486,8 +1486,8 @@ export function writeMegaAsset(outBase, packed) {
 export function readMegaAsset(jsonPath) {
   const json = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
   if (json.schema !== MEGA_SCHEMA && json.schema !== MEGA_V22_SCHEMA && json.schema !== MEGA_V23_SCHEMA) throw new Error(`readMegaAsset: schema ${json.schema} is not ${MEGA_SCHEMA} | ${MEGA_V22_SCHEMA} | ${MEGA_V23_SCHEMA}`);
-  const V23 = json.schema === MEGA_V23_SCHEMA;
-  const Q = json.schema === MEGA_V22_SCHEMA || V23;   // v2.3 prefabs are packed20
+  const isQuad16 = json.schema === MEGA_V23_SCHEMA;
+  const Q = json.schema === MEGA_V22_SCHEMA || isQuad16;   // v2.3 prefabs are packed20
   const binBuf = fs.readFileSync(jsonPath.replace(/\.json$/i, '.bin'));
   const ab = binBuf.buffer.slice(binBuf.byteOffset, binBuf.byteOffset + binBuf.byteLength);
   const f32 = (o, n) => new Float32Array(ab, o, n);
@@ -1507,7 +1507,7 @@ export function readMegaAsset(jsonPath) {
     return { meta: p, verts: m.verts, extra: m.extra, idx: m.idx, quads, vertexCount: m.vertexCount };
   };
   return {
-    json, bytes: binBuf.length, floats: FL, quantized: Q, ...(V23 ? { quad16: true } : {}),
+    json, bytes: binBuf.length, floats: FL, quantized: Q, ...(isQuad16 ? { quad16: true } : {}),
     part: (name) => { const p = json.macro.parts.find((q) => q.name === name); if (!p) throw new Error(`no part ${name}`); if (p.vertexFormat === 'quad16') return quadPart(p); return { meta: p, ...vtx(p), idx: u32(p.indexOffset, p.indexCount, p.indexType) }; },
     prefab: (id) => {
       const p = json.meso.prefabs.find((q) => q.id === id); if (!p) throw new Error(`no prefab ${id}`);
@@ -1713,7 +1713,7 @@ function cli(argv) {
     if (typeof a.name === 'string') { if (!/^[a-z0-9_-]+$/i.test(a.name)) throw new Error('demo: --name must match [a-z0-9_-]+'); d.manifest.id = a.name; }
     const packed = packMegaAsset(d.manifest, d.macroParts, d.mesoPrefabs, d.instances);
     const w = writeMegaAsset(path.join(out, typeof a.name === 'string' ? a.name : 'demo_carrier'), packed);
-    if (!a['asset-only']) {   // --asset-only: just <name>.json + <name>.bin (e.g. straight into public_svox/capitals)
+    if (!a['asset-only']) {   // --asset-only: just <name>.json + <name>.bin (e.g. straight into an engine asset folder)
       fs.writeFileSync(path.join(out, 'detail_zones.json'), JSON.stringify(d.zonesDoc, null, 1) + '\n');
       const sil = projectSilhouettes(d.grid);
       for (const v of ['top', 'side', 'front']) writePNG(path.join(out, `silhouette_${v}.png`), maskToImage(sil[v], { fg: [255, 255, 255, 255], bg: [0, 0, 0, 0] }));

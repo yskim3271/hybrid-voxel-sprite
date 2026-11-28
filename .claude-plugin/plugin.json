@@ -1,10 +1,10 @@
 {
   "name": "hybrid-voxel-sprite",
-  "version": "2.3.0",
-  "description": "Agent skill for real-time 3D voxel renderers on two tracks: Track A articulated sprites (T3 OBB raymarching, analytic inverse deform, SVOX CLI, 4 verified engine adapters) and Track B large-scale megastructures (~500-1500 u: quad16 16 B/quad instanced macro, packed20 meso prefabs, 12 MiB budget, extensible material presets, Multi-Cue & Hull-Only G5 and G6 gates, zero-dependency Node kit 78/78).",
+  "version": "2.4.0",
+  "description": "Agent skill for real-time 3D voxel renderers on two tracks: Track A articulated sprites (T3 OBB raymarching, analytic inverse deform, SVOX CLI, 4 verified engine adapters) and Track B large-scale megastructures (~500-1500 u) in two user-selected modes: B1 offline 3-view visual hull (default) or B2 opt-in 3D .glb/.gltf mesh-to-voxel with pluggable model providers (local, command, manual, optional API adapter) and multi-part splits with one unified AO. quad16 16 B/quad macro, packed20 meso prefabs, structure-aware ink, 12 MiB budget, Multi-Cue & Hull-Only G5 and G6 gates, zero-dependency Node kit (78/78 + 32/32).",
   "author": { "name": "Yunsik Kim", "url": "https://github.com/yskim3271" },
   "homepage": "https://yskim3271.github.io/hybrid-voxel-sprite/",
   "repository": "https://github.com/yskim3271/hybrid-voxel-sprite",
   "license": "MIT",
-  "keywords": ["voxel", "sprite-stacking", "pixel-art", "raymarching", "webgl2", "threejs", "godot", "unity", "blender", "skill", "megastructure", "greedy-mesh"]
+  "keywords": ["voxel", "sprite-stacking", "pixel-art", "raymarching", "webgl2", "threejs", "godot", "unity", "blender", "skill", "megastructure", "greedy-mesh", "gltf", "mesh-to-voxel"]
 }

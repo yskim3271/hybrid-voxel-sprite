@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Changelog — hybrid-voxel-sprite</title>
-  <meta name="description" content="Version history of the hybrid-voxel-sprite agent skill: v2.3.0 megastructure quad16 and generic abstractions; v2.2.0 packed20 and Multi-Cue G5; v2.0.0 Megastructure track; v1.1.0 live SPRITE STACK, Perspective 3D world and interactive demo; v1.0.0 core T3 renderer, SVOX CLI and 4 engine adapters.">
+  <meta name="description" content="Version history of the hybrid-voxel-sprite agent skill: v2.4.0 opt-in 3D mesh input, pluggable model providers and structure-aware shaders; v2.3.0 megastructure quad16 and generic abstractions; v2.2.0 packed20 and Multi-Cue G5; v2.0.0 Megastructure track; v1.1.0 live SPRITE STACK, Perspective 3D world and interactive demo; v1.0.0 core T3 renderer, SVOX CLI and 4 engine adapters.">
   <meta name="theme-color" content="#080a0e">
   <meta property="og:url" content="https://yskim3271.github.io/hybrid-voxel-sprite/changelog.html">
   <meta property="og:title" content="hybrid-voxel-sprite — Changelog">
@@ -32,7 +32,7 @@
         <a class="back" href="./#demo" data-keep-lang data-i18n="nav.back">← Back to Demo</a>
         <a href="./#engines" data-keep-lang data-i18n="nav.engines">Engines</a>
         <a href="./#install" data-keep-lang data-i18n="nav.install">Install</a>
-        <a class="mono ver active" href="changelog.html" data-keep-lang aria-current="page">v2.3 <span class="new">New</span></a>
+        <a class="mono ver active" href="changelog.html" data-keep-lang aria-current="page">v2.4 <span class="new">New</span></a>
         <a href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/SKILL.md" data-i18n="nav.docs">Docs</a>
       </nav>
       <div class="top-actions">
@@ -56,12 +56,85 @@
     </section>
 
     <div class="timeline">
+      <!-- ============================================================ v2.4.0 -->
+      <article class="rel latest" id="v2.4.0">
+        <div class="rel-meta">
+          <span class="rel-ver">v2.4.0</span>
+          <span class="rel-date">2026-11-28</span>
+          <span class="rel-badge" data-i18n="log.latest">Latest</span>
+        </div>
+        <div class="rel-body">
+          <h2 data-i18n="v24.t">Opt-in 3D mesh input, pluggable model providers &amp; structure-aware shaders</h2>
+          <p data-i18n-html="v24.d">Track B now offers two modes you choose: the default fully offline 3-view visual hull (<b>Mode B1</b>), or an opt-in 3D <code>.glb</code> / <code>.gltf</code> mesh (<b>Mode B2</b>) for organic, ornate and deeply sculpted forms — from any model source you prefer.</p>
+
+          <div class="rel-group">
+            <h3 data-i18n="g.mesh">3D mesh input &amp; provider abstraction</h3>
+            <ul>
+              <li data-i18n-html="v24.1">Explicit Track B mode choice: <b>B1</b> (default, 100% offline, no external 3D tool or key) or <b>B2</b> (opt-in 3D mesh) — the skill asks instead of assuming 3D input</li>
+              <li data-i18n-html="v24.2">Pluggable model sources in <code>mesh_source.mjs</code>: <code>local</code> file (default), <code>command</code> (any CLI or local open-source model, run without a shell), <code>manual</code> web-UI / DCC hand-off, an optional <code>tripo</code> API adapter, and <code>registerProvider()</code> for anything else — validated, SHA-256 cached, secrets redacted</li>
+              <li data-i18n-html="v24.3"><code>mesh_to_voxel.mjs</code>: CPU 6-view alignment sheets, conservative voxelization, solidify, symmetry, palette &amp; emissive rules, detail-zone carves and multi-part splits with <b>one unified AO bake</b> and auto-anchored waves</li>
+            </ul>
+          </div>
+
+          <div class="rel-group">
+            <h3 data-i18n="g.shaders">Rendering &amp; shaders</h3>
+            <ul>
+              <li data-i18n-html="v24.4">Structure-aware ink (<code>capSoftInk</code>): curved forms lose the black 1-voxel stair lines but keep a crisp 1&nbsp;px silhouette and real creases; hard-surface assets change by <code>0 px</code></li>
+              <li data-i18n-html="v24.5">Non-clipping, form-preserving emissives; velvet carapace and warm-bone shadow ramps; anchored wave modes (<code>'box'</code> / <code>'ellipsoid'</code>) with <code>0 px</code> root seam drift — Early-Z intact</li>
+            </ul>
+          </div>
+
+          <div class="rel-group">
+            <h3 data-i18n="g.verify">Verification</h3>
+            <ul>
+              <li data-i18n-html="v24.6">New <code>test_mesh_harness.mjs</code> <code>32/32</code> on a synthetic <code>.glb</code> with 0 network calls · kit <code>78/78</code> · Python suite 26 passed, 0 failed · byte-identical skill mirror</li>
+            </ul>
+          </div>
+
+          <div class="rel-group">
+            <h3 data-i18n="g.gallery">Examples · Concept reference → real-time WebGL2</h3>
+            <div class="shots">
+              <figure class="shot">
+                <a href="assets/v24/hard_surface_carrier_v24.jpg" target="_blank" rel="noopener">
+                  <img src="assets/v24/hard_surface_carrier_v24.jpg" width="1600" height="900" loading="lazy" alt="Hard-surface carrier built from a 3D mesh: concept art next to three real-time WebGL2 renders">
+                </a>
+                <figcaption><b data-i18n="v24.c1">Hard-surface carrier · mesh-built</b><span class="mono">662k tris · 8.74 MiB · 8 draws · 31 instances</span></figcaption>
+              </figure>
+              <figure class="shot">
+                <a href="assets/v24/ornate_ringed_vessel_v24.jpg" target="_blank" rel="noopener">
+                  <img src="assets/v24/ornate_ringed_vessel_v24.jpg" width="1600" height="900" loading="lazy" alt="Ornate ringed vessel built from a 3D mesh: concept art next to three real-time WebGL2 renders">
+                </a>
+                <figcaption><b data-i18n="v24.c2">Ornate ringed vessel · spinning ring + core</b><span class="mono">908k tris · 6.93 MiB · 3 draws · 1 shared AO</span></figcaption>
+              </figure>
+              <figure class="shot">
+                <a href="assets/v24/organic_leviathan_v24.jpg" target="_blank" rel="noopener">
+                  <img src="assets/v24/organic_leviathan_v24.jpg" width="1600" height="900" loading="lazy" alt="Organic tentacled leviathan built from a 3D mesh: concept art next to three real-time WebGL2 renders">
+                </a>
+                <figcaption><b data-i18n="v24.c3">Organic leviathan · anchored wave tentacles</b><span class="mono">1.13M tris · 8.61 MiB · 2 draws</span></figcaption>
+              </figure>
+              <figure class="shot">
+                <a href="assets/v24/structure_aware_ink_v24.jpg" target="_blank" rel="noopener">
+                  <img src="assets/v24/structure_aware_ink_v24.jpg" width="1600" height="930" loading="lazy" alt="Structure-aware ink before and after on curved rings, and zero change on a hard-surface structure">
+                </a>
+                <figcaption><b data-i18n="v24.c4">Structure-aware ink · before → after</b><span class="mono">curved 0.82 · hard surface 0.90 · 0 px regression</span></figcaption>
+              </figure>
+            </div>
+            <p class="shots-hint" data-i18n="v24.hint">Panel 01 is the 2D concept art; panels 02–04 are live WebGL2 frames of assets built through Mode B2. The last sheet compares the same assets and cameras before and after the shader update. Click any sheet for full resolution.</p>
+          </div>
+
+          <div class="rel-links">
+            <a href="https://github.com/yskim3271/hybrid-voxel-sprite/releases/tag/v2.4.0" data-i18n="log.notes">GitHub release notes</a>
+            <a href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/SKILL.md" data-i18n="log.skill">Read SKILL.md</a>
+            <a href="https://github.com/yskim3271/hybrid-voxel-sprite/blob/main/skills/hybrid-voxel-sprite/references/04_megastructure_voxel_pipeline.md#track-b-mode-decision-table" data-i18n="log.ref04b2">Track B modes &amp; mesh input (04)</a>
+          </div>
+        </div>
+      </article>
+
       <!-- ============================================================ v2.3.0 -->
-      <article class="rel latest" id="v2.3.0">
+      <article class="rel" id="v2.3.0">
         <div class="rel-meta">
           <span class="rel-ver">v2.3.0</span>
           <span class="rel-date">2026-11-28</span>
-          <span class="rel-badge" data-i18n="log.latest">Latest</span>
           <span class="rel-badge ck" data-i18n="log.checkpoint">Checkpoint</span>
         </div>
         <div class="rel-body">
@@ -90,26 +163,26 @@
             <h3 data-i18n="g.gallery">Examples · Concept reference → real-time WebGL2</h3>
             <div class="shots">
               <figure class="shot">
-                <a href="assets/v23/vanguard_t2_showcase_2x2.jpg" target="_blank" rel="noopener">
-                  <img src="assets/v23/vanguard_t2_showcase_2x2.jpg" width="1600" height="900" loading="lazy" alt="Hard-surface carrier example: concept art next to three real-time WebGL2 renders">
+                <a href="assets/v23/hard_surface_showcase_2x2.jpg" target="_blank" rel="noopener">
+                  <img src="assets/v23/hard_surface_showcase_2x2.jpg" width="1600" height="900" loading="lazy" alt="Hard-surface carrier example: concept art next to three real-time WebGL2 renders">
                 </a>
                 <figcaption><b data-i18n="v23.c1">Hard-surface megastructure</b><span class="mono">410k tris · 8.93 MiB · 10 draws · 16-lvl AO</span></figcaption>
               </figure>
               <figure class="shot">
-                <a href="assets/v23/vanguard_t2_breakdown_2x2.jpg" target="_blank" rel="noopener">
-                  <img src="assets/v23/vanguard_t2_breakdown_2x2.jpg" width="1600" height="900" loading="lazy" alt="Geometry and lookdev breakdown: clay with 1px ink crease, macro / meso split, bridge and engines">
+                <a href="assets/v23/hard_surface_breakdown_2x2.jpg" target="_blank" rel="noopener">
+                  <img src="assets/v23/hard_surface_breakdown_2x2.jpg" width="1600" height="900" loading="lazy" alt="Geometry and lookdev breakdown: clay with 1px ink crease, macro / meso split, bridge and engines">
                 </a>
                 <figcaption><b data-i18n="v23.c2">Geometry &amp; lookdev breakdown</b><span class="mono">quad16 macro (1 draw) + packed20 meso (9 draws)</span></figcaption>
               </figure>
               <figure class="shot">
-                <a href="assets/v23/aether_p2_showcase_2x2.jpg" target="_blank" rel="noopener">
-                  <img src="assets/v23/aether_p2_showcase_2x2.jpg" width="1600" height="900" loading="lazy" alt="Ornate ringed vessel example: concept art next to real-time WebGL2 renders">
+                <a href="assets/v23/ornate_ringed_showcase_2x2.jpg" target="_blank" rel="noopener">
+                  <img src="assets/v23/ornate_ringed_showcase_2x2.jpg" width="1600" height="900" loading="lazy" alt="Ornate ringed vessel example: concept art next to real-time WebGL2 renders">
                 </a>
                 <figcaption><b data-i18n="v23.c3">Ornate ringed vessel</b><span class="mono">802k tris · 6.02 MiB · 9 draws · 0.3 ms CPU</span></figcaption>
               </figure>
               <figure class="shot">
-                <a href="assets/v23/swarm_z2_showcase_2x2.jpg" target="_blank" rel="noopener">
-                  <img src="assets/v23/swarm_z2_showcase_2x2.jpg" width="1600" height="900" loading="lazy" alt="Organic tentacled leviathan example: concept art next to real-time WebGL2 renders">
+                <a href="assets/v23/organic_tentacled_showcase_2x2.jpg" target="_blank" rel="noopener">
+                  <img src="assets/v23/organic_tentacled_showcase_2x2.jpg" width="1600" height="900" loading="lazy" alt="Organic tentacled leviathan example: concept art next to real-time WebGL2 renders">
                 </a>
                 <figcaption><b data-i18n="v23.c4">Organic tentacled leviathan</b><span class="mono">1.11M tris · 8.03 MiB · 5 draws · Hull IoU 0.88–0.93</span></figcaption>
               </figure>

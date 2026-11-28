@@ -2,24 +2,25 @@
 name: hybrid-voxel-sprite
 description: >-
   Build real-time voxel renderers for 3D pixel-art games, on two tracks. Track A,
-  articulated voxel sprites (characters, creatures, vehicles): modular voxel parts
+  articulated voxel sprites (characters, creatures, vehicles): voxel parts
   raymarched per part inside oriented boxes, analytic squash/twist/shear/wave
   deformation, spring secondary motion, cel lighting with AO and self-shadow,
-  pixel-perfect virtual-grid snapping and 1px outlines, plus an engine-neutral
-  SVOX asset CLI (.vox and slice-strip import, normal/AO baking, rig validation)
-  and adapters for WebGL2/Three.js, Godot 4, Unity URP and Blender. Track B,
-  megastructures and large vessels (~500-1500 units): 3-view visual-hull carving,
-  detail-zone callouts, multi-scale greedy meshes (16-byte quad16 macro quads,
-  instanced packed20 meso prefabs, procedural micro shader), dual-scale AO, a
-  12 MiB budget, and concept-diff and performance gates, via zero-dependency Node
-  scripts.
+  pixel-snapped 1px outlines, an engine-neutral SVOX asset CLI and adapters for
+  WebGL2/Three.js, Godot 4, Unity URP and Blender. Track B, megastructures and large
+  vessels (~500-1500 units), in two modes the user picks: B1 (default, fully
+  offline) 3-view visual-hull carving plus detail zones, or B2 (opt-in) voxelizing a
+  3D .glb/.gltf mesh from a pluggable source (local file, any custom command, manual
+  web-UI hand-off, optional API adapter) with multi-part splits. Both feed
+  multi-scale greedy meshes (16-byte quad16 macro quads, instanced packed20 prefabs,
+  micro shader), dual-scale AO, structure-aware ink, a 12 MiB budget, and
+  concept-diff and performance gates, via zero-dependency Node scripts.
 ---
 
 # Hybrid Voxel Sprite
 
 Render voxel art in real time so that it reads as crisp 3D pixel art. The skill has two tracks that share the same
 look (cel lighting, baked AO, 1 px ink outlines) but use different rendering techniques, because a 60-voxel character
-and a 1000-unit capital ship have opposite problems.
+and a 1000-unit structure have opposite problems.
 
 ## 1. Which track should you use?
 
@@ -27,7 +28,7 @@ and a 1000-unit capital ship have opposite problems.
 |---|---|---|
 | **Build this** | Characters, creatures, vehicles, small craft: anything that moves like a body. 10–15 parts of 40–96 voxels each | Static or slowly animated structures of ~500–1500 u: carriers, temple vessels, leviathans, fortresses, stations, landmarks |
 | **How it renders** | Per-part OBB raymarching of 3D voxel textures + analytic inverse deformation + damped springs, into a low-res "virtual pixel" G-buffer with a 1 px outline | Multi-scale greedy meshes with hardware depth: `quad16` macro hull (16 B/quad, 1 instanced draw per part) + instanced `packed20` meso prefabs + a procedural micro-detail shader |
-| **Asset workflow** | 3-view turnaround → MagicaVoxel / slice strips / Blender → `scripts/svox_cli.py` | Concept + 3-view blueprints → visual hull + `detail_zones.json` → 4-pass sculpt → `scripts/mega_voxel_kit.mjs` |
+| **Asset workflow** | 3-view turnaround → MagicaVoxel / slice strips / Blender → `scripts/svox_cli.py` | **Mode B1** (default, offline): concept + 3-view blueprints → visual hull + `detail_zones.json` → 4-pass sculpt → `scripts/mega_voxel_kit.mjs` · **Mode B2** (opt-in): concept → `.glb` / `.gltf` from a provider the user chooses (`scripts/mesh_source.mjs`) → `scripts/mesh_to_voxel.mjs` → the same sculpt, pack and gates |
 | **Read** | [01](references/01_contract_and_math.md), [02](references/02_shader_pipeline_spec.md), [03](references/03_pitfalls_and_qa_gates.md) + one engine adapter | [04](references/04_megastructure_voxel_pipeline.md) (self-contained) |
 | **Quality gates** | G1–G4 | G5–G6 (plus G1–G4 for any Track A actors in the same scene) |
 
@@ -65,7 +66,11 @@ to it.
   indexed mesh) and draws a whole part in one instanced call. Measured hero assets: 5–10 draws, 0.4–1.1 M triangles,
   6–9 MiB, ≤ 0.8 ms.
 - **Faithful to the concept.** Three orthographic views pin the proportions, `detail_zones.json` recovers the cavities a
-  silhouette cannot see, and G5 measures silhouette, internal edges and accent colours against the concept.
+  silhouette cannot see, and G5 measures silhouette, internal edges and accent colours against the concept. For
+  organic, ornate or deeply sculpted forms, an opt-in 3D mesh (Mode B2) captures curvature that three silhouettes cannot.
+- **No lock-in.** Mode B1 needs no external 3D tool, account or key. Mode B2 takes a model from any source the user
+  prefers — an existing file, any command-line tool, a manual web-UI or DCC export, or an optional API adapter — through
+  one provider interface.
 - **Where it does not fit:** deforming, articulated bodies (use Track A), or terrain-scale worlds that need streaming
   and LOD beyond one asset's 12 MiB budget.
 
@@ -82,7 +87,7 @@ Load only what the task needs.
 | Track A engine: Godot 4.7.2 (Forward+ & Mobile Vulkan) | [godot4.md](references/targets/godot4.md) — **✅ Verified** |
 | Track A engine: Unity 6 URP (6000.5.3f1, D3D11 & D3D12) | [unity_urp.md](references/targets/unity_urp.md) — **✅ Verified** |
 | Track A asset source: Blender 5.3.0 | [blender_exporter.md](references/targets/blender_exporter.md) — **✅ Verified** (extraction bridge) |
-| Track B: the whole megastructure pipeline, formats, shaders, G5/G6, pitfalls M1–M23 | [04_megastructure_voxel_pipeline.md](references/04_megastructure_voxel_pipeline.md) — **kit ✅ self-tested (78/78)**; loader + shaders verified in the reference WebGL2 / Three.js implementation; G5/G6 must still pass per asset in your engine |
+| Track B: mode choice (B1 offline vs B2 3D mesh), the whole megastructure pipeline, formats, shaders, G5/G6, pitfalls M1–M27 | [04_megastructure_voxel_pipeline.md](references/04_megastructure_voxel_pipeline.md) — **kit ✅ self-tested (78/78)**, **mesh tools ✅ self-tested (32/32)**; loader + shaders verified in the reference WebGL2 / Three.js implementation; G5/G6 must still pass per asset in your engine |
 
 The four Track A target files assume `01` and `02`. Pick **one** target and do not claim a port works until G1–G4 pass
 on that engine. Track B needs `01`–`03` only when the same scene also contains Track A actors.
@@ -126,26 +131,49 @@ on that engine. Track B needs `01`–`03` only when the same scene also contains
 5. **Pass G1–G4** (§7) with an iso 33° and a low 14° screenshot inspected by eye. A gate that is not measured counts as
    failed.
 
-### Track B — megastructures and large vessels (5 stages)
+### Track B — megastructures and large vessels (mode choice + 5 stages)
 
-1. **Stage 1A · Blueprints and visual hull** ([04 §2](references/04_megastructure_voxel_pipeline.md#2-stage-1a--orthographic-3-view-blueprints-and-visual-hull-carving)).
-   From the approved 3/4 concept, generate flat orthographic Top / Side / Front views, check the dimension mismatch
-   (≤ 3 %) and carve the 3-view visual hull (fidelity ≥ 0.90 per view). Blueprints govern silhouette and proportion
-   only — never project their colours onto voxels.
+0. **Choose the mode with the user — never assume 3D mesh input** ([04: mode table](references/04_megastructure_voxel_pipeline.md#track-b-mode-decision-table)).
+
+   | | **Mode B1 · Procedural & 3-view visual hull** | **Mode B2 · 3D mesh-to-voxel** |
+   |---|---|---|
+   | Switch | `--mesh-input off` (**default**) | `--mesh-input on` (opt-in) |
+   | Needs | concept + 3 orthographic views; 100 % offline, no external 3D tool, account or key | a `.glb` / `.gltf` of the concept, from a provider the user picks |
+   | Best for | hard-surface, architectural, mostly convex forms | organic, ornate-curved or deeply sculpted forms (domes, rings, tentacles, ribs) |
+
+   Ask the user (or check the project's notes) whether 3D mesh input is wanted. If they pick B2 without an existing
+   model, ask **which generation method** to use and show `node scripts/mesh_source.mjs list-providers`: `local`
+   (default — their own Blender / MagicaVoxel / kitbash / downloaded file), `command` (any CLI or local open-source
+   image-to-3D model they trust), `manual` (they generate or export in a web UI or DCC tool and drop the file), or an
+   optional online adapter such as `tripo` (only when selected and its key is configured; it spends credits). New
+   services plug in with `registerProvider(id, adapter)`. Pre-clean the concept image before generating: remove
+   detached props, escorts, background objects and text (M24).
+1. **Stage 1 · Envelope.**
+   - **B1 · Blueprints and visual hull** ([04 §2](references/04_megastructure_voxel_pipeline.md#2-stage-1a--orthographic-3-view-blueprints-and-visual-hull-carving)).
+     From the approved 3/4 concept, generate flat orthographic Top / Side / Front views, check the dimension mismatch
+     (≤ 3 %) and carve the 3-view visual hull (fidelity ≥ 0.90 per view). Blueprints govern silhouette and proportion
+     only — never project their colours onto voxels.
+   - **B2 · Mesh to voxels** ([04 §2B](references/04_megastructure_voxel_pipeline.md#2b-mode-b2--3d-mesh-to-voxel-opt-in)).
+     `mesh_source.mjs acquire` (validated, SHA-256 cached) → `mesh_to_voxel.mjs inspect` (6-view alignment sheet,
+     inspected by eye) → `voxelize` (`--solidify`, `--symmetrize`, palette / emissive rules, `--split-part` for animated
+     appendages with one shared AO bake and an automatic root-junction wave anchor).
 2. **Stage 1B · Detail zones** ([04 §3](references/04_megastructure_voxel_pipeline.md#3-stage-1b--occluded-and-hero-detail-zones-detail_zonesjson)).
    Scaffold `detail_zones.json` from an archetype (`generic_megastructure`, `hard_surface_carrier`, `halo_mothership`,
    `bio_leviathan`), list every occluded cavity and hero zone with one zoomed callout sheet each, and carve the
-   cavities. A 3-view hull cannot see hangars, trenches, bores or maws.
+   cavities (`--zones` in Mode B2). Neither a 3-view hull nor a generated mesh reliably models hangars, trenches, bores
+   or maws.
 3. **Stage 2 · 4-pass sculpt** ([04 §4](references/04_megastructure_voxel_pipeline.md#4-stage-2--4-pass-sculpt-loop-and-real-engine-studio-inspection)).
    A clay massing → B primary armour / form → C meso kitbash prefabs (instanced, 0.8–1.5 u/vox) → D lookdev and
-   `matTag` material channels. Rebuild the macro hull (1.6–2.5 u/vox) from clean sub-assemblies fitted to the 3-view
-   envelope, and judge every pass in a real-engine studio page (clay, AO, wire, macro/meso split views).
+   `matTag` material channels, judged in a real-engine studio page (clay, AO, wire, macro/meso split views). In B1,
+   rebuild the macro hull (1.6–2.5 u/vox) from clean sub-assemblies fitted to the 3-view envelope; in B2 the voxel cache
+   is the sculpt base.
 4. **Stage 3–4 · Pack and shade** ([04 §5](references/04_megastructure_voxel_pipeline.md#5-stage-3--dual-scale-ao-and-binary-packing-svoxmegav23),
    [§6](references/04_megastructure_voxel_pipeline.md#6-stage-4--lookdev-shaders-and-the-early-z-contract)).
    Bake micro voxel AO × macro cavity AO, pack `format: 'MEGA_V23'` (`svox.mega/v2.3`: `quad16` macro parts +
    `packed20` meso prefabs in one `.json` + `.bin`), load them zero-copy, and shade with the 70/30 resting-plate
-   lookdev, a material profile (`MATERIAL_PRESETS`: `hard_surface`, `ornate_stone`, `organic_bio`, or your own) and
-   1 px ink creases — with no `discard` and no `gl_FragDepth` in the final program.
+   lookdev, a material profile (`MATERIAL_PRESETS`: `hard_surface`, `ornate_stone`, `organic_bio`, or your own),
+   structure-aware 1 px ink (crisp on hard surfaces, soft on curved stair steps), non-clipping emissives and anchored
+   wave deformation — with no `discard` and no `gl_FragDepth` in the final program.
 5. **Stage 5 · Gates** ([04 §7](references/04_megastructure_voxel_pipeline.md#7-stage-5--quality-and-performance-gates-g5-and-g6)).
    G5 multi-cue concept diff (silhouette IoU + internal edge F1 + accent colour bands you configure for your palette;
    hull-only IoU for tentacled or appendage-heavy forms) and G6 `MEGA_V23_BUDGET` (12 MiB · 16 draws · 1.2 M tris ·
@@ -200,6 +228,24 @@ node scripts/mega_diff_utils.mjs multicue --ref concept_34.png --render render_3
 node scripts/mega_diff_utils.mjs hull --ref side.png --render side_render.png --ref-hull side_hull.png --render-hull side_render_nowave.png --target 0.86
 ```
 
+**Track B Mode B2 — `scripts/mesh_source.mjs` + `scripts/mesh_to_voxel.mjs`.** Same rules: Node ≥ 18, zero npm
+dependencies, ES modules + CLIs. Exit codes: 0 ok, 1 error, 2 usage, 3 pending (manual drop not there yet, or provider
+not ready). PNG textures decode natively; JPEG / WebP textures use Python + Pillow when installed, else the material colour.
+
+```bash
+node scripts/test_mesh_harness.mjs                 # self-test: 32 checks, ~10 s, synthetic .glb, 0 network calls
+node scripts/mesh_source.mjs list-providers        # local · command · manual · tripo (+ yours): offline / online, key set?
+node scripts/mesh_source.mjs acquire --provider local --glb exports/vessel.glb --out build/vessel/mesh
+node scripts/mesh_source.mjs acquire --provider command --image concept_clean.png --out build/vessel/mesh \
+    --cmd "my-image-to-3d --input {image} --output {out}"         # any CLI you trust; tokenised, no shell
+node scripts/mesh_source.mjs acquire --provider manual --image concept_clean.png --name vessel --out build/vessel/mesh [--wait 600]
+node scripts/mesh_to_voxel.mjs inspect --source build/vessel/mesh/mesh_source.json --out build/vessel/inspect --rot-x 90 --length-y 950
+node scripts/mesh_to_voxel.mjs voxelize --source build/vessel/mesh/mesh_source.json --out-asset build/vessel/vessel \
+    --rot-x 90 --length-y 950 --voxel-scale 2.0 --solidify --symmetrize x:high --material-profile organic_bio \
+    --emissive-rules cfg/emissive.json --mat-rules cfg/mat.json --zones build/vessel/detail_zones.json \
+    --split-part "tentacles:wave:z<-60,ax>95:wave=16,0.012,0:axis=box:auto:cc=400"
+```
+
 For production assets, write a small builder that imports the kit (`VoxelGrid` CSG → `carveVisualHull` →
 `applyDetailZoneCarves` → prefabs and `instances[]` → `packMegaAsset({ format: 'MEGA_V23', materialProfile })` →
 `writeMegaAsset`). API table: [04 §8](references/04_megastructure_voxel_pipeline.md#8-kit-api-and-cli-reference-scriptsmega_voxel_kitmjs-scriptsmega_diff_utilsmjs).
@@ -207,7 +253,7 @@ For production assets, write a small builder that imports the kit (`VoxelGrid` C
 ## 6. Top critical pitfalls
 
 Each one was found the hard way. Track A details are in [03](references/03_pitfalls_and_qa_gates.md); Track B's
-M1–M23 are in [04 §9](references/04_megastructure_voxel_pipeline.md#9-pitfalls-m1m23).
+M1–M27 are in [04 §9](references/04_megastructure_voxel_pipeline.md#9-pitfalls-m1m27).
 
 1. **MRT `INVALID_OPERATION` (Chrome/ANGLE).** With 2 draw buffers bound, every fragment shader must declare
    `layout(location = 1) out`, or every draw fails. Draw single-output passes with `drawBuffers([C0, NONE])`.
@@ -229,6 +275,9 @@ M1–M23 are in [04 §9](references/04_megastructure_voxel_pipeline.md#9-pitfall
    or floating ghost slabs — run the multi-cue G5 and zoomed real-engine close-ups (M13–M15).
 9. **Track B: lookdev legends are per-asset data.** A light box or `matTag` legend tuned for one hull silently lands
    on every other asset; drive it from the asset's material profile (M23).
+10. **Track B: hard ink on curved voxel stairs.** A 1 px crease line on every 1-voxel step turns a dome or ring into a
+    black staircase. Use structure-aware ink: soft on exposed crests, full ink only on silhouettes and real depth
+    breaks (M25).
 
 ## 7. Mandatory quality gates
 
@@ -259,4 +308,7 @@ Do not ship a Track A target without all four gates **and** a by-eye inspection 
 - Track B: [scripts/mega_voxel_kit.mjs](scripts/mega_voxel_kit.mjs) (voxel kit + CLI: hull, zones, AO, `quad16` /
   `packed20` meshers, packer, material profiles, preview); [scripts/mega_diff_utils.mjs](scripts/mega_diff_utils.mjs)
   (PNG codec + G5 metrics and sheets); [scripts/test_mega_kit.mjs](scripts/test_mega_kit.mjs) (self-test, 78/78);
+  Mode B2: [scripts/mesh_source.mjs](scripts/mesh_source.mjs) (provider registry: `local`, `command`, `manual`, optional
+  `tripo`, `registerProvider`), [scripts/mesh_to_voxel.mjs](scripts/mesh_to_voxel.mjs) (`.glb` / `.gltf` inspect, render,
+  voxelize, multi-part split) and [scripts/test_mesh_harness.mjs](scripts/test_mesh_harness.mjs) (self-test, 32/32);
   [references/04](references/04_megastructure_voxel_pipeline.md) (pipeline, with legacy formats in Appendix A).

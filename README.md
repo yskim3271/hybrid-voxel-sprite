@@ -13,7 +13,7 @@
 <br>
 <a href="https://yskim3271.github.io/hybrid-voxel-sprite/">Live Demo</a> ·
 <a href="#see-it-in-action">See it in action</a> ·
-<a href="#v23-megastructures">v2.3 Megastructures</a> ·
+<a href="#v24-mesh-input">Megastructures (v2.4)</a> ·
 <a href="#verified-across-4-engines">Engines</a> ·
 <a href="#quick-start">Quick Start</a> ·
 <a href="#cli">CLI</a> ·
@@ -29,7 +29,9 @@ squash / twist / shear / wave deformations are undone analytically per sample, a
 self-shadow, snapped to a virtual pixel grid and outlined at 1 px. The skill ships a standard-library-only **SVOX asset CLI**
 and adapters for **WebGL2 / Three.js, Godot 4, Unity 6 URP and Blender 5**, all checked against the same 4 QA gates.
 It also includes **Track B for large-scale megastructures (~500–1500 u)**: pre-baked multi-scale greedy meshes packed as
-`quad16` (16 B per quad), with extensible material presets and concept-diff (G5) / performance (G6) gates.
+`quad16` (16 B per quad), with extensible material presets and concept-diff (G5) / performance (G6) gates. Track B builds
+the envelope fully offline from three orthographic views (**Mode B1**, default) or, when you opt in, from a 3D `.glb` /
+`.gltf` model you obtain any way you like (**Mode B2**).
 
 ## See it in action
 
@@ -47,31 +49,38 @@ It also includes **Track B for large-scale megastructures (~500–1500 u)**: pre
 
 </div>
 
-<a id="v23-megastructures"></a>
-## v2.3 Megastructure Track
+<a id="v24-mesh-input"></a>
+## Track B · Large-Scale Megastructures (v2.4)
 
-Track B handles large ~500–1500 u voxel structures (fortresses, stations, vessels, titans) with `svox.mega/v2.3`:
+Track B builds ~500–1500 u voxel structures (fortresses, stations, vessels, titans) with **`svox.mega/v2.3`** (`quad16` 16 B/quad macro parts + instanced `packed20` meso prefabs + procedural micro shader, inside a 12 MiB / 16-draw / 1.2M-tri budget with 16-level Dual-Scale AO).
 
-- **`quad16` macro format (`16 B/quad`)**: one instanced draw per part, no index buffer, no 65,535-vertex cap (~5× smaller on curved/organic forms).
-- **12 MiB budget & 16-level Dual-Scale AO**: up to 16 draws, 1.2M triangles, Δ ≤ 2.5 ms, with extensible 4-bit `matTag` material presets (`hard_surface`, `ornate_stone`, `organic_bio`).
-- **Generic workflow & gates**: `generic_megastructure` archetype (`assetId`), configurable HSV accent bands (`--bands`), Hull-Only G5 for tentacled shapes, and `78/78` self-test checks.
+**What's new in v2.4**
+- **Two Track B modes, chosen by you**: **Mode B1** *(default)* stays 100 % offline with 3-view visual-hull carving; **Mode B2** *(opt-in)* voxelizes a `.glb` / `.gltf` for organic, ornate or deeply sculpted forms. The skill asks which mode you want instead of assuming 3D input.
+- **Pluggable model sources** (`mesh_source.mjs`): `local` file *(default)*, `command` *(any CLI or local open-source model, run without a shell)*, `manual` web-UI / DCC hand-off, an optional `tripo` API adapter, and `registerProvider()` for any custom generator. Validated, SHA-256 cached, secrets redacted.
+- **Mesh-to-voxel engine** (`mesh_to_voxel.mjs`): CPU 6-view alignment sheets, conservative voxelization, solidify, symmetry, palette & emissive rules, detail-zone carves, and multi-part splits with one unified AO bake and auto-anchored waves.
+- **Structure-aware shaders**: curved and organic forms lose black 1-voxel stair lines while keeping crisp 1 px silhouettes and real creases (`0 px` change on hard-surface assets); non-clipping emissives preserve crystal facets and shaded glow orbs; anchored wave modes (`'box'` / `'ellipsoid'`) keep root seams locked (`0 px` drift) with Early-Z intact.
+- **Verification**: `test_mesh_harness.mjs` **32/32** (synthetic `.glb`, 0 network calls) · `test_mega_kit.mjs` **78/78** · Python suite **26 passed / 0 failed**.
 
-**Examples (panel 01 = 2D concept art · panels 02–04 = real-time WebGL2):**
+**Examples (panel 01 = 2D concept art · panels 02–04 = real-time WebGL2, built through Mode B2):**
 
 <div align="center">
 
-<a href="docs/assets/v23/vanguard_t2_showcase_2x2.jpg"><img src="docs/assets/v23/vanguard_t2_showcase_2x2.jpg" width="100%" alt="Hard-surface megastructure example: concept art next to three real-time WebGL2 renders"></a>
+<a href="docs/assets/v24/hard_surface_carrier_v24.jpg"><img src="docs/assets/v24/hard_surface_carrier_v24.jpg" width="100%" alt="Hard-surface carrier built from a 3D mesh: concept art next to three real-time WebGL2 renders"></a>
 
-<sub><b>Hard-surface megastructure</b> · 410k tris · 8.93 MiB · 10 draws · 16-level AO</sub>
+<sub><b>Hard-surface carrier</b> · 662k tris · 8.74 MiB · 8 draws · 31 instanced prefabs</sub>
 
-<a href="docs/assets/v23/aether_p2_showcase_2x2.jpg"><img src="docs/assets/v23/aether_p2_showcase_2x2.jpg" width="49%" alt="Ornate ringed structure example: concept art next to three real-time WebGL2 renders"></a>
-<a href="docs/assets/v23/swarm_z2_showcase_2x2.jpg"><img src="docs/assets/v23/swarm_z2_showcase_2x2.jpg" width="49%" alt="Organic tentacled structure example: concept art next to three real-time WebGL2 renders"></a>
+<a href="docs/assets/v24/ornate_ringed_vessel_v24.jpg"><img src="docs/assets/v24/ornate_ringed_vessel_v24.jpg" width="49%" alt="Ornate ringed vessel built from a 3D mesh: concept art next to three real-time WebGL2 renders"></a>
+<a href="docs/assets/v24/organic_leviathan_v24.jpg"><img src="docs/assets/v24/organic_leviathan_v24.jpg" width="49%" alt="Organic tentacled leviathan built from a 3D mesh: concept art next to three real-time WebGL2 renders"></a>
 
-<sub><b>Ornate ringed structure</b> · 802k tris · 6.02 MiB · 9 draws &nbsp;|&nbsp; <b>Organic tentacled structure</b> · 1.11M tris · 8.03 MiB · 5 draws</sub>
+<sub><b>Ornate ringed vessel</b> · 908k tris · 6.93 MiB · 3 draws (spinning ring + core) &nbsp;|&nbsp; <b>Organic leviathan</b> · 1.13M tris · 8.61 MiB · 2 draws (wave tentacles)</sub>
+
+<a href="docs/assets/v24/structure_aware_ink_v24.jpg"><img src="docs/assets/v24/structure_aware_ink_v24.jpg" width="100%" alt="Structure-aware ink before and after on curved rings, and zero change on a hard-surface structure"></a>
+
+<sub><b>Structure-aware ink</b> · same assets, same cameras: curved rings lose the stair-step ink, the hard-surface structure is unchanged</sub>
 
 </div>
 
-**[Full Version History →](https://yskim3271.github.io/hybrid-voxel-sprite/changelog.html)**
+**[Full Version History (v2.4 · v2.3 · v2.2 · v2.0 · v1.x) →](https://yskim3271.github.io/hybrid-voxel-sprite/changelog.html)**
 
 ## Quick Start
 
@@ -187,7 +196,21 @@ node scripts/mega_diff_utils.mjs multicue --ref concept_34.png --render render_3
 node scripts/mega_diff_utils.mjs hull --ref side.png --render side_render.png --ref-hull side_hull.png --render-hull side_render_nowave.png --target 0.86
 ```
 
-The full 6-stage pipeline is in [04_megastructure_voxel_pipeline.md](skills/hybrid-voxel-sprite/references/04_megastructure_voxel_pipeline.md).
+**Mode B2 (opt-in 3D mesh input).** Pick a model source, then voxelize it:
+
+```bash
+node scripts/test_mesh_harness.mjs                                  # self-test: 32 checks, 0 network calls
+node scripts/mesh_source.mjs list-providers                         # local · command · manual · tripo (+ your own)
+node scripts/mesh_source.mjs acquire --provider local --glb exports/vessel.glb --out build/vessel/mesh
+node scripts/mesh_source.mjs acquire --provider command --image concept_clean.png --out build/vessel/mesh \
+    --cmd "my-image-to-3d --input {image} --output {out}"
+node scripts/mesh_to_voxel.mjs inspect --source build/vessel/mesh/mesh_source.json --out build/vessel/inspect --rot-x 90 --length-y 950
+node scripts/mesh_to_voxel.mjs voxelize --source build/vessel/mesh/mesh_source.json --out-asset build/vessel/vessel \
+    --rot-x 90 --length-y 950 --voxel-scale 2.0 --solidify --symmetrize x:high \
+    --split-part "tentacles:wave:z<-60,ax>95:wave=16,0.012,0:axis=box:auto:cc=400"
+```
+
+The full pipeline, including the mode decision table, is in [04_megastructure_voxel_pipeline.md](skills/hybrid-voxel-sprite/references/04_megastructure_voxel_pipeline.md).
 
 </details>
 
@@ -218,7 +241,11 @@ so raise `pixelScale` or cap on-screen size.
 </details>
 
 <details>
-<summary><b>Version History highlights</b> (v2.3 · v2.2 · v2.0 · v1.1)</summary>
+<summary><b>Version History highlights</b> (v2.4 · v2.3 · v2.2 · v2.0 · v1.1)</summary>
+
+**v2.4.0 · 2026-11-28.** Track B mode choice (B1 offline 3-view hull by default, B2 opt-in 3D mesh input), pluggable model
+sources (`local`, `command`, `manual`, optional `tripo`, `registerProvider`), mesh-to-voxel with multi-part splits and one
+unified AO, structure-aware ink, non-clipping emissives, anchored waves, `32/32` mesh self-test.
 
 **v2.3.0 · 2026-11-28 · Checkpoint.** `svox.mega/v2.3` `quad16` instanced quads (16 B/quad, no index buffer, no 65,535-vertex
 cap), `MEGA_V23_BUDGET` (12 MiB · 16 draws · 1.2M tris · Δ 2.5 ms), extensible `MATERIAL_PRESETS`, `generic_megastructure`
@@ -257,11 +284,13 @@ hybrid-voxel-sprite/
 │   ├── index.html · changelog.html · styles.css · site.js
 │   ├── demo/                     # T3 renderer, SPRITE STACK shaders, motion plugins, 4 SVOX bundles, vendored three.js
 │   └── assets/                   # banner · showcase_loop.gif · modes_compare · CTA buttons · engine icons
-│       └── v23/                  # v2.3 concept → real-time WebGL2 2×2 sheets (1600×900 JPEG)
+│       ├── v23/                  # v2.3 concept → real-time WebGL2 2×2 sheets (1600×900 JPEG)
+│       └── v24/                  # v2.4 mesh-built examples + structure-aware ink comparison (JPEG)
 ├── skills/hybrid-voxel-sprite/   # ← the skill (install only this folder)
 │   ├── SKILL.md                  # overview · routing · workflow · CLI · top pitfalls · QA gates G1–G6
 │   ├── scripts/svox_cli.py       # stdlib SVOX pipeline CLI
 │   ├── scripts/mega_*.mjs        # zero-dependency megastructure kit (mega_voxel_kit · mega_diff_utils · test_mega_kit)
+│   ├── scripts/mesh_*.mjs        # Mode B2: mesh_source (model providers) · mesh_to_voxel · test_mesh_harness
 │   ├── references/               # 01 contract & math · 02 shader pipeline · 03 pitfalls & gates · 04 megastructures · targets/
 │   └── assets/minimal_reference/ # 3-part reference rig + sample_cube.vox
 ├── tests/                        # CLI · bake parity · validate · pack-atlas · doc/link checks
@@ -271,6 +300,7 @@ hybrid-voxel-sprite/
 ```bash
 SKIP_WEBGL=1 python tests/test_skill_svox.py               # standalone repo: 26 passed · 0 failed · 4 skipped (dev-repo-only harness)
 node skills/hybrid-voxel-sprite/scripts/test_mega_kit.mjs    # megastructure kit: 78/78 PASS (temp files only in os.tmpdir())
+node skills/hybrid-voxel-sprite/scripts/test_mesh_harness.mjs   # Mode B2 mesh tools: 32/32 PASS (0 network calls)
 ```
 
 - The normal/AO bake is byte-identical to the original JS core (`computeNormalAndAO`); tests compare against recorded sha256 values, or live through Node with `SVOX_JS_CORE=<voxel_builder.js>`.

@@ -1,4 +1,4 @@
-# 04 — Megastructure & Capital Ship Multi-Scale Voxel Pipeline
+# 04 — Megastructure Multi-Scale Voxel Pipeline
 
 This file is **Track B** of the skill: large static or slowly animated voxel structures of roughly 500–1500 world
 units (**u**) — carriers, dreadnoughts, ringed temple vessels, organic leviathans, and also fortresses, landmarks,
@@ -12,6 +12,38 @@ draw per part) + instanced `packed20` meso prefabs (20 B per vertex) + a procedu
 the 12 MiB `MEGA_V23_BUDGET`. Older formats are only needed for existing assets; see
 [Appendix A](#appendix-a--legacy-formats-mega_v22-and-mega_v2).
 
+## Track B mode decision table
+
+Track B has **two ways to get from a concept to a voxel envelope**. Both end in the same sculpt loop, packer, shaders
+and gates (§3–§7). **Never assume 3D mesh input: ask the user which mode they want** (or read it from the project's
+notes), and default to Mode B1.
+
+| | **Mode B1 · Procedural & 3-view visual hull** (default) | **Mode B2 · 3D mesh-to-voxel** (opt-in) |
+|---|---|---|
+| Switch | `--mesh-input off` | `--mesh-input on` |
+| Input | approved 3/4 concept + orthographic Top / Side / Front views | approved 3/4 concept → a `.glb` / `.gltf` model of it |
+| External tools | **none** — 100 % offline, no 3D tool, account or API key | a model source the user picks (below); online sources only on explicit request |
+| Envelope from | `carveVisualHull` (§2) | `mesh_to_voxel.mjs voxelize` (§2B) |
+| Best for | hard-surface, architectural, mostly convex forms; strict offline or licensing constraints | organic, ornate-curved or deeply sculpted forms (domes, gimbal rings, tentacles, ribs), where three silhouettes lose volume and curvature |
+| Weak at | deep curvature, overhangs and undercuts the three views cannot see | hidden cavities and thin parts the generator invents or fuses (carve and trim them, §3, M24, M27) |
+| Detail zones (§3) | required for every occluded cavity | still required: a generated mesh rarely models a usable hangar, bore or maw |
+
+**Mode B2 provider choice (ask when the user has no model yet).** `node scripts/mesh_source.mjs list-providers` prints
+what is available and whether each source is offline or online.
+
+| Provider | What it does | Cost / network |
+|---|---|---|
+| `local` (**default**) | an existing `.glb` / `.gltf` exported from Blender, MagicaVoxel, a kitbash library or a marketplace download (`--glb`) | offline, $0 |
+| `command` | runs **any** command-line tool the user trusts — a local open-source image-to-3D model, a Blender headless script, an in-house API wrapper — from a template (`--cmd "tool --in {image} --out {out}"`) | whatever that tool costs |
+| `manual` | prints a checklist and the exact drop path; the user generates or exports the model in any web UI or DCC tool and drops it there | the user's choice |
+| `tripo` | optional reference adapter for one image-to-3D API; runs only with `--provider tripo` **and** `TRIPO_API_KEY` configured | online, spends credits (SHA-256 cached) |
+| yours | `registerProvider(id, adapter)` adds any other service in ~30 lines (§2B.3) | — |
+
+**Concept pre-clean rule (Mode B2).** Before any model is generated, remove everything that is not the structure from
+the concept image: detached props, escort craft, floating debris, background objects, labels and text. Image-to-3D
+generators fuse whatever is in frame into the mesh (M24). Repair the background behind each removed object, keep the
+structure's own pixels untouched, and inspect the before / after pair by eye.
+
 ## 0. Conventions and verification status
 
 - **Axes.** Right-handed, Z-up: `+X` right (starboard), `+Y` forward (bow), `+Z` up (dorsal). Positions are
@@ -20,7 +52,7 @@ the 12 MiB `MEGA_V23_BUDGET`. Older formats are only needed for existing assets;
   face `−Y`. Convert at the boundary and never mix the two.
 - **Grids.** Voxel `(x, y, z)` covers `[x, x+1) × [y, y+1) × [z, z+1)`. CSG shapes are tested at voxel centres
   `(x + 0.5, …)`, so integer-aligned boxes are exact. Local u maps to voxels as `v = p / voxelScale + center`.
-- **Scale.** A fighter-scale Track A voxel is about 0.55–0.65 u; an older single-grid capital build used 5.2–6.9 u
+- **Scale.** A fighter-scale Track A voxel is about 0.55–0.65 u; an older single-grid megastructure build used 5.2–6.9 u
   voxels (9–11× larger) and looked blocky up close. Track B splits the structure into tiers instead (§1): macro hull
   1.6–2.5 u/vox, meso prefabs 0.8–1.5 u/vox, and everything finer in the fragment shader.
 - **Orthographic views.** These are right-handed cameras, with image row 0 at the top. They are the same in
@@ -39,15 +71,17 @@ the 12 MiB `MEGA_V23_BUDGET`. Older formats are only needed for existing assets;
 | Piece | Status |
 |---|---|
 | `scripts/mega_voxel_kit.mjs` + `scripts/mega_diff_utils.mjs`: visual hull, detail zones, macro cavity AO, greedy mesher, `quad16` / `packed20` / `MEGA_V2` packers, CPU preview, G5 Silhouette / Edge / Band / hull-only metrics, material profiles | **✅ Self-tested.** `node scripts/test_mega_kit.mjs`: **78/78 PASS** (Node 26.5, Windows 11) |
-| `quad16` macro loader (`InstancedBufferGeometry`, §5.5) + `CAPITAL_QUAD16_VERT` (§6.1), `packed20` meso loader + `CAPITAL_INST_VERT_Q`, `CAPITAL_FRAG` lookdev (§6) | **✅ Engine-verified** in the reference WebGL2 / Three.js (r187) implementation: `packed20` ↔ `quad16` pixel parity, Early-Z intact, three hero assets (a hard-surface carrier, an ornate temple vessel and an organic tentacled leviathan) inside `MEGA_V23_BUDGET` (§7.3) |
-| The greedy mesher core (face culling, 4-corner voxel AO, AO-safe merge, diagonal flip, de-dup) | **✅ Port of verified reference code** (62–87 % triangle reduction, +0.10–0.31 ms on a GTX 1080 for single-grid capitals) |
+| Mode B2: `scripts/mesh_source.mjs` (provider registry, validation, SHA-256 cache, secret redaction) + `scripts/mesh_to_voxel.mjs` (glTF / GLB loader, CPU 6-view sheets, SAT voxelizer, palette rules, multi-part split, unified AO) | **✅ Self-tested.** `node scripts/test_mesh_harness.mjs`: **32/32 PASS** on a synthetic `.glb`, 0 network calls. The same pipeline produced the three mesh-built hero assets in §7.3 |
+| `quad16` macro loader (`InstancedBufferGeometry`, §5.5) + `CAPITAL_QUAD16_VERT` (§6.1), `packed20` meso loader + `CAPITAL_INST_VERT_Q`, `CAPITAL_FRAG` lookdev (§6), structure-aware ink, non-clipping emissives and anchored waves (§6.6–§6.9) | **✅ Engine-verified** in the reference WebGL2 / Three.js (r187) implementation: `packed20` ↔ `quad16` pixel parity, Early-Z intact, hard-surface structures 0 px changed by the curved-form shading, hero assets (a hard-surface carrier, an ornate ringed vessel and an organic tentacled leviathan) inside `MEGA_V23_BUDGET` (§7.3) |
+| The greedy mesher core (face culling, 4-corner voxel AO, AO-safe merge, diagonal flip, de-dup) | **✅ Port of verified reference code** (62–87 % triangle reduction, +0.10–0.31 ms on a GTX 1080 for single-grid megastructures) |
 | Any other engine (Godot, Unity, …) | **Reference snippets only.** Port §5.5 and §6, then pass G5 and G6 there |
 | G5 and G6 on your own structure | **Must be run per asset.** A gate that is not measured counts as failed, exactly as in Track A |
 
 ## 1. Pipeline overview (recommended stack)
 
 ```
-concept 3/4 ──► 1A  ortho Top/Side/Front ──► visual hull (≥ 0.90 fidelity per view)
+concept 3/4 ─┬► B1  ortho Top/Side/Front ──► visual hull (≥ 0.90 fidelity per view)            [default, offline]
+             └► B2  pre-clean concept ──► .glb / .gltf (provider) ──► inspect + align ──► voxelize  [opt-in]
                  1B  detail_zones.json + zoomed callout sheets (occluded cavities, hero zones, under-side, prefabs)
                  2   4-pass sculpt: A clay → B primary armour/form → C meso kitbash prefabs → D lookdev + matTags
                      macro hull 1.6–2.5 u/vox − cavity CSG │ meso prefabs 0.8–1.5 u/vox × instances[] │ micro = shader
@@ -116,6 +150,182 @@ recesses, bores and maws leave every silhouette unchanged, so they are invisible
 **Silhouette-only rule.** Blueprints govern **silhouette and proportion only** (dimensions, envelope profiles, the G5
 IoU check). Never project their pixels onto voxels as colour (M13), and use the measured envelope to fit clean
 sub-assemblies rather than shipping the raw `top ∧ side ∧ front` intersection (M14).
+
+## 2B. Mode B2 — 3D mesh-to-voxel (opt-in)
+
+Use this instead of §2 when the user chose Mode B2. It replaces the 3-view envelope with a voxelized 3D model; every
+later stage is unchanged.
+
+### 2B.1 Steps
+
+1. **Pre-clean the concept** (see the decision table and M24).
+2. **Acquire the model** with `scripts/mesh_source.mjs` (§2B.2). The result is validated (GLB header and length, glTF 2.x,
+   at least one mesh, relative resources present) and cached under `cache/<sha256>.glb`, and `mesh_source.json` records
+   the provider, input hashes and model hash — never a secret.
+3. **Inspect and align** with `mesh_to_voxel.mjs inspect` (§2B.4): read the 6-view sheet by eye, then choose the
+   rotation and length that put the model in the asset frame (+X right, +Y forward, +Z up).
+4. **Voxelize** with `mesh_to_voxel.mjs voxelize` (§2B.5): solidify, optional bilateral symmetry, palette and emissive
+   rules, detail-zone carves, optional multi-part split (§2B.6), one macro AO bake, `MEGA_V23` pack.
+5. Continue with §3 (detail zones), §4 (sculpt passes on the voxel cache), §6 and §7.
+
+```bash
+node scripts/mesh_source.mjs list-providers
+node scripts/mesh_source.mjs acquire --provider local --glb exports/vessel.glb --out build/vessel/mesh
+node scripts/mesh_to_voxel.mjs inspect --source build/vessel/mesh/mesh_source.json --out build/vessel/inspect \
+     --rot-x 90 --length-y 950                      # glb_inspect.json + glb_6view_sheet.png + glb_6view_aligned.png
+node scripts/mesh_to_voxel.mjs render --source build/vessel/mesh/mesh_source.json --out build/vessel/hero.png \
+     --rot-x 90 --length-y 950 --view az=-40,el=17,fov=24
+node scripts/mesh_to_voxel.mjs voxelize --source build/vessel/mesh/mesh_source.json --out-asset build/vessel/vessel \
+     --rot-x 90 --length-y 950 --voxel-scale 2.0 --solidify --symmetrize x:high --colors 20 \
+     --emissive-rules cfg/emissive.json --mat-rules cfg/mat.json --zones build/vessel/detail_zones.json \
+     --material-profile ornate_stone --split-part "ring:rotate:az>-40,az<40,ax>300:cc=400"
+```
+
+### 2B.2 Acquiring a model: `scripts/mesh_source.mjs`
+
+| Command | Purpose |
+|---|---|
+| `list-providers [--json] [--env-file f]` | every registered provider, its offline / online / interactive kind, readiness and whether each secret it needs is configured (names only, never values) |
+| `check-provider --provider <id> [--glb f] [--cmd t] [--online]` | readiness before any work or spend: the file validates, the command's executable is on `PATH`, the key is configured (`--online` also queries an API balance) |
+| `acquire --provider <id> [--glb f] [--image f] [--prompt t] [--cmd t] [--out dir] [--name n] [--wait s] [--timeout s] [--force] [--dry-run]` | acquire → validate → cache → `mesh_source.json`. A repeat request (same provider, input bytes and parameters) is a cache hit: the tool is not run again and no credits are spent |
+
+- **Exit codes:** 0 ok · 1 error · 2 usage · 3 pending (the manual drop is not there yet, or `check-provider` says not
+  ready).
+- **`command` templates** are tokenised like a shell would quote them, then every token is substituted on its own and
+  the program is spawned **without a shell**: `{image}`, `{prompt}`, `{out}` (the `.glb` path to write) and `{outDir}`
+  (a work folder; the first `.glb` / `.gltf` written there is taken). A prompt such as `"x; rm -rf /"` stays one
+  argument. Wrap `.cmd` / `.bat` scripts as `cmd /c script.cmd …` yourself.
+- **`manual`** prints a checklist (feed the cleaned concept to the tool of your choice, export one uncompressed `.glb`
+  with embedded textures, save it at the printed `inbox/<name>.glb` path) and exits 3; re-run, or pass `--wait 600`,
+  to pick the file up.
+- **Secrets** (online adapters): read from the process environment, then `--env-file`, then `~/.env` (UTF-8 BOM,
+  `export` prefixes, quotes and trailing comments handled). Every log line, error and manifest passes through
+  `redact()`, which removes registered secret values, bearer tokens and common key shapes.
+- **`--dry-run`** prints the plan (the exact argv for `command`, the endpoint and steps for an API adapter) and runs
+  nothing.
+
+### 2B.3 Adding a provider: `registerProvider(id, adapter)`
+
+An adapter has a `kind` (`offline` | `online` | `interactive`), optional `secrets` (environment variable names),
+`describe()`, a cheap `check(opts)` and `acquire(ctx)`, which writes the model to `ctx.target` (or returns another
+existing `.glb` / `.gltf` path). Caching, validation, manifests and redaction are handled for it. A sketch for any
+asynchronous image-to-3D HTTP API (a hosted generator, a self-hosted open-source model server, …):
+
+```js
+import fs from 'node:fs';
+import { registerProvider, acquireMesh } from '<skill>/scripts/mesh_source.mjs';
+registerProvider('my_cloud', {
+  label: 'My image-to-3D service', kind: 'online', secrets: ['MY_CLOUD_API_KEY'],
+  describe: () => 'Image-to-3D through my service (spends credits)',
+  check: (o) => ({ ready: !!(o.env || process.env).MY_CLOUD_API_KEY, reason: 'needs MY_CLOUD_API_KEY' }),
+  cacheParams: (o) => ({ quality: o.quality || 'high' }),          // part of the SHA-256 cache key
+  plan: (ctx) => ({ endpoint: 'https://api.example.com/v1/jobs', image: ctx.opts.image }),   // shown by --dry-run
+  async acquire(ctx) {
+    const key = ctx.secret('MY_CLOUD_API_KEY');                    // registered for redaction automatically
+    if (!key) throw new Error('MY_CLOUD_API_KEY not configured');
+    const auth = { Authorization: `Bearer ${key}` };
+    const form = new FormData();
+    form.append('image', new Blob([fs.readFileSync(ctx.opts.image)]), 'concept.png');
+    const job = await (await ctx.fetch('https://api.example.com/v1/jobs', { method: 'POST', headers: auth, body: form })).json();
+    for (;;) {                                                     // poll until the job finishes
+      const st = await (await ctx.fetch(`https://api.example.com/v1/jobs/${job.id}`, { headers: auth })).json();
+      if (st.status === 'failed') throw new Error(`job ${job.id} failed`);
+      if (st.status === 'done') {
+        fs.writeFileSync(ctx.target, Buffer.from(await (await ctx.fetch(st.glbUrl)).arrayBuffer()));
+        return { file: ctx.target, meta: { jobId: job.id } };
+      }
+      await new Promise((r) => setTimeout(r, 3000));
+    }
+  },
+});
+await acquireMesh({ provider: 'my_cloud', image: 'concept_clean.png', out: 'build/vessel/mesh' });
+```
+
+Use `ctx.fetch` rather than the global `fetch`: it redacts network errors and honours
+`MESH_SOURCE_FORBID_NETWORK=1`, which self-tests use to guarantee zero API calls.
+
+### 2B.4 Inspecting and aligning: `mesh_to_voxel.mjs inspect` / `render`
+
+- `inspect` writes `glb_inspect.json` (file, triangles, raw bounds, aspect ratios, longest axis, per-primitive and
+  per-material summary, texture sizes, decoder warnings) and `glb_6view_sheet.png`: five orthographic views and one
+  perspective 3/4 view in the raw glTF frame (+Y up, front +Z), CPU-rasterised with a z-buffer (no browser, no GPU).
+- With any alignment flag it also writes `glb_6view_aligned.png` in the asset frame (FRONT +Y, BACK −Y, LEFT −X,
+  RIGHT +X, TOP +Z, HERO 3/4). Alignment is applied in this order: glTF node transforms → `--rot-x`, then `--rot-y`,
+  then `--rot-z` (degrees, right-handed) → bounding-box centre to the origin (`--origin center`, or `none`) → uniform
+  scale so the Y extent equals `--length-y` → `--translate x,y,z`. A typical glTF (Y-up, front +Z) needs `--rot-x 90`.
+- Read both sheets by eye before voxelizing: the forward axis, any fused props or missing parts, symmetric features,
+  and which parts float free (candidates for a split, §2B.6).
+- `render` draws one perspective frame of the aligned model (`--view az=,el=,fov=,fit=`, `--clay`) for concept-matched
+  comparisons.
+
+### 2B.5 Voxelizing: `mesh_to_voxel.mjs voxelize`
+
+| Step | What happens | Options |
+|---|---|---|
+| Surface | conservative SAT triangle–box overlap per voxel; colour from a barycentric lattice of samples (≤ 0.5 voxel spacing) of the base-colour texture, vertex colours or factor, plus emissive texture / factor | `--voxel-scale` (u/vox), `--margin` |
+| Solidify | 6-connected flood fill of outside air from the grid border; every enclosed air cell becomes interior | `--solidify`, `--interior '#hex'`, `--interior-mat` |
+| Symmetry | mirror one X half onto the other about the asset origin | `--symmetrize x:high` / `x:low` |
+| Palette | emissive voxels split out first (emissive texture / factor → `emissive_tex`; HSV emissive rules → `levels` clusters each); then a deterministic weighted Lab k-means of the diffuse colours; material rules tag clusters by centroid hue / saturation / value; optional per-rule `grade` | `--colors`, `--emissive-rules`, `--mat-rules`, `--default-mat`, `--sat-boost` / `--contrast` / `--val-gamma` / `--val-gain`, `--color-smooth` |
+| Carves | `detail_zones.json` carves and raw boxes, after solidify and before AO | `--zones`, `--zone-ids`, `--carve-box` |
+| AO | **one** `bakeMacroCavityAO` over the whole grid | `--ao-rays`, `--ao-dist`, `--macro-levels` (16) |
+| Split | optional multi-part labelling (§2B.6) | `--split-part`, `--base-part` |
+| Pack | `packMegaAsset({ format: 'MEGA_V23' })` → `<base>.json` + `<base>.bin`; `voxel_cache.{json,bin}` (the sculpt base for §4); `voxelize_report.json`; CPU previews | `--id`, `--name`, `--archetype`, `--material-profile`, `--meta`, `--cache-dir`, `--no-preview` |
+
+Rule JSON (emissive and material rules):
+
+```json
+[{ "name": "lime", "hue": [60, 110], "sat": [0.45, 1], "val": [0.55, 1], "matTag": 8, "emissive": 0.95, "levels": 4 },
+ { "name": "gold", "hue": [25, 55], "sat": [0.35, 1], "matTag": 7, "grade": { "gamma": 0.75, "gain": 1.12, "sat": 1.18, "hueShift": 4 } }]
+```
+
+- Hue is in degrees (`[340, 20]` wraps through 0); saturation and value are 0..1. Rules always **match** on the raw
+  sampled colour; `grade` (`V' = gain · V^gamma`, `S' = sat · S`, hue shift) only changes the stored palette colour.
+  Generated PBR albedo is usually darker and greyer than the 2D concept, so a grade per material family is normal.
+- Textures: PNG is decoded natively. JPEG / WebP need a decoder: `decodeImage(bytes, mime)` programmatically, or
+  Python + Pillow when installed (`--image-decoder auto|python|none`); otherwise the material's base colour is used and
+  the report lists a warning. Draco / meshopt-compressed primitives and sparse accessors are rejected with a clear
+  message — export uncompressed.
+- The output is deterministic: two independent runs give identical `.json` and `.bin` SHA-256 (self-tested).
+
+### 2B.6 Multi-part splitting with one unified AO
+
+Animated appendages (rotating rings, a bobbing core, swaying tentacles) need their own macro parts, but splitting the
+grid **before** the AO bake leaves dark seams where the parts meet and emits faces inside the junction. The voxelizer
+therefore labels parts **after** the single AO bake and meshes every part against the whole grid:
+
+1. `labelParts`: each solid voxel gets a part index from `--split-part` clauses (first match wins) and / or a
+   programmatic `partSplitter(x, y, z, vox, grid)`; 6-connected components smaller than `cc=` fall back to the base
+   part.
+2. `greedyQuad16Masked(grid, palette, labels, part, opts)`: the `quad16` mesher with a per-voxel label filter.
+   Exposure, corner micro AO, convex / crease tests and the macro AO still see the whole grid, so a face between two
+   parts is never emitted and the shading has no seam. With one label it is byte-identical to `greedyQuad16Part`, and
+   a split conserves the exposed-face count (both self-tested).
+3. `computeJunctionBox`: for a wave part with `axis=box:auto` or `axis=ellipsoid:auto`, the box around its voxels that
+   touch another part (+2 voxels) becomes the wave anchor (`waveCenter`, `waveRadii`; the ellipsoid uses √3 × the half
+   extents so it contains the box corners). The anchored root never moves (§6.9).
+
+Part spec: `name:kind:clauses[:wave=amp,freq,originY][:axis=box|ellipsoid:auto | :axis=box:cx,cy,cz:rx,ry,rz][:cc=N]`,
+clauses `x|y|z|ax|ay|az` (`ax` = |x|) with `< <= > >=`, joined by `,`, in asset-local u. Example:
+`--split-part "tentacles:wave:z<-60,ax>95:wave=16,0.012,0:axis=box:auto:cc=400"`. Each part JSON gains
+`waveAxis` / `waveCenter` / `waveRadii` and the shared `macroAo` statistics (`shared: 'one bake on the unified grid'`).
+
+### 2B.7 Programmatic API
+
+`import { … } from '<skill>/scripts/mesh_to_voxel.mjs'` — `loadGlbMesh(file, { decodeImage })`, `parseGltf`,
+`extractPrimitives`, `alignmentMatrix`, `inspectGlb(opts)`, `renderGlbView(opts)`, `renderModelViews`,
+`voxelizeSurface`, `floodExterior`, `voxelizeGlb(opts)`, `labelParts`, `greedyQuad16Masked`, `computeJunctionBox`,
+`parseSplitPart`, `selfTestMaskedQuad16`, `ruleMatch`, `rgb2hsv`, `hsv2rgb`. `voxelizeGlb` hooks:
+
+| Hook | Called | Use |
+|---|---|---|
+| `preAoHook(ctx)` | after colours, solidify and carves, **before** the single AO bake | custom CSG: bores, collars, trims, swept-volume clearance between moving parts — so every edit is in the AO |
+| `partSplitter(x, y, z, vox, grid)` | per solid voxel | splits that clauses cannot express (radius from an axis, colour-guided growth) |
+| `metaHook(ctx)` | before packing | derive JSON metadata (effect anchors, launch volumes) from the final grid |
+| `mesoHook(ctx)` | before packing | return `{ prefabs, instances }` to compose `packed20` meso prefabs into the same asset |
+
+`ctx = { grid, palette, voxelScale, center, interiorIndex, carves, toLocal(ix, iy, iz) }`. `mesh_source.mjs` exports
+`registerProvider`, `listProviders`, `checkProvider`, `acquireMesh`, `validateGltfFile`, `resolveManifestModel`,
+`substituteTemplate`, `tokenizeTemplate`, `redact`, `registerSecret`, `parseEnvText`, `loadEnvFile`, `resolveSecret`.
 
 ## 3. Stage 1B — Occluded and hero detail zones (`detail_zones.json`)
 
@@ -390,7 +600,7 @@ writeMegaAsset('build/carrier_01', packed);   // → carrier_01.json + carrier_0
   quadStrideBytes, vertexStrideBytes, quadLayout, instanceLayout, units: "u", axes, bounds { min, max, size },
   macro { voxelScale, parts[ { name, kind, vertexFormat: 'quad16', quadOffset, quadCount, quadByteLength, gridOrigin,
           voxelScale, macroLevels, bounds, dims, voxels, exposedFaces, quads, triangles, reduction, macroAo, anim?,
-          waveAmp? / waveFreq? / waveOriginY? } ] },
+          waveAmp? / waveFreq? / waveOriginY? / waveAxis? / waveCenter? / waveRadii? } ] },
   meso { prefabs[ { id, voxelScale, dims, pivot, posCenter, posHalfExt, vertexOffset, vertexCount, indexType,
           indexOffset, indexCount, bounds, instanceCount, instanceMatrixOffset, instanceMatrixByteLength,
           instanceColorOffset, instanceColorByteLength } ] },
@@ -466,7 +676,7 @@ for (const p of json.meso.prefabs) if (p.instanceCount) {
 
 ## 6. Stage 4 — Lookdev shaders and the Early-Z contract
 
-The capital programs are `CAPITAL_QUAD16_VERT` (macro `quad16` parts), `CAPITAL_VERT_Q` / `CAPITAL_INST_VERT_Q`
+The reference programs are `CAPITAL_QUAD16_VERT` (macro `quad16` parts), `CAPITAL_VERT_Q` / `CAPITAL_INST_VERT_Q`
 (`packed20`, plain and instanced) and one `CAPITAL_FRAG`. **Early-Z contract:** the FINAL program contains **0
 `discard` and 0 `gl_FragDepth`**, with depthTest / depthWrite on. Every lookdev effect below changes colour or emissive
 only. Keep any debug `discard` (such as the sprite-stack air gaps) in a **separate program variant**
@@ -494,9 +704,9 @@ only. Keep any debug `discard` (such as the sprite-stack air gaps) in a **separa
   seeded by `panelId`, recessed fasteners only near the corners of ~28 % of plates, all `fwidth`-faded before they can
   alias. Most of the surface is resting plate — the detail clusters at seams, straps and recesses (M18).
 - **Ink:** a `creaseMask` foot line (1 px where the interpolated mask reaches 1 within one pixel, via `fwidth`), grazing
-  risers inked, a `dFdx/dFdy` geometric-normal break; a G-buffer actor mask of 0.9 makes the post pass draw the crease /
-  cavity outlines ink-black with a cool convex lift. Per-fragment derivatives alone **cannot** see edges between flat
-  triangles — the crisp 1 px ink has to come from the G-buffer pass.
+  risers inked, a `dFdx/dFdy` geometric-normal break; a G-buffer actor mask of 0.90 makes the post pass draw the crease /
+  cavity outlines ink-black with a cool convex lift (curved forms use 0.82 instead, §6.6). Per-fragment derivatives
+  alone **cannot** see edges between flat triangles — the crisp 1 px ink has to come from the G-buffer pass.
 - `bevelHint` crests +8–12 % toward cool blue-white when sunlit; `pow(macroAo, 1.32)`; a stepped cool Fresnel rim in
   space; a warm-amber bounce inside the interior bay box (matTag 5 + an asset-local volume, `uHangarBounce`, §6.3).
 - Dual-scale AO: `aoMicro × mix(1, macroAo, uMacroAoStrength · (1 − em))` — emissive cells are never darkened (M9).
@@ -600,6 +810,116 @@ em = clamp(max(vEm, md.a) * uEmissiveMul, 0.0, 1.0);
 5 MACRO_MESO (cool slate macro vs. tinted meso prefabs). All except STACK live in the discard-free FINAL program; STACK
 uses the separate `CAPITAL_FRAG_STACK` variant.
 
+### 6.6 Structure-aware ink (`capSoftInk`)
+
+**Problem.** On curved or organic voxel forms (domes, rings, ribbed carapace) every 1-voxel stair step is a real normal
+break, so hard-surface ink paints a black line on each step: the dome reads as a dark staircase instead of a curve.
+**Fix:** keep the crisp 1 px silhouette and real structural creases, and soften only the shallow stair steps on exposed
+crests. Hard-surface assets keep the old path exactly.
+
+| G-buffer mask (`oNormal.a`) | Asset kind | Post pass |
+|---|---|---|
+| **0.90** (`capInk`) | hard-surface (`hard_surface` profile) | ink-black silhouette + every normal crease (unchanged, **0 px** difference) |
+| **0.82** (`capSoftInk`) | curved / organic / ornate (any other profile) | ink-black silhouette; strong crease ink only on a real depth step, gentle 0.22 mix on 1-voxel stairs |
+| 1.0 | Track A actors | Track A outline rules |
+
+Every mask stays above the 0.75 actor threshold, so silhouettes, glow halos and occlusion work unchanged.
+
+```glsl
+// CAPITAL_FRAG (FINAL, colour only): soften per-step ink on exposed crests of curved assets
+vec3 fww = fwidth(vLocalPos);
+float pxU = max(max(fww.x, fww.y), fww.z);                                   // u per screen pixel
+float stairK = uCurvedForm > 0.5 ? smoothstep(0.25, 0.45, pxU / max(uVoxelScale, 1e-3)) : 0.0;   // dense sub-2 px steps
+float crestK = smoothstep(0.50, 0.62, vMacroAo);                              // exposed crest (1) vs real cavity (0)
+float softInk = stairK * crestK;
+float creaseK = smoothstep(0.2, 1.0, vCrease) * (1.0 - 0.85 * softInk);
+float inkLine = step(0.015, cw) * smoothstep(1.0 - 1.6 * cw, 1.0 - 0.4 * cw, vCrease) * (1.0 - 0.9 * softInk);
+float graze   = smoothstep(0.93, 0.992, 1.0 - abs(dot(N, V))) * (1.0 - 0.6 * softInk);
+col = mix(col, inkCol, ink * mix(0.88, 0.62, softInk));
+oNormal = vec4(N * 0.5 + 0.5, uCurvedForm > 0.5 ? 0.82 : 0.90);
+
+// POST_FRAG
+bool capInk     = mask > 0.85 && mask < 0.95;                                 // hard-surface megastructure
+bool capSoftInk = mask > 0.78 && mask < 0.86;                                 // curved / organic megastructure
+if (found) col = (capInk || capSoftInk) ? mix(col, INK, 0.9) : …;            // crisp 1 px silhouette for both
+// inner normal crease: remember whether the neighbour is a real depth step
+if (abs(ld - ldq) < thr && dot(N, Nq) < uCreaseDot) { crease = …; deep = deep || abs(ld - ldq) > 0.008 * ld; }
+if (crease > 0.0) col = capInk ? mix(col, INK, 0.62 + 0.5 * uCreaseStrength)
+                      : capSoftInk ? mix(col, INK, deep ? 0.62 + 0.5 * uCreaseStrength : 0.22) : …;
+```
+
+- `uCurvedForm` is any per-asset switch derived from the material profile (the reference shader uses its profile
+  index: `hard_surface` = 0 keeps the 0.90 path).
+- Tint organic ink instead of pitch black: deep violet-plum `(0.075, 0.028, 0.095)` on carapace and flesh, warm umber
+  `(0.17, 0.10, 0.05)` on ivory, bone and gold (`mix` by a warm-albedo weight).
+- Measured: on hard-surface structures 0 pixels of the structure changed; on a ringed ornate vessel the black stair ink on the
+  curved gold rings disappeared while the silhouette and the cavity creases stayed crisp.
+
+### 6.7 Non-clipping, form-preserving emissives
+
+**Problem.** Bright emissive voxels clip to a flat neon sticker: a faceted crystal or a glowing organic orb loses all of
+its planes. **Fix:** keep a directional and view-angle form term inside the glow, roll the highlight off with a soft
+shoulder, and normalise by the largest channel so the hue never washes to white.
+
+```glsl
+if (uCurvedForm > 0.5 && em > 0.01) {
+  float nv = clamp(dot(N, V), 0.0, 1.0);
+  float form = mix(0.70, 1.08, 0.45 * diff + 0.55 * pow(nv, 0.65));          // lit / grazing planes stay readable
+  vec3 e = albedo * 1.22 + vec3(0.02);
+  // optional per-material looks: recessed rims (mix toward a darker shade by pow(1 - nv, 1.4)),
+  // faceted crystals (form = mix(0.62, 1.10, floor((0.6 * diff + 0.4 * nv) * 3.0 + 0.5) / 3.0))
+  e *= form;
+  e = e / (1.0 + max(vec3(0.0), e - 0.88) * 0.45);                            // soft highlight shoulder
+  emCol = e / max(1.0, max(max(e.r, e.g), e.b));                               // hue-preserving normalise
+}
+if (em > 0.01) col = mix(col, emCol, em);
+```
+
+Colour only: the G-buffer alpha (`1 − 0.5·em`) still feeds the glow halo, and Early-Z is untouched. Measured: glowing
+pustules read as shaded spheres instead of flat blobs, and crystals show distinct lit and dark facets.
+
+### 6.8 Material-profile shadow and rim protection
+
+- **Organic carapace (velvet lift).** Dark sculpted carapace crushes to black in space. On the carapace tag add a warm
+  floor on the shadow side — `col = max(col, albedo * vec3(0.66, 0.50, 0.80) * (0.30 + 0.16 * diff) * aoMacro)` — plus
+  a small shadow-side lift, and darken crevices from cavity depth (`1 − macroAo`) rather than from every crest step.
+- **Warm bone / ivory.** Pale warm albedo under a cool space shadow tint turns grey. Detect it
+  (`warm = smoothstep(0.05, 0.16, r − b) · smoothstep(0.42, 0.62, mean(rgb))`), blend the shadow tint toward a warm umber
+  ramp (`avg(shadowTint) · vec3(1.22, 0.98, 0.74)`) by `0.8 · warm`, and attenuate the cool Fresnel rim by `1 − 0.7 · warm`.
+- Scope both by material profile and tag (M23): hard-surface assets never take these branches.
+
+### 6.9 Anchored wave deformation (`uWaveMode`)
+
+A legacy `'y'` wave sways everything behind a Y plane, which also moves the root of a split appendage and opens a seam
+against the static hull. Anchor the sway on the distance **outside** a root volume instead; voxelize with
+`axis=box:auto` / `axis=ellipsoid:auto` (§2B.6) so the volume is the measured junction box.
+
+```glsl
+uniform float uWaveMode;     // 0 = 'y' (legacy) · 1 = 'ellipsoid' · 2 = 'box'
+uniform vec3  uWaveCenter;   // part-local u (json waveCenter)
+uniform vec3  uWaveRadii;    // radii / box half extents (json waveRadii)
+if (uWaveAmp > 0.0) {
+  float d = max(uWaveOriginY - p.y, 0.0);  vec3 g = vec3(0.0, -1.0, 0.0);
+  if (uWaveMode > 1.5) { vec3 r = p - uWaveCenter, o = max(abs(r) - uWaveRadii, vec3(0.0)); d = length(o); g = d > 1e-3 ? o * sign(r) / d : g; }
+  else if (uWaveMode > 0.5) { vec3 r = p - uWaveCenter; float lr = length(r), s = max(length(r / max(uWaveRadii, vec3(1.0))), 1e-4);
+                              d = max(lr - lr / s, 0.0); g = lr > 1e-3 ? r / lr : g; }
+  float k = d / max(uWaveLen, 1.0), il = 1.0 / max(uWaveLen, 1.0);
+  float ph = d * uWaveFreq - uWavePhase * 2.4 + p.x * 0.021, ph2 = ph * 0.83 + 1.3 + p.x * 0.013;
+  float fx = sin(ph) * uWaveAmp * k, fz = cos(ph2) * uWaveAmp * 0.55 * k;
+  float dfx = cos(ph) * uWaveFreq * uWaveAmp * k + sin(ph) * uWaveAmp * il;
+  float dfz = -sin(ph2) * 0.83 * uWaveFreq * uWaveAmp * 0.55 * k + cos(ph2) * uWaveAmp * 0.55 * il;
+  if (d > 0.0) { p.x += fx; p.z += fz; n = normalize(n - g * (dfx * n.x + dfz * n.z)); }   // n' = J^-T n
+}
+```
+
+- Inside the anchor volume `d = 0`, so the root is exactly static: measured **0 px** seam drift between a static hull
+  and its split wave tentacles over an animation, while the tentacles moved ~70k px.
+- `'y'` mode is mathematically identical to the legacy wave, so existing assets need no change.
+- Vertex-only: the fragment program, and therefore Early-Z, is untouched.
+
+**Early-Z invariant.** §6.6–§6.9 change colour, the G-buffer mask value and vertex positions only. The FINAL fragment
+program still contains **0 `discard` and 0 `gl_FragDepth`**; check it with a source grep in CI.
+
 ## 7. Stage 5 — Quality and performance gates (G5 and G6)
 
 ### 7.1 G5 — Multi-cue concept diff
@@ -674,7 +994,7 @@ including the ones that miss.
 | Draw calls | ≤ 16 (1–8 macro + ≤ 15 meso batches) | `stats.drawCalls` (static), then `renderer.info.render.calls` with the asset on minus off |
 | Triangles | total ≤ 1.2 M; meso unique ≤ 600k | `stats.totalTriangles` / `stats.mesoUniqueTriangles` |
 | `.bin` | ≤ 12 MiB | `stats.binBytes` |
-| Early-Z | 100 % alive | the FINAL-mode capital programs contain no `discard` and no `gl_FragDepth` (grep the compiled source), with depthTest / depthWrite on |
+| Early-Z | 100 % alive | the FINAL-mode megastructure programs contain no `discard` and no `gl_FragDepth` (grep the compiled source), with depthTest / depthWrite on |
 | GPU frame delta | ≤ 2.5 ms @ 60 fps | readPixels-bracketed median of ≥ 40 frames at the framed hero camera, asset on minus off ([03 pitfall 2](03_pitfalls_and_qa_gates.md): never `gl.finish()`) |
 
 - `checkPerfBudget(stats, MEGA_V23_BUDGET, runtime)` returns `staticPass`. A run with **no runtime numbers is never a
@@ -690,7 +1010,10 @@ including the ones that miss.
 | Hard-surface carrier, `quad16` hero build | 10 | 410k | 8.93 MiB | Δ 0.79 ms (GPU) |
 | Ornate temple vessel, `quad16` hero build | 9 | 802k | 6.02 MiB | 0.3 ms (CPU) |
 | Organic tentacled leviathan, `quad16` hero build | 5 | 1.11 M | 8.03 MiB | 0.7 ms (CPU) |
-| Older single-grid capitals (11-float layout) | 1–3 | 19–33k | — | +0.10–0.31 ms (GTX 1080, D3D11) |
+| Hard-surface carrier, Mode B2 (mesh → 1.4 u/vox `quad16` hull + 7 `packed20` prefab types, 31 instances) | 8 | 662k | 8.74 MiB | Δ 1.275 ms (engine), 0.6 ms (CPU) |
+| Ornate ringed vessel, Mode B2 (hull static + ring rotate + core rotate-and-bob, one shared AO, 2.0 u/vox) | 3 | 908k | 6.93 MiB | 3.0 ms whole-frame CPU median |
+| Organic tentacled leviathan, Mode B2 (hull static + wave tentacles, box-anchored, 2.2 u/vox) | 2 | 1.13 M | 8.61 MiB | 3.8 ms whole-frame CPU median; 0 px root seam drift |
+| Older single-grid megastructures (11-float layout) | 1–3 | 19–33k | — | +0.10–0.31 ms (GTX 1080, D3D11) |
 
 ## 8. Kit API and CLI reference (`scripts/mega_voxel_kit.mjs`, `scripts/mega_diff_utils.mjs`)
 
@@ -719,6 +1042,7 @@ failed target.
 | `DEFAULT_ACCENT_BANDS`, `normalizeAccentBands`, `parseAccentBands`, `accentClass(r, g, b, bands)` | configurable accent bands |
 | `computeHullSilhouetteIoU`, `G5_V23_TARGETS` | hull-only G5 |
 | `decodePNG / encodePNG / readPNG / writePNG / toMask / registerMask` | zero-dependency PNG and mask tools |
+| `scripts/mesh_source.mjs`, `scripts/mesh_to_voxel.mjs` | Mode B2 model acquisition and mesh-to-voxel (§2B.2–§2B.7); self-test `node scripts/test_mesh_harness.mjs` (32/32) |
 
 ```bash
 node scripts/test_mega_kit.mjs                                                               # self-test: 78 checks, temp files only
@@ -740,7 +1064,7 @@ node scripts/mega_voxel_kit.mjs demo --format MEGA_V23 --out build/mega_demo23  
   `applyDetailZoneCarves` → paint → prefabs and `instances[]` → `packMegaAsset({ format: 'MEGA_V23' })` →
   `writeMegaAsset`, with a `--pass A|B|C|D` switch for the sculpt loop.
 
-## 9. Pitfalls (M1–M23)
+## 9. Pitfalls (M1–M27)
 
 1. **M1 · Perspective sneaks into "orthographic" views.**
    - *Symptom:* the hull comes out fat at one end, and `hullDimsFromMasks` reports more than 3 % mismatch.
@@ -850,13 +1174,30 @@ treat M13–M15 as gates on the same level as G5 and G6.
     bounce) or a mechanical tag legend silently lands on every other asset; scope them per material profile (uniforms
     from the asset's `materialProfile` / `faction`) and give the studio per-asset zone cameras instead of re-aiming one
     asset's.
+24. **M24 · Generators fuse everything in frame (Mode B2).** Escort craft, floating debris or a background planet in
+    the concept come back welded to the mesh, and cost credits to regenerate. Pre-clean the concept (decision table),
+    inspect the 6-view sheet before voxelizing, and trim leftovers with `preAoHook` or a carve.
+25. **M25 · Hard ink on curved voxel stairs.** One crease line per 1-voxel step turns a dome into a black staircase.
+    Use structure-aware ink (§6.6): mask 0.82 for curved assets, full ink only on silhouettes and depth steps
+    (`|ld − ldq| > 0.008 · ld`), and keep 0.90 so hard-surface assets do not change by a pixel.
+26. **M26 · Emissive clipping.** `mix(col, albedo · 1.25, em)` saturates bright cells to one flat colour. Keep a form
+    term and a hue-preserving shoulder (§6.7) so crystals and glowing orbs keep their planes.
+27. **M27 · Split parts that move need clearance and an anchor.** Generated meshes weld rings to cores and tentacles to
+    hulls. Split after the AO bake (§2B.6), trim the swept volume of every moving part against its neighbours in
+    `preAoHook` (rotate a ring through its full range and remove whatever it would pass through), and anchor waves on
+    the junction box (§6.9). A plane-based `'y'` wave on a split appendage opens a root seam.
 
 ## 10. End-to-end checklist
 
 - [ ] Hero 3/4 concept approved. Archetype chosen (`generic_megastructure`, `hard_surface_carrier`, `halo_mothership`
       or `bio_leviathan`).
-- [ ] Top, side and front orthographic views anchored on the concept, with mismatch ≤ 3 %.
-- [ ] Visual hull, fidelity ≥ 0.90 on every view; final macro hull rebuilt from clean sub-assemblies at 1.6–2.5 u/vox.
+- [ ] Mode agreed with the user: **B1** (default, offline) or **B2** (opt-in 3D mesh); for B2 without a model, the
+      provider agreed too (`local`, `command`, `manual`, an optional API adapter, or a registered one).
+- [ ] B1: top, side and front orthographic views anchored on the concept, with mismatch ≤ 3 %; visual hull, fidelity
+      ≥ 0.90 on every view; final macro hull rebuilt from clean sub-assemblies at 1.6–2.5 u/vox.
+- [ ] B2: concept pre-cleaned; model acquired, validated and cached (`mesh_source.json`); 6-view sheets inspected;
+      aligned and voxelized (solidify, symmetry, palette rules); moving parts split after the single AO bake, with
+      swept-volume clearance and junction-anchored waves.
 - [ ] `detail_zones.json` scaffolded (`--asset <id>`), bounds edited, `validate-zones` OK, one callout sheet per zone,
       every feature mapped to a tier.
 - [ ] Cavity carves applied, emissive rails painted, ≥ 2-voxel margin kept.
@@ -867,7 +1208,8 @@ treat M13–M15 as gates on the same level as G5 and G6.
       (one instanced draw each, `macroLevels` up to 256) + `packed20` prefabs; `inspect` shows the static G6 checks
       passing.
 - [ ] Material profile chosen (`MATERIAL_PRESETS` or custom) and the matching shader legend / uniforms set per asset.
-- [ ] Engine port of the loader and shaders, with no `discard` / `gl_FragDepth` in FINAL.
+- [ ] Engine port of the loader and shaders, with no `discard` / `gl_FragDepth` in FINAL; curved assets use
+      structure-aware ink (mask 0.82) and form-preserving emissives, hard-surface assets keep 0.90.
 - [ ] G5: silhouette (hero ≥ 0.78, ortho ≥ 0.85) + edge (hero F1 ≥ 0.52, ortho average ≥ 0.55, radius 2 px, read against
       the chance level) + bands chosen for your palette; appendage-heavy forms also pass hull-only IoU ≥ 0.86; every zone
       feature ticked; sheets inspected by eye; every number reported, including the ones that miss.
@@ -907,7 +1249,7 @@ schema; new assets should use `format: 'MEGA_V23'`.
 | 11 | `meta = matTag·256 + round(macroAo·255)` | — |
 
 - Floats 0–9 are bit-identical between the two layouts; the self-test checks this. With `format: 'FLOAT11'`, an
-  **unchanged 11-float capital shader** renders the cavity depth with no shader edit. (The kit still accepts the
+  **unchanged 11-float megastructure shader** renders the cavity depth with no shader edit. (The kit still accepts the
   layout's original format token, so existing callers keep working.)
 - Decode in GLSL with `tag = floor(m / 256.0)`; `macroAo = mod(m, 256.0) / 255.0`. The value is an integer below
   2²⁴, so it is exact in float32.

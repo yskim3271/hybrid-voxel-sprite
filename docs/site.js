@@ -7,7 +7,7 @@
 
   var KO = {
     'nav.demo': '라이브 데모', 'nav.back': '← 데모로 돌아가기', 'nav.engines': '엔진', 'nav.install': '설치', 'nav.docs': '문서',
-    'hero.badge': '오픈 소스 · MIT 라이선스 · v2.3',
+    'hero.badge': '오픈 소스 · MIT 라이선스 · v2.4',
     'hero.title': '픽셀 아트 스타일의<br><span class="accent">3D 복셀 스프라이트</span>',
     'hero.lede': '파츠별 3D 복셀 볼륨을 실시간으로 렌더링하는 에이전트 스킬입니다. 픽셀 아트 외곽선과 2D 스프라이트 스태킹의 느낌을 유지하면서, 카메라 각도에 관계없이 깔끔하게 움직입니다.',
     'hero.cta1': '시작하기', 'hero.cta2': 'GitHub에서 보기',
@@ -33,8 +33,8 @@
     'eng.eyebrow': '어댑터', 'eng.title': '4개 엔진을 지원합니다',
     'show.eyebrow': '쇼케이스', 'show.title': '실시간 렌더링 예시',
     'cap.title': '대형 메가스트럭처',
-    'cap.sub': '약 1000&nbsp;u 크기의 대형 복셀 구조물 예시입니다. 2D 콘셉트 아트(패널 01)에서 실시간 WebGL2(패널 02–04)까지 쿼드당 16&nbsp;B인 <code>quad16</code> 포맷으로 패킹합니다.',
-    'cap.more': '버전 히스토리에서 v2.3 변경 내역 보기',
+    'cap.sub': '약 1000&nbsp;u 크기의 대형 복셀 구조물 예시입니다. 2D 콘셉트 아트(패널 01)에서 실시간 WebGL2(패널 02–04)까지 쿼드당 16&nbsp;B인 <code>quad16</code> 포맷으로 패킹합니다. 정사영 3-뷰만으로 완전히 오프라인에서 만들거나(모드 B1), 원하는 공급자의 3D 메시를 선택해 쓸 수 있습니다(모드 B2).',
+    'cap.more': '버전 히스토리에서 v2.4 변경 내역 보기',
     'foot.docs': '스킬 문서', 'foot.rel': '릴리스', 'foot.log': '변경 이력',
     // live demo · renderer options panel
     'r.surface': '복셀 표면', 'r.crisp': '또렷한 DDA', 'r.smooth': '매끈한 Iso',
@@ -66,6 +66,22 @@
     'v10.4': '검증된 4개 엔진 어댑터: WebGL2 / Three.js · Godot 4.7.2 · Unity 6 URP · Blender 5.3',
     'v10.5': '필수 QA 게이트 4종: G1 저각 틈 · G2 서브텍셀 스냅 · G3 역변형 오차 · G4 지면 · 루프 · 가림',
     'log.notes': 'GitHub 릴리스 노트', 'log.skill': 'SKILL.md 보기', 'log.compare': '변경 내역 비교',
+    // v2.4.0
+    'v24.t': '선택형 3D 메시 입력, 교체 가능한 모델 공급자 & 구조 인식 셰이더',
+    'v24.d': 'Track B에서 두 모드를 고를 수 있습니다. 기본값은 완전히 오프라인인 3-뷰 비주얼 헐(<b>모드 B1</b>)이고, 유기체·장식·깊은 조형에는 원하는 공급자에서 구한 3D <code>.glb</code> / <code>.gltf</code> 메시(<b>모드 B2</b>)를 선택해 쓸 수 있습니다.',
+    'g.mesh': '3D 메시 입력 & 공급자 추상화', 'g.shaders': '렌더링 & 셰이더', 'g.verify': '검증',
+    'v24.1': 'Track B 모드를 명시적으로 선택: <b>B1</b>(기본값, 100% 오프라인, 외부 3D 도구·키 불필요) 또는 <b>B2</b>(선택형 3D 메시). 스킬이 3D 입력을 가정하지 않고 먼저 묻습니다',
+    'v24.2': '<code>mesh_source.mjs</code>의 교체 가능한 모델 공급자: <code>local</code> 파일(기본값), <code>command</code>(셸 없이 실행하는 임의 CLI · 로컬 오픈소스 모델), <code>manual</code> 웹 UI · DCC 수동 전달, 선택형 <code>tripo</code> API 어댑터, 그 밖의 서비스는 <code>registerProvider()</code>로 추가. 검증, SHA-256 캐시, 비밀 값 마스킹 제공',
+    'v24.3': '<code>mesh_to_voxel.mjs</code>: CPU 6-뷰 정렬 시트, 보수적 복셀화, 내부 채움, 좌우 대칭, 팔레트 · 발광 규칙, 디테일 존 카빙, <b>통합 AO 1회 굽기</b>와 wave 자동 앵커를 갖춘 다중 파트 분할',
+    'v24.4': '구조 인식 잉크(<code>capSoftInk</code>): 곡면의 1-복셀 계단마다 생기던 검은 선을 없애고 1&nbsp;px 외곽 실루엣과 실제 단차는 유지. 하드서피스 에셋 변화 <code>0 px</code>',
+    'v24.5': '클리핑 없이 형태를 살리는 발광, 벨벳 갑각 · 따뜻한 뼈 그림자 램프, 뿌리 이음매 이동 <code>0 px</code>인 앵커 wave 모드(<code>\'box\'</code> / <code>\'ellipsoid\'</code>). Early-Z 유지',
+    'v24.6': '새 <code>test_mesh_harness.mjs</code> <code>32/32</code>(합성 <code>.glb</code>, 네트워크 호출 0) · 키트 <code>78/78</code> · Python 스위트 26 통과, 0 실패 · 바이트 단위로 같은 스킬 미러',
+    'v24.c1': '하드서피스 캐리어 · 메시 기반 제작',
+    'v24.c2': '금·상아 링형 구조물 · 회전 링 + 코어',
+    'v24.c3': '유기체 거대 개체 · 앵커 wave 촉수',
+    'v24.c4': '구조 인식 잉크 · 적용 전 → 후',
+    'v24.hint': '패널 01은 원본 2D 콘셉트 아트, 패널 02–04는 모드 B2로 만든 에셋의 실시간 WebGL2 렌더입니다. 마지막 시트는 같은 에셋과 카메라로 셰이더 업데이트 전후를 비교합니다. 클릭하면 원본 해상도로 열립니다.',
+    'log.ref04b2': 'Track B 모드 & 메시 입력 (04)',
     // v2.3.0
     'log.checkpoint': '체크포인트', 'log.ref04': '메가스트럭처 파이프라인 (04)', 'log.ref12': '04 부록 A 보기',
     'g.gallery': '적용 예시 · 콘셉트 레퍼런스 → 실시간 WebGL2',
