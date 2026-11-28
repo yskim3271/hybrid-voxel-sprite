@@ -261,28 +261,45 @@
           <p data-i18n-html="cap.sub">Examples of ~1000&nbsp;u voxel structures, from 2D concept art (panel 01) to real-time WebGL2 (panels 02–04), packed as <code>quad16</code> at 16&nbsp;B per quad. Build them fully offline from three orthographic views (Mode B1), or opt in to a 3D mesh from any source you choose (Mode B2).</p>
         </div>
         <div class="cap-grid">
-          <a class="cap-card" href="changelog.html#v2.4.0" data-keep-lang style="--fc: #38bdf8">
+          <a class="cap-card" href="changelog.html#v2.4.0" data-keep-lang>
             <img src="assets/v24/hard_surface_carrier_v24.jpg" width="1600" height="900" loading="lazy" alt="Hard-surface carrier built from a 3D mesh: concept art and three real-time WebGL2 renders">
-            <span class="cap-info"><b data-i18n="v24.c1">Hard-surface carrier · mesh-built</b><span class="mono">662k tris · 8.74 MiB · 8 draws</span></span>
           </a>
-          <a class="cap-card" href="changelog.html#v2.4.0" data-keep-lang style="--fc: #fbbf24">
+          <a class="cap-card" href="changelog.html#v2.4.0" data-keep-lang>
             <img src="assets/v24/ornate_ringed_vessel_v24.jpg" width="1600" height="900" loading="lazy" alt="Ornate ringed vessel built from a 3D mesh: concept art and three real-time WebGL2 renders">
-            <span class="cap-info"><b data-i18n="v24.c2">Ornate ringed vessel · spinning ring + core</b><span class="mono">908k tris · 6.93 MiB · 3 draws</span></span>
           </a>
-          <a class="cap-card" href="changelog.html#v2.4.0" data-keep-lang style="--fc: #e879f9">
+          <a class="cap-card" href="changelog.html#v2.4.0" data-keep-lang>
             <img src="assets/v24/organic_leviathan_v24.jpg" width="1600" height="900" loading="lazy" alt="Organic tentacled leviathan built from a 3D mesh: concept art and three real-time WebGL2 renders">
-            <span class="cap-info"><b data-i18n="v24.c3">Organic leviathan · anchored wave tentacles</b><span class="mono">1.13M tris · 8.61 MiB · 2 draws</span></span>
           </a>
         </div>
         <a class="cap-more" href="changelog.html#v2.4.0" data-keep-lang><span data-i18n="cap.more">See what changed in v2.4 in the Version History</span><span aria-hidden="true">→</span></a>
       </div>
 
-      <figure class="media">
-        <img src="assets/showcase_loop.gif" width="720" height="354" loading="lazy" alt="Showcase loop: excavator, retro mini, cybertruck and Formula 1 with live SPRITE STACK, 3D NORMALS and VOLUME AO wipes">
-      </figure>
-      <figure class="media strip">
-        <img src="assets/modes_compare.png" width="1440" height="420" loading="lazy" alt="The same excavator pose in FINAL, SPRITE STACK, 3D NORMALS and VOLUME AO">
-      </figure>
+      <!-- showcase 3D card deck: card 1 = Track A vehicles (default), card 2 = v2.4 16:9 reel with optional BGM -->
+      <div class="deck-shell" id="showcaseCarousel" role="region" aria-roledescription="carousel" tabindex="0" aria-label="Showcase videos" data-i18n-aria="car.aria">
+        <div class="deck-stage">
+          <div class="deck-card" id="carSlide0" data-index="0" data-fit="contain" data-accent="amber" data-has-audio="false" role="group" aria-roledescription="slide" aria-label="1 / 2">
+            <video muted loop playsinline preload="metadata" poster="assets/showcase_vehicles_poster.jpg" width="1440" height="708" disablepictureinpicture
+              aria-label="Excavator, retro mini, cybertruck and Formula 1 with live FINAL, SPRITE STACK, 3D NORMALS and VOLUME AO wipes" data-i18n-aria="car.v0">
+              <source src="assets/showcase_vehicles.webm" type="video/webm">
+              <source src="assets/showcase_vehicles.mp4" type="video/mp4">
+            </video>
+            <div class="deck-prog" aria-hidden="true"><i></i></div>
+          </div>
+          <div class="deck-card" id="carSlide1" data-index="1" data-fit="cover" data-accent="cyan" data-has-audio="true" role="group" aria-roledescription="slide" aria-label="2 / 2">
+            <video muted loop playsinline preload="metadata" poster="assets/v24/showcase_reel_16x9_poster.jpg" width="1280" height="720" disablepictureinpicture
+              aria-label="24-second showcase: from 2D concept art to large real-time voxel ships, with a small articulated fighter beside a giant carrier" data-i18n-aria="car.v1">
+              <source src="assets/v24/showcase_reel_16x9.webm" type="video/webm">
+              <source src="assets/v24/showcase_reel_16x9.mp4" type="video/mp4">
+            </video>
+            <button type="button" class="deck-sound" id="carSound" aria-pressed="false" aria-label="Background music on or off" data-i18n-aria="car.soundAria">🔇 BGM</button>
+            <div class="deck-prog" aria-hidden="true"><i></i></div>
+          </div>
+        </div>
+        <div class="deck-dots" role="tablist" aria-label="Choose a video" data-i18n-aria="car.tabs">
+          <button type="button" role="tab" class="deck-dot on" data-car-go="0" aria-selected="true" aria-controls="carSlide0" aria-label="Video 1" data-i18n-aria="car.tab0"></button>
+          <button type="button" role="tab" class="deck-dot" data-car-go="1" aria-selected="false" aria-controls="carSlide1" aria-label="Video 2" data-i18n-aria="car.tab1"></button>
+        </div>
+      </div>
     </section>
 
   </main>

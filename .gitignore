@@ -10,12 +10,16 @@ venv/
 build/
 *.log
 
-# Large renders: only the lightweight docs/assets (PNG / GIF / SVG) are tracked
+# Large renders: only the lightweight docs/assets (PNG / GIF / SVG) and explicit showcase web videos are tracked
 *.mp4
 *.webm
 *.mov
 *.mp3
 *.wav
+!docs/assets/showcase_vehicles.mp4
+!docs/assets/showcase_vehicles.webm
+!docs/assets/v24/showcase_reel_16x9.mp4
+!docs/assets/v24/showcase_reel_16x9.webm
 
 # OS / editor
 .DS_Store

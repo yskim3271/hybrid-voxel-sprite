@@ -35,6 +35,16 @@
     'cap.title': '대형 메가스트럭처',
     'cap.sub': '약 1000&nbsp;u 크기의 대형 복셀 구조물 예시입니다. 2D 콘셉트 아트(패널 01)에서 실시간 WebGL2(패널 02–04)까지 쿼드당 16&nbsp;B인 <code>quad16</code> 포맷으로 패킹합니다. 정사영 3-뷰만으로 완전히 오프라인에서 만들거나(모드 B1), 원하는 공급자의 3D 메시를 선택해 쓸 수 있습니다(모드 B2).',
     'cap.more': '버전 히스토리에서 v2.4 변경 내역 보기',
+    // showcase video carousel
+    'car.aria': '쇼케이스 영상', 'car.tabs': '영상 선택', 'car.prev': '이전 영상', 'car.next': '다음 영상',
+    'car.t0': 'Track A · 관절형 복셀 차량 4종',
+    'car.s0': 'FINAL · SPRITE STACK · 3D NORMALS · VOLUME AO 실시간 비교',
+    'car.t1': 'v2.4 쇼케이스 · 2D 아트에서 1000u 메가스트럭처까지',
+    'car.s1': 'Track A 스프라이트와 Track B 대형 보스를 하나의 실시간 WebGL2 파이프라인으로 (24초 · BGM)',
+    'car.v0': '굴착기, 레트로 미니, 사이버트럭, F1 머신을 FINAL · SPRITE STACK · 3D NORMALS · VOLUME AO로 실시간 비교하는 영상',
+    'car.v1': '2D 콘셉트 아트에서 대형 실시간 복셀 함선까지, 작은 관절형 전투기와 거대한 모함을 함께 보여 주는 24초 쇼케이스',
+    'car.tab0': '복셀 차량', 'car.tab1': 'v2.4 쇼케이스 릴',
+    'car.hint': '옆으로 밀거나 클릭 →',
     'foot.docs': '스킬 문서', 'foot.rel': '릴리스', 'foot.log': '변경 이력',
     // live demo · renderer options panel
     'r.surface': '복셀 표면', 'r.crisp': '또렷한 DDA', 'r.smooth': '매끈한 Iso',
@@ -127,6 +137,8 @@
       'clip.cybertruck.idle': 'Idle · LED bar', 'clip.cybertruck.move': '4-wheel-steer drive', 'clip.cybertruck.special': 'Beast Mode lift + tonneau',
       'clip.f1.idle': 'Grid idle', 'clip.f1.move': 'Flat-out lap', 'clip.f1.special': 'Active DRS flap',
       'toast.copied': 'Copied to clipboard',
+      'car.soundOff': '🔇 Sound off', 'car.soundOn': '🔊 BGM on', 'car.soundAria': 'Background music on or off',
+      'car.play': 'Play', 'car.pause': 'Pause',
     },
     ko: {
       'mode.final': 'FINAL', 'mode.final.sub': '셀 셰이딩 + 1px 외곽선',
@@ -138,6 +150,8 @@
       'clip.cybertruck.idle': '대기 · LED 바', 'clip.cybertruck.move': '4륜 조향 주행', 'clip.cybertruck.special': 'Beast Mode 리프트 + 톤노 커버',
       'clip.f1.idle': '그리드 대기', 'clip.f1.move': '풀 스로틀 랩', 'clip.f1.special': '액티브 DRS 플랩',
       'toast.copied': '클립보드에 복사했습니다',
+      'car.soundOff': '🔇 소리 꺼짐', 'car.soundOn': '🔊 BGM 켜짐', 'car.soundAria': '배경 음악 켜기 / 끄기',
+      'car.play': '재생', 'car.pause': '일시정지',
     },
   };
 
@@ -162,6 +176,18 @@
       var k = el.getAttribute(html ? 'data-i18n-html' : 'data-i18n');
       if (!(k in EN)) EN[k] = el.innerHTML.trim();
     });
+    // aria-label translations (data-i18n-aria="key"): the English label lives in the HTML attribute
+    document.querySelectorAll('[data-i18n-aria]').forEach(function (el) {
+      var k = el.getAttribute('data-i18n-aria');
+      if (!(k in EN)) EN[k] = el.getAttribute('aria-label') || '';
+    });
+  }
+  function applyAria() {
+    document.querySelectorAll('[data-i18n-aria]').forEach(function (el) {
+      var k = el.getAttribute('data-i18n-aria');
+      var v = lang === 'ko' && k in KO ? KO[k] : EN[k];
+      if (v != null) el.setAttribute('aria-label', v);
+    });
   }
   function t(k) {
     if (DYN[lang] && k in DYN[lang]) return DYN[lang][k];
@@ -178,6 +204,7 @@
       if (v == null) return;
       el.innerHTML = v;   // trusted, first-party strings only
     });
+    applyAria();
     document.querySelectorAll('[data-lang]').forEach(function (b) {
       var on = b.getAttribute('data-lang') === lang;
       b.classList.toggle('on', on); b.setAttribute('aria-pressed', on ? 'true' : 'false');
@@ -218,6 +245,181 @@
     });
   }
 
+  // ------------------------------------------------------------------ showcase 16:9 3D card deck (Variant A)
+  // Minimal 2-card 3D coverflow: active 16:9 card centered & playing; adjacent card peeks at 32 deg on the left/right.
+  // Click the peeking side card, drag/swipe horizontally, click the minimal dots, or press ←/→ when focused.
+  // Only the active on-screen card plays; inactive cards pause & mute so BGM never leaks.
+  function initCarousel() {
+    var root = document.getElementById('showcaseCarousel');
+    if (!root) return;
+    var cards = Array.prototype.slice.call(root.querySelectorAll('.deck-card'));
+    var videos = cards.map(function (c) { return c.querySelector('video'); });
+    var dots = Array.prototype.slice.call(root.querySelectorAll('.deck-dot'));
+    var soundBtn = document.getElementById('carSound');
+    var reduce = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var n = cards.length;
+    var active = 0, inView = false, userPaused = reduce, soundOn = false;
+    var down = false, startX = 0, curDx = 0, wasDragged = false;
+
+    function updateSoundLabel() {
+      if (!soundBtn) return;
+      soundBtn.classList.toggle('on', soundOn);
+      soundBtn.setAttribute('aria-pressed', soundOn ? 'true' : 'false');
+      soundBtn.textContent = soundOn ? '🔊 BGM ON' : '🔇 BGM';
+    }
+
+    function render(dragPx) {
+      var w = root.clientWidth || 960;
+      var dragFrac = Math.max(-0.85, Math.min(0.85, (dragPx || 0) / (w * 0.45)));
+      cards.forEach(function (card, i) {
+        var d0 = i - active;
+        var d = d0 + dragFrac;
+        var abs = Math.abs(d);
+        var tx = d * 76;
+        var tz = -Math.min(abs, 2) * 140;
+        var ry = -Math.max(-1.6, Math.min(1.6, d)) * 32;
+        var sc = Math.max(0.68, 1 - Math.min(abs, 2) * 0.16);
+        var br = Math.max(0.32, 1 - Math.min(abs, 1.4) * 0.48);
+
+        card.style.transition = dragPx ? 'none' : '';
+        card.style.transform = 'translate(-50%, -50%) translate3d(' + tx + '%, 0, ' + tz + 'px) rotateY(' + ry + 'deg) scale(' + sc + ')';
+        card.style.filter = 'brightness(' + br.toFixed(3) + ')';
+        card.classList.toggle('is-center', d0 === 0);
+        card.classList.toggle('is-side', Math.abs(d0) === 1);
+        card.style.zIndex = d0 === 0 ? 10 : 5;
+        card.setAttribute('aria-hidden', d0 === 0 ? 'false' : 'true');
+      });
+      dots.forEach(function (dot, i) {
+        dot.classList.toggle('on', i === active);
+        dot.setAttribute('aria-selected', i === active ? 'true' : 'false');
+        dot.tabIndex = i === active ? 0 : -1;
+      });
+      root.setAttribute('data-active', String(active));
+    }
+
+    function playActive(fromStart) {
+      var v = videos[active];
+      if (!v) return;
+      if (fromStart) { try { v.currentTime = 0; } catch (e) { /* */ } }
+      var hasAudio = cards[active].getAttribute('data-has-audio') === 'true';
+      v.muted = !(soundOn && hasAudio);
+      var p = v.play();
+      if (p && p.catch) {
+        p.catch(function () {
+          if (!v.muted) { v.muted = true; soundOn = false; updateSoundLabel(); v.play().catch(function () {}); }
+        });
+      }
+    }
+
+    function sync(fromStart) {
+      videos.forEach(function (v, i) {
+        if (!v) return;
+        if (i !== active || !inView) {
+          v.pause();
+          if (i !== active) v.muted = true;
+        }
+      });
+      if (inView && !userPaused) playActive(fromStart);
+      updateSoundLabel();
+    }
+
+    function go(next) {
+      next = Math.max(0, Math.min(n - 1, next));
+      var changed = next !== active;
+      active = next;
+      if (changed) {
+        if (cards[active].getAttribute('data-has-audio') !== 'true') soundOn = false;
+        userPaused = reduce && userPaused;
+      }
+      render(0);
+      sync(changed);
+    }
+
+    cards.forEach(function (card, i) {
+      var v = videos[i];
+      var bar = card.querySelector('.deck-prog i');
+      card.addEventListener('click', function (e) {
+        if (e.target.closest('.deck-sound') || wasDragged) return;
+        if (i !== active) { go(i); return; }
+        if (!v) return;
+        if (v.paused) { userPaused = false; inView = true; playActive(false); } else { userPaused = true; v.pause(); }
+      });
+      if (v && bar) {
+        v.addEventListener('timeupdate', function () {
+          if (v.duration > 0) bar.style.width = ((v.currentTime / v.duration) * 100).toFixed(2) + '%';
+        });
+      }
+    });
+
+    if (soundBtn) {
+      soundBtn.addEventListener('click', function (e) {
+        e.stopPropagation();
+        if (cards[active].getAttribute('data-has-audio') !== 'true') return;
+        soundOn = !soundOn;
+        var v = videos[active];
+        if (v) {
+          v.muted = !soundOn;
+          if (soundOn && v.paused) { userPaused = false; inView = true; playActive(false); }
+        }
+        updateSoundLabel();
+      });
+    }
+
+    dots.forEach(function (dot) {
+      dot.addEventListener('click', function (e) { e.stopPropagation(); go(+dot.getAttribute('data-car-go')); });
+    });
+
+    root.addEventListener('pointerdown', function (e) {
+      if (e.button !== 0 || e.target.closest('button')) return;
+      down = true; startX = e.clientX; curDx = 0; wasDragged = false;
+      root.classList.add('dragging');
+      try { root.setPointerCapture(e.pointerId); } catch (err) { /* */ }
+    });
+    root.addEventListener('pointermove', function (e) {
+      if (!down) return;
+      curDx = e.clientX - startX;
+      if (Math.abs(curDx) > 8) wasDragged = true;
+      render(curDx);
+    });
+    function endDrag() {
+      if (!down) return;
+      down = false;
+      root.classList.remove('dragging');
+      if (curDx < -50) go(active + 1);
+      else if (curDx > 50) go(active - 1);
+      else render(0);
+      setTimeout(function () { wasDragged = false; }, 50);
+    }
+    root.addEventListener('pointerup', endDrag);
+    root.addEventListener('pointercancel', endDrag);
+    root.addEventListener('dragstart', function (e) { e.preventDefault(); });
+
+    root.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight') { e.preventDefault(); go(active + 1); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); go(active - 1); }
+    });
+
+    if ('IntersectionObserver' in window) {
+      var vis = new IntersectionObserver(function (es) {
+        var e = es[es.length - 1], was = inView;
+        inView = e.intersectionRatio >= 0.25;
+        if (inView !== was) sync(false);
+      }, { threshold: [0, 0.25, 0.5] });
+      vis.observe(root);
+    } else {
+      inView = true;
+      sync(false);
+    }
+
+    render(0);
+    updateSoundLabel();
+    document.addEventListener('visibilitychange', function () {
+      if (document.hidden) videos.forEach(function (v) { if (v) v.pause(); });
+      else sync(false);
+    });
+    window.HVS_CAROUSEL = { go: go, get active() { return active; }, get inView() { return inView; }, videos: videos };
+  }
+
   function init() {
     capture();
     window.HVS_I18N = { t: t, get lang() { return lang; }, set: function (l) { setLang(l, true); } };
@@ -247,6 +449,7 @@
     var bar = document.querySelector('.topbar');
     var onScroll = function () { bar.classList.toggle('scrolled', window.scrollY > 8); };
     window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
+    initCarousel();
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
 })();
